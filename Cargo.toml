@@ -1,0 +1,30 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/ligh-core",
+    "crates/ligh-sim",
+    "crates/ligh-host",
+    "crates/ligh-gpu",
+    "crates/ligh-runtime",
+    "crates/ligh-cli",
+    "crates/ligh-daemon",
+]
+
+[workspace.package]
+version = "0.3.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/mrmarino023/light-ios-simulator"
+authors = ["Mattia Marino <https://github.com/mrmarino023>"]
+rust-version = "1.82"
+
+[workspace.dependencies]
+anyhow = "1"
+clap = { version = "4", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dirs = "6"
+png = "0.17"

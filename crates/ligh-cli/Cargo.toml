@@ -1,0 +1,27 @@
+[package]
+name = "ligh-cli"
+description = "CLI for LIGH — lightweight infrastructure for genuine iOS host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "ligh"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+dirs.workspace = true
+ligh-core = { path = "../ligh-core" }
+ligh-gpu = { path = "../ligh-gpu" }
+ligh-host = { path = "../ligh-host" }
+ligh-sim = { path = "../ligh-sim" }
+ligh-runtime = { path = "../ligh-runtime" }
+tracing.workspace = true
+tracing-subscriber.workspace = true

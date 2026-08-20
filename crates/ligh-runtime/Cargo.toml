@@ -1,0 +1,14 @@
+[package]
+name = "ligh-runtime"
+description = "LIGH v3 session — private boot + IOSurface stream + Metal compositor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ligh-core = { path = "../ligh-core" }
+ligh-host = { path = "../ligh-host" }
+ligh-gpu = { path = "../ligh-gpu" }
+ligh-sim = { path = "../ligh-sim" }
+thiserror.workspace = true
+tracing.workspace = true

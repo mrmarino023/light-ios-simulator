@@ -1,0 +1,15 @@
+[package]
+name = "ligh-host"
+description = "CoreSimulator + SimulatorKit private bridge — IOSurface framebuffer stream"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ligh-core = { path = "../ligh-core" }
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[build-dependencies]
+cc = "1"

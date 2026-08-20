@@ -1,0 +1,22 @@
+[package]
+name = "ligh-gpu"
+description = "Metal compositor — IOSurface import, headless GPU path"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ligh-core = { path = "../ligh-core" }
+metal = "0.29"
+thiserror.workspace = true
+tracing.workspace = true
+raw-window-metal = "1.1"
+raw-window-handle = "0.6"
+winit = "0.29"
+png.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc = "0.2"
+block = "0.1"
+cocoa = "0.26"
+core-graphics = "0.24"

@@ -1,0 +1,860 @@
+{
+  "comparison": {
+    "ligh_mono": {
+      "path": "ligh_mono_direct",
+      "skipped": true
+    },
+    "ligh_warm": "see workload",
+    "mcp_carp": {
+      "path": "mcp_carp",
+      "skipped": true
+    },
+    "opt_simctl_photo": {
+      "path": "opt_simctl_photo_plus_ax",
+      "skipped": true
+    },
+    "probe": {
+      "appium": true,
+      "appium_listening": true,
+      "idb": false,
+      "note": "WDA numbers only appear after a real Appium XCUITest run of the same workflow.",
+      "status": "appium_listening"
+    },
+    "simctl_mcp_like": {
+      "n_step_workload": {
+        "note": "No honest simctl-only 40-step UI loop without an external driver.",
+        "status": "unavailable"
+      },
+      "observe_structured": {
+        "note": "simctl/MCP path is typically screenshot + vision or separate AX tool — not a single structured observe().",
+        "status": "unavailable"
+      },
+      "screenshot": {
+        "stats": {
+          "n": 6,
+          "p50_ms": 155.784209,
+          "p95_ms": 704.7954579999999
+        },
+        "status": "ok",
+        "wall_ms": 1478.3623750000002
+      },
+      "tap": {
+        "note": "simctl has no first-class tap; MCP wrappers usually shell out to WDA/idb/cliclick — not comparable here.",
+        "status": "unavailable"
+      }
+    },
+    "wda_appium": {
+      "cycles": 4,
+      "failed": 0,
+      "failure_rate": 0.0,
+      "hard_fail": null,
+      "locale_labels": {
+        "general": "Generali",
+        "safari": "Safari",
+        "search": "Cerca",
+        "settings": "Impostazioni"
+      },
+      "name": "WDA/Appium XCUITest — same semantic workflow",
+      "note": "External best-in-class baseline. Not MCP carp.",
+      "ok": true,
+      "passed": 44,
+      "path": "appium_xcuitest_wda",
+      "per_op": {
+        "assert": {
+          "n": 4,
+          "p50_ms": 1874.38702583313,
+          "p95_ms": 2013.7369632720947
+        },
+        "home": {
+          "n": 4,
+          "p50_ms": 1390.017032623291,
+          "p95_ms": 1435.999870300293
+        },
+        "observe": {
+          "n": 8,
+          "p50_ms": 4484.720945358276,
+          "p95_ms": 4726.022958755493
+        },
+        "screenshot": {
+          "n": 4,
+          "p50_ms": 82.12685585021973,
+          "p95_ms": 90.50893783569336
+        },
+        "tap_label": {
+          "n": 8,
+          "p50_ms": 646.3968753814697,
+          "p95_ms": 909.3849658966064
+        },
+        "type": {
+          "n": 4,
+          "p50_ms": 493.9749240875244,
+          "p95_ms": 564.910888671875
+        },
+        "wait": {
+          "n": 12,
+          "p50_ms": 190.4428005218506,
+          "p95_ms": 268.71681213378906
+        }
+      },
+      "steps": [
+        {
+          "detail": "cycle=1",
+          "i": 1,
+          "ms": 1387.598991394043,
+          "ok": true,
+          "op": "home"
+        },
+        {
+          "detail": "springboard",
+          "i": 2,
+          "ms": 344.3121910095215,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "52025B",
+          "i": 3,
+          "ms": 4726.022958755493,
+          "ok": true,
+          "op": "observe"
+        },
+        {
+          "detail": "Impostazioni",
+          "i": 4,
+          "ms": 155.9760570526123,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "launchApp Preferences",
+          "i": 5,
+          "ms": 543.5061454772949,
+          "ok": true,
+          "op": "tap_label"
+        },
+        {
+          "detail": "root",
+          "i": 6,
+          "ms": 152.6031494140625,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "35038B",
+          "i": 7,
+          "ms": 1355.7732105255127,
+          "ok": true,
+          "op": "observe"
+        },
+        {
+          "detail": "Cerca",
+          "i": 8,
+          "ms": 646.3968753814697,
+          "ok": true,
+          "op": "tap_label"
+        },
+        {
+          "detail": "ligh",
+          "i": 9,
+          "ms": 564.910888671875,
+          "ok": true,
+          "op": "type"
+        },
+        {
+          "detail": "has_ligh",
+          "i": 10,
+          "ms": 1874.38702583313,
+          "ok": true,
+          "op": "assert"
+        },
+        {
+          "detail": "wda_screenshot",
+          "i": 11,
+          "ms": 74.88179206848145,
+          "ok": true,
+          "op": "screenshot"
+        },
+        {
+          "detail": "cycle=2",
+          "i": 12,
+          "ms": 1435.999870300293,
+          "ok": true,
+          "op": "home"
+        },
+        {
+          "detail": "springboard",
+          "i": 13,
+          "ms": 206.8991661071777,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "52025B",
+          "i": 14,
+          "ms": 4590.399980545044,
+          "ok": true,
+          "op": "observe"
+        },
+        {
+          "detail": "Impostazioni",
+          "i": 15,
+          "ms": 190.1459693908691,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "launchApp Preferences",
+          "i": 16,
+          "ms": 542.1409606933594,
+          "ok": true,
+          "op": "tap_label"
+        },
+        {
+          "detail": "root",
+          "i": 17,
+          "ms": 179.42404747009277,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "50785B",
+          "i": 18,
+          "ms": 1719.2471027374268,
+          "ok": true,
+          "op": "observe"
+        },
+        {
+          "detail": "Cerca",
+          "i": 19,
+          "ms": 751.2781620025635,
+          "ok": true,
+          "op": "tap_label"
+        },
+        {
+          "detail": "ligh",
+          "i": 20,
+          "ms": 480.229139328003,
+          "ok": true,
+          "op": "type"
+        },
+        {
+          "detail": "has_ligh",
+          "i": 21,
+          "ms": 1799.027919769287,
+          "ok": true,
+          "op": "assert"
+        },
+        {
+          "detail": "wda_screenshot",
+          "i": 22,
+          "ms": 56.62298202514648,
+          "ok": true,
+          "op": "screenshot"
+        },
+        {
+          "detail": "cycle=3",
+          "i": 23,
+          "ms": 1390.017032623291,
+          "ok": true,
+          "op": "home"
+        },
+        {
+          "detail": "springboard",
+          "i": 24,
+          "ms": 173.03013801574707,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "52025B",
+          "i": 25,
+          "ms": 4681.854963302612,
+          "ok": true,
+          "op": "observe"
+        },
+        {
+          "detail": "Impostazioni",
+          "i": 26,
+          "ms": 190.4428005218506,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "launchApp Preferences",
+          "i": 27,
+          "ms": 628.5250186920166,
+          "ok": true,
+          "op": "tap_label"
+        },
+        {
+          "detail": "root",
+          "i": 28,
+          "ms": 206.02989196777344,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "50803B",
+          "i": 29,
+          "ms": 1821.727991104126,
+          "ok": true,
+          "op": "observe"
+        },
+        {
+          "detail": "Cerca",
+          "i": 30,
+          "ms": 756.2301158905029,
+          "ok": true,
+          "op": "tap_label"
+        },
+        {
+          "detail": "ligh",
+          "i": 31,
+          "ms": 493.6990737915039,
+          "ok": true,
+          "op": "type"
+        },
+        {
+          "detail": "has_ligh",
+          "i": 32,
+          "ms": 1819.410800933838,
+          "ok": true,
+          "op": "assert"
+        },
+        {
+          "detail": "wda_screenshot",
+          "i": 33,
+          "ms": 82.12685585021973,
+          "ok": true,
+          "op": "screenshot"
+        },
+        {
+          "detail": "cycle=4",
+          "i": 34,
+          "ms": 1378.0012130737305,
+          "ok": true,
+          "op": "home"
+        },
+        {
+          "detail": "springboard",
+          "i": 35,
+          "ms": 246.3350296020508,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "52025B",
+          "i": 36,
+          "ms": 4484.720945358276,
+          "ok": true,
+          "op": "observe"
+        },
+        {
+          "detail": "Impostazioni",
+          "i": 37,
+          "ms": 161.23390197753906,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "launchApp Preferences",
+          "i": 38,
+          "ms": 606.5728664398193,
+          "ok": true,
+          "op": "tap_label"
+        },
+        {
+          "detail": "root",
+          "i": 39,
+          "ms": 268.71681213378906,
+          "ok": true,
+          "op": "wait"
+        },
+        {
+          "detail": "50818B",
+          "i": 40,
+          "ms": 1930.2499294281008,
+          "ok": true,
+          "op": "observe"
+        },
+        {
+          "detail": "Cerca",
+          "i": 41,
+          "ms": 909.3849658966064,
+          "ok": true,
+          "op": "tap_label"
+        },
+        {
+          "detail": "ligh",
+          "i": 42,
+          "ms": 493.9749240875244,
+          "ok": true,
+          "op": "type"
+        },
+        {
+          "detail": "has_ligh",
+          "i": 43,
+          "ms": 2013.7369632720947,
+          "ok": true,
+          "op": "assert"
+        },
+        {
+          "detail": "wda_screenshot",
+          "i": 44,
+          "ms": 90.50893783569336,
+          "ok": true,
+          "op": "screenshot"
+        }
+      ],
+      "steps_run": 44,
+      "wall_ms": 50022.14598655701
+    }
+  },
+  "honest": true,
+  "micro": {
+    "reason": "workload_only",
+    "skipped": true
+  },
+  "note": "HOLY_SHIT requires ≥5× vs WDA (or best fair non-carp). MCP carp alone is TECH_SIGNAL only.",
+  "proof": {
+    "best_fair_baseline": "wda",
+    "carp_wall_ms": null,
+    "daemon_vs_mono_ratio": null,
+    "meaning": {
+      "HOLY_SHIT": "≥5× vs WDA on same workflow + 0% warm fail — product-grade technical win",
+      "HOST_APIS_WIN_DAEMON_IRRELEVANT": "mono ≈ lighd; win is host APIs not the daemon socket",
+      "REAL_ADVANTAGE_VS_OPT_PHOTO": "beats optimized photo path; still need WDA for HOLY_SHIT",
+      "REAL_ADVANTAGE_VS_WDA": "≥2× vs WDA — invest / keep falsifying",
+      "TECH_SIGNAL_VS_MCP_CARP": "≥5× vs process-per-poll MCP only — interesting but may be carp"
+    },
+    "mono_wall_ms": null,
+    "opt_photo_wall_ms": null,
+    "settings_open_hid": 4,
+    "settings_open_simctl_fallback": 0,
+    "simctl_screenshot_p50_ms": 155.784209,
+    "speedup_vs_best_fair": 4.714183117076875,
+    "speedup_vs_carp": null,
+    "speedup_vs_mono": null,
+    "speedup_vs_opt_photo": null,
+    "speedup_vs_wda": 4.714183117076875,
+    "verdict": "REAL_ADVANTAGE_VS_WDA",
+    "warm_failure_rate": 0.0,
+    "warm_ok": true,
+    "warm_wall_ms": 10610.989167,
+    "wda_skipped": false,
+    "wda_wall_ms": 50022.14598655701
+  },
+  "thesis": "Try to kill the result: LIGHd vs mono / opt-photo / MCP-carp / WDA on the same semantic workflow. HOLY_SHIT only vs best fair external baseline (WDA), not vs MCP carp alone.",
+  "workload": {
+    "cpu_ram": "skipped — not instrumented",
+    "cycles": 4,
+    "failed": 0,
+    "failure_rate": 0.0,
+    "hard_fail": null,
+    "locale_labels": {
+      "general": "Generali",
+      "safari": "Safari",
+      "search": "Cerca",
+      "settings": "Impostazioni"
+    },
+    "name": "home → Impostazioni → root → type search → assert field → screenshot (×cycles)",
+    "observe_json_bytes_p50": 2365,
+    "ok": true,
+    "passed": 44,
+    "path": "lighd_warm",
+    "per_op": {
+      "assert": {
+        "n": 4,
+        "p50_ms": 44.514625,
+        "p95_ms": 106.381417
+      },
+      "home": {
+        "n": 4,
+        "p50_ms": 19.998667,
+        "p95_ms": 20.752625000000002
+      },
+      "observe": {
+        "n": 8,
+        "p50_ms": 41.807792000000006,
+        "p95_ms": 181.76737500000002
+      },
+      "screenshot": {
+        "n": 4,
+        "p50_ms": 32.705916,
+        "p95_ms": 34.31725
+      },
+      "tap_label": {
+        "n": 8,
+        "p50_ms": 714.5242920000001,
+        "p95_ms": 1415.5006669999998
+      },
+      "type": {
+        "n": 4,
+        "p50_ms": 143.817916,
+        "p95_ms": 152.970958
+      },
+      "wait": {
+        "n": 12,
+        "p50_ms": 49.089458,
+        "p95_ms": 81.63716699999999
+      }
+    },
+    "steps": [
+      {
+        "detail": "cycle=1",
+        "i": 1,
+        "ms": 20.0,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "home"
+      },
+      {
+        "detail": "springboard:Safari|Impostazioni",
+        "i": 2,
+        "ms": 72.8,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "5650B",
+        "i": 3,
+        "ms": 106.3,
+        "observe_bytes": 5650,
+        "ok": true,
+        "op": "observe"
+      },
+      {
+        "detail": "Impostazioni",
+        "i": 4,
+        "ms": 88.3,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "hid_tap_label",
+        "i": 5,
+        "ms": 1415.5,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "tap_label"
+      },
+      {
+        "detail": "exists_root:Generali",
+        "i": 6,
+        "ms": 43.6,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "5239B",
+        "i": 7,
+        "ms": 41.8,
+        "observe_bytes": 5239,
+        "ok": true,
+        "op": "observe"
+      },
+      {
+        "detail": "Cerca",
+        "i": 8,
+        "ms": 122.3,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "tap_label"
+      },
+      {
+        "detail": "ligh",
+        "i": 9,
+        "ms": 98.5,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "type"
+      },
+      {
+        "detail": "field value=\"Ligh\"",
+        "i": 10,
+        "ms": 44.5,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "assert"
+      },
+      {
+        "detail": "/tmp/ligh-workload-2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC-1.png",
+        "i": 11,
+        "ms": 31.8,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "screenshot"
+      },
+      {
+        "detail": "cycle=2",
+        "i": 12,
+        "ms": 17.8,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "home"
+      },
+      {
+        "detail": "springboard:Safari|Impostazioni",
+        "i": 13,
+        "ms": 32.3,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "1569B",
+        "i": 14,
+        "ms": 11.6,
+        "observe_bytes": 1569,
+        "ok": true,
+        "op": "observe"
+      },
+      {
+        "detail": "Impostazioni",
+        "i": 15,
+        "ms": 49.1,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "hid_tap_label",
+        "i": 16,
+        "ms": 714.5,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "tap_label"
+      },
+      {
+        "detail": "exists_root:Generali",
+        "i": 17,
+        "ms": 81.6,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "5230B",
+        "i": 18,
+        "ms": 40.1,
+        "observe_bytes": 5230,
+        "ok": true,
+        "op": "observe"
+      },
+      {
+        "detail": "Cerca",
+        "i": 19,
+        "ms": 128.3,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "tap_label"
+      },
+      {
+        "detail": "ligh",
+        "i": 20,
+        "ms": 143.8,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "type"
+      },
+      {
+        "detail": "field value=\"Ligh\"",
+        "i": 21,
+        "ms": 106.4,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "assert"
+      },
+      {
+        "detail": "/tmp/ligh-workload-2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC-2.png",
+        "i": 22,
+        "ms": 32.7,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "screenshot"
+      },
+      {
+        "detail": "cycle=3",
+        "i": 23,
+        "ms": 17.2,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "home"
+      },
+      {
+        "detail": "springboard:Safari|Impostazioni",
+        "i": 24,
+        "ms": 37.4,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "1569B",
+        "i": 25,
+        "ms": 13.4,
+        "observe_bytes": 1569,
+        "ok": true,
+        "op": "observe"
+      },
+      {
+        "detail": "Impostazioni",
+        "i": 26,
+        "ms": 57.2,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "hid_tap_label",
+        "i": 27,
+        "ms": 829.9,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "tap_label"
+      },
+      {
+        "detail": "exists_root:Generali",
+        "i": 28,
+        "ms": 41.9,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "5231B",
+        "i": 29,
+        "ms": 181.8,
+        "observe_bytes": 5231,
+        "ok": true,
+        "op": "observe"
+      },
+      {
+        "detail": "Cerca",
+        "i": 30,
+        "ms": 127.2,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "tap_label"
+      },
+      {
+        "detail": "ligh",
+        "i": 31,
+        "ms": 153.0,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "type"
+      },
+      {
+        "detail": "field value=\"Ligh\"",
+        "i": 32,
+        "ms": 23.3,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "assert"
+      },
+      {
+        "detail": "/tmp/ligh-workload-2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC-3.png",
+        "i": 33,
+        "ms": 32.3,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "screenshot"
+      },
+      {
+        "detail": "cycle=4",
+        "i": 34,
+        "ms": 20.8,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "home"
+      },
+      {
+        "detail": "springboard:Safari|Impostazioni",
+        "i": 35,
+        "ms": 40.4,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "1570B",
+        "i": 36,
+        "ms": 15.5,
+        "observe_bytes": 1570,
+        "ok": true,
+        "op": "observe"
+      },
+      {
+        "detail": "Impostazioni",
+        "i": 37,
+        "ms": 56.8,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "hid_tap_label",
+        "i": 38,
+        "ms": 726.6,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "tap_label"
+      },
+      {
+        "detail": "exists_root:Generali",
+        "i": 39,
+        "ms": 40.4,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "wait"
+      },
+      {
+        "detail": "5232B",
+        "i": 40,
+        "ms": 55.4,
+        "observe_bytes": 5232,
+        "ok": true,
+        "op": "observe"
+      },
+      {
+        "detail": "Cerca",
+        "i": 41,
+        "ms": 127.5,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "tap_label"
+      },
+      {
+        "detail": "ligh",
+        "i": 42,
+        "ms": 98.6,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "type"
+      },
+      {
+        "detail": "field value=\"Ligh\"",
+        "i": 43,
+        "ms": 25.5,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "assert"
+      },
+      {
+        "detail": "/tmp/ligh-workload-2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC-4.png",
+        "i": 44,
+        "ms": 34.3,
+        "observe_bytes": null,
+        "ok": true,
+        "op": "screenshot"
+      }
+    ],
+    "steps_run": 44,
+    "target_steps": 40,
+    "wall_ms": 10610.989167
+  }
+}

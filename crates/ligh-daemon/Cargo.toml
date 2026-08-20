@@ -1,0 +1,22 @@
+[package]
+name = "ligh-daemon"
+description = "Persistent hot-sim daemon for LIGH"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "lighd"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+dirs.workspace = true
+ligh-core = { path = "../ligh-core" }
+ligh-gpu = { path = "../ligh-gpu" }
+ligh-host = { path = "../ligh-host" }
+ligh-sim = { path = "../ligh-sim" }
+tracing.workspace = true
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

@@ -1,0 +1,12 @@
+/target
+**/*.rs.bk
+.DS_Store
+.idea/
+.vscode/
+*.swp
+.env
+*.log
+node_modules/
+.appium/
+package-lock.json
+docs/assets/_*.png

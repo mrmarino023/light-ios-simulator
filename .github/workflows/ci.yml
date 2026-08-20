@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: macOS SDK
+        run: echo "SDKROOT=$(xcrun --sdk macosx --show-sdk-path)" >> "$GITHUB_ENV"
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build release
+        run: cargo build --release --locked
+
+      - name: Version
+        run: ./target/release/ligh --version
+
+      - name: Test
+        run: cargo test --locked --workspace --lib
+
+      - name: Shell scripts syntax
+        run: |
+          bash -n scripts/install.sh
+          bash -n scripts/agent-reliability.sh
+          bash -n scripts/time-to-first-loop.sh
+          bash -n scripts/agent-harness.sh
+          bash -n scripts/lib/agent-env.sh
+          bash -n scripts/workloads/settings-search.sh
+          bash -n scripts/workloads/messages-compose.sh
+          bash -n scripts/workloads/springboard-icons.sh
+          bash -n scripts/demo-type-agent.sh
+          bash -n scripts/demo-agent.sh
