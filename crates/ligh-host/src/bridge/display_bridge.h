@@ -35,6 +35,10 @@ bool ligh_host_shutdown(const char *udid, LighHostError *err);
 bool ligh_host_hid_tap(const char *udid, double norm_x, double norm_y, double width,
                        double height, LighHostError *err);
 
+/// Long-press: touch down, hold `hold_ms`, touch up.
+bool ligh_host_hid_tap_hold(const char *udid, double norm_x, double norm_y, double width,
+                            double height, double hold_ms, LighHostError *err);
+
 bool ligh_host_hid_swipe(const char *udid,
                          double from_norm_x, double from_norm_y,
                          double to_norm_x, double to_norm_y,
@@ -53,6 +57,9 @@ bool ligh_host_hid_prepare(const char *udid, LighHostError *err);
 
 /// Type UTF-8 text via IndigoHID keyboard (down/up per character).
 bool ligh_host_hid_type(const char *udid, const char *text, LighHostError *err);
+
+/// Single USB HID keyboard usage (down+up). e.g. 0x2A delete, 0x28 return.
+bool ligh_host_hid_key(const char *udid, uint32_t usage, LighHostError *err);
 
 /// Dump frontmost-app accessibility tree as JSON (caller frees with ligh_host_ax_free).
 /// Headless — uses AccessibilityPlatformTranslation + SimDevice XPC (no Simulator.app).

@@ -48,20 +48,63 @@ pub enum DaemonRequest {
         /// If set, resolve via AX (waits up to `timeout_ms`) then tap center.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         label: Option<String>,
+        /// Exact scene-graph id from observe v2.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+    },
+    LongPress {
+        #[serde(default)]
+        x: f64,
+        #[serde(default)]
+        y: f64,
+        #[serde(default = "default_true")]
+        normalized: bool,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        hold_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+    },
+    ScrollUntil {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        max_swipes: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         timeout_ms: Option<u64>,
     },
     Type {
         text: String,
     },
+    Clear {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        count: Option<u32>,
+    },
+    Key {
+        name: String,
+    },
     Wait {
-        label: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         timeout_ms: Option<u64>,
     },
     Exists {
-        label: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
     },
+    Sense,
     Swipe {
         from_x: f64,
         from_y: f64,
@@ -80,6 +123,9 @@ pub enum DaemonRequest {
         /// Dump accessibility tree. Frame-only observe is much cheaper.
         #[serde(default = "default_true")]
         ax: bool,
+        /// Poll AX until settled (ready + actionable) or this budget elapses (ms).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
     },
     StreamStats,
     /// Tear down the simulator session and exit the daemon.
@@ -194,11 +240,15 @@ impl DaemonClient {
     }
 
     pub fn observe(&self) -> Result<serde_json::Value> {
-        self.observe_ax(true)
+        self.observe_ax_settle(true, Some(2500))
     }
 
     pub fn observe_ax(&self, ax: bool) -> Result<serde_json::Value> {
-        let resp = self.call(&DaemonRequest::Observe { ax })?;
+        self.observe_ax_settle(ax, None)
+    }
+
+    pub fn observe_ax_settle(&self, ax: bool, settle_ms: Option<u64>) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::Observe { ax, settle_ms })?;
         resp.into_result()?
             .ok_or_else(|| LighError::Simctl("observe returned no data".into()))
     }
@@ -209,6 +259,7 @@ impl DaemonClient {
             y,
             normalized,
             label: None,
+            id: None,
             timeout_ms: None,
         })?
         .into_result()?;
@@ -221,24 +272,86 @@ impl DaemonClient {
             y: 0.0,
             normalized: true,
             label: Some(label.to_string()),
+            id: None,
             timeout_ms,
         })?;
         resp.into_result()?
             .ok_or_else(|| LighError::Simctl("tap_label returned no data".into()))
     }
 
+    pub fn tap_id(&self, id: &str, timeout_ms: Option<u64>) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::Tap {
+            x: 0.0,
+            y: 0.0,
+            normalized: true,
+            label: None,
+            id: Some(id.to_string()),
+            timeout_ms,
+        })?;
+        resp.into_result()?
+            .ok_or_else(|| LighError::Simctl("tap_id returned no data".into()))
+    }
+
+    pub fn long_press_label(
+        &self,
+        label: &str,
+        hold_ms: Option<u64>,
+        timeout_ms: Option<u64>,
+    ) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::LongPress {
+            x: 0.0,
+            y: 0.0,
+            normalized: true,
+            label: Some(label.to_string()),
+            id: None,
+            hold_ms,
+            timeout_ms,
+        })?;
+        resp.into_result()?
+            .ok_or_else(|| LighError::Simctl("long_press returned no data".into()))
+    }
+
+    pub fn scroll_until(
+        &self,
+        label: Option<&str>,
+        id: Option<&str>,
+        max_swipes: Option<u32>,
+        timeout_ms: Option<u64>,
+    ) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::ScrollUntil {
+            label: label.map(|s| s.to_string()),
+            id: id.map(|s| s.to_string()),
+            max_swipes,
+            timeout_ms,
+        })?;
+        resp.into_result()?
+            .ok_or_else(|| LighError::Simctl("scroll_until returned no data".into()))
+    }
+
     pub fn wait_label(&self, label: &str, timeout_ms: Option<u64>) -> Result<serde_json::Value> {
         let resp = self.call(&DaemonRequest::Wait {
-            label: label.to_string(),
+            label: Some(label.to_string()),
+            id: None,
             timeout_ms,
         })?;
         resp.into_result()?
             .ok_or_else(|| LighError::Simctl("wait returned no data".into()))
     }
 
+    pub fn wait_id(&self, id: &str, timeout_ms: Option<u64>) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::Wait {
+            label: None,
+            id: Some(id.to_string()),
+            timeout_ms,
+        })?;
+        resp.into_result()?
+            .ok_or_else(|| LighError::Simctl("wait id returned no data".into()))
+    }
+
     pub fn exists_label(&self, label: &str) -> Result<bool> {
         let resp = self.call(&DaemonRequest::Exists {
-            label: label.to_string(),
+            label: Some(label.to_string()),
+            id: None,
         })?;
         let data = resp
             .into_result()?
@@ -252,6 +365,25 @@ impl DaemonClient {
         })?
         .into_result()?;
         Ok(())
+    }
+
+    pub fn clear(&self, count: Option<u32>) -> Result<()> {
+        self.call(&DaemonRequest::Clear { count })?.into_result()?;
+        Ok(())
+    }
+
+    pub fn key(&self, name: &str) -> Result<()> {
+        self.call(&DaemonRequest::Key {
+            name: name.to_string(),
+        })?
+        .into_result()?;
+        Ok(())
+    }
+
+    pub fn sense(&self) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::Sense)?;
+        resp.into_result()?
+            .ok_or_else(|| LighError::Simctl("sense returned no data".into()))
     }
 
     pub fn swipe(
@@ -360,6 +492,7 @@ mod tests {
             y: 0.5,
             normalized: true,
             label: None,
+            id: None,
             timeout_ms: None,
         };
         let s = serde_json::to_string(&r).unwrap();

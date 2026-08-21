@@ -95,29 +95,78 @@ enum Commands {
         /// Tap center of first AX element matching this label (waits up to --timeout-ms).
         #[arg(long)]
         label: Option<String>,
-        /// AX wait budget for --label (default 2000).
+        /// Tap by stable scene-graph id from observe v2.
+        #[arg(long)]
+        id: Option<String>,
+        /// AX wait budget for --label/--id (default 2000).
         #[arg(long, default_value_t = 2000)]
+        timeout_ms: u64,
+    },
+    /// Long-press (context menus). Prefer --id / --label.
+    #[command(name = "long-press")]
+    LongPress {
+        #[arg(long)]
+        x: Option<f64>,
+        #[arg(long)]
+        y: Option<f64>,
+        #[arg(long)]
+        points: bool,
+        #[arg(long)]
+        label: Option<String>,
+        #[arg(long)]
+        id: Option<String>,
+        #[arg(long, default_value_t = 600)]
+        hold_ms: u64,
+        #[arg(long, default_value_t = 2000)]
+        timeout_ms: u64,
+    },
+    /// Swipe until label/id is on-screen.
+    #[command(name = "scroll-until")]
+    ScrollUntil {
+        #[arg(long)]
+        label: Option<String>,
+        #[arg(long)]
+        id: Option<String>,
+        #[arg(long, default_value_t = 8)]
+        max_swipes: u32,
+        #[arg(long, default_value_t = 12000)]
         timeout_ms: u64,
     },
     /// Dump accessibility tree (AXPTranslator, headless).
     Ax,
-    /// Block until an AX label/identifier is visible.
+    /// Block until an AX label/identifier or id is visible.
     Wait {
         #[arg(long)]
-        label: String,
+        label: Option<String>,
+        #[arg(long)]
+        id: Option<String>,
         #[arg(long, default_value_t = 8000)]
         timeout_ms: u64,
     },
-    /// Query whether an AX label currently exists (no wait).
+    /// Query whether an AX label/id currently exists (no wait).
     Exists {
         #[arg(long)]
-        label: String,
+        label: Option<String>,
+        #[arg(long)]
+        id: Option<String>,
     },
     /// Type UTF-8 text via IndigoHID keyboard.
     Type {
         #[arg(long)]
         text: String,
     },
+    /// Clear focused field via repeated Delete.
+    Clear {
+        #[arg(long, default_value_t = 40)]
+        count: u32,
+    },
+    /// Press a named key (return|delete|escape|tab|space|arrows).
+    Key {
+        #[arg(long)]
+        name: String,
+    },
+    /// Recent sensation events only.
+    Sense,
     /// Inject a swipe gesture (down → move → up).
     Swipe {
         #[arg(long)]
@@ -133,7 +182,7 @@ enum Commands {
     },
     /// Press the Home button.
     Home,
-    /// Capture screenshot from IOSurface (no Simulator.app needed).
+    /// Capture screenshot from IOSurface (debug — not agent happy path).
     Screenshot {
         /// Path to write PNG. Defaults to `~/.ligh/screenshot.png`.
         #[arg(short, long)]
@@ -144,6 +193,12 @@ enum Commands {
         /// Skip accessibility dump (frame + session only).
         #[arg(long)]
         no_ax: bool,
+        /// Wait until AX is settled (ready + actionable). Default 2500ms on hot path.
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+        /// Do not settle (single dump).
+        #[arg(long)]
+        no_settle: bool,
     },
     /// Start / stop / status of the persistent agent host (`lighd`).
     Daemon {
@@ -459,9 +514,42 @@ fn main() -> anyhow::Result<()> {
             y,
             points,
             label,
+            id,
             timeout_ms,
         } => {
-            if let Some(label) = label {
+            if let Some(eid) = id {
+                if direct {
+                    let session = require_session(&config)?;
+                    let (sim_w, sim_h) = session_dims(&session);
+                    let (nx, ny, waited) = AxDump::wait_id(
+                        &session.udid,
+                        &eid,
+                        Duration::from_millis(timeout_ms),
+                    )?;
+                    HidInput::tap(&session.udid, nx, ny, sim_w, sim_h)?;
+                    if use_json {
+                        println!(
+                            "{}",
+                            serde_json::json!({
+                                "ok": true, "id": eid, "x": nx, "y": ny,
+                                "waited_ms": waited.as_secs_f64() * 1000.0, "path": "direct"
+                            })
+                        );
+                    } else {
+                        println!(
+                            "✓ tap id={eid:?} → ({nx:.3}, {ny:.3}) waited {:.0}ms",
+                            waited.as_secs_f64() * 1000.0
+                        );
+                    }
+                } else {
+                    let data = hot_client()?.tap_id(&eid, Some(timeout_ms))?;
+                    if use_json {
+                        println!("{}", serde_json::json!({ "ok": true, "data": data, "path": "lighd" }));
+                    } else {
+                        println!("✓ tap id={eid:?} via lighd {data}");
+                    }
+                }
+            } else if let Some(label) = label {
                 if direct {
                     let session = require_session(&config)?;
                     let (sim_w, sim_h) = session_dims(&session);
@@ -494,8 +582,8 @@ fn main() -> anyhow::Result<()> {
                     }
                 }
             } else {
-                let x = x.ok_or_else(|| anyhow::anyhow!("--x required (or use --label)"))?;
-                let y = y.ok_or_else(|| anyhow::anyhow!("--y required (or use --label)"))?;
+                let x = x.ok_or_else(|| anyhow::anyhow!("--x required (or use --label/--id)"))?;
+                let y = y.ok_or_else(|| anyhow::anyhow!("--y required (or use --label/--id)"))?;
                 let normalized = !points;
                 if direct {
                     let session = require_session(&config)?;
@@ -513,49 +601,212 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
-        Commands::Wait { label, timeout_ms } => {
+        Commands::LongPress {
+            x,
+            y,
+            points,
+            label,
+            id,
+            hold_ms,
+            timeout_ms,
+        } => {
             if direct {
                 let session = require_session(&config)?;
-                let (nx, ny, waited) =
-                    AxDump::wait_label(&session.udid, &label, Duration::from_millis(timeout_ms))?;
-                if use_json {
-                    println!(
-                        "{}",
-                        serde_json::json!({
-                            "ok": true, "label": label, "x": nx, "y": ny,
-                            "waited_ms": waited.as_secs_f64() * 1000.0, "path": "direct"
-                        })
-                    );
+                let (sim_w, sim_h) = session_dims(&session);
+                let (nx, ny) = if let Some(ref eid) = id {
+                    let (nx, ny, _) =
+                        AxDump::wait_id(&session.udid, eid, Duration::from_millis(timeout_ms))?;
+                    (nx, ny)
+                } else if let Some(ref lab) = label {
+                    let (nx, ny, _) =
+                        AxDump::wait_label(&session.udid, lab, Duration::from_millis(timeout_ms))?;
+                    (nx, ny)
                 } else {
-                    println!(
-                        "✓ wait {label:?} ({nx:.3}, {ny:.3}) in {:.0}ms",
-                        waited.as_secs_f64() * 1000.0
-                    );
+                    let x = x.ok_or_else(|| anyhow::anyhow!("--x or --label/--id required"))?;
+                    let y = y.ok_or_else(|| anyhow::anyhow!("--y or --label/--id required"))?;
+                    if points {
+                        (x / sim_w, y / sim_h)
+                    } else {
+                        (x, y)
+                    }
+                };
+                HidInput::tap_hold(&session.udid, nx, ny, sim_w, sim_h, hold_ms as f64)?;
+                if use_json {
+                    println!("{}", serde_json::json!({ "ok": true, "x": nx, "y": ny, "hold_ms": hold_ms }));
+                } else {
+                    println!("✓ long-press ({nx:.3}, {ny:.3}) hold={hold_ms}ms");
                 }
             } else {
-                let data = hot_client()?.wait_label(&label, Some(timeout_ms))?;
+                let data = hot_client()?.call(&ligh_core::DaemonRequest::LongPress {
+                    x: x.unwrap_or(0.0),
+                    y: y.unwrap_or(0.0),
+                    normalized: !points,
+                    label,
+                    id,
+                    hold_ms: Some(hold_ms),
+                    timeout_ms: Some(timeout_ms),
+                })?;
+                let v = data.into_result()?;
                 if use_json {
-                    println!("{}", serde_json::json!({ "ok": true, "data": data }));
+                    println!("{}", serde_json::json!({ "ok": true, "data": v }));
                 } else {
-                    println!("✓ wait {label:?} {data}");
+                    println!("✓ long-press via lighd {v:?}");
                 }
             }
         }
 
-        Commands::Exists { label } => {
-            let found = if direct {
-                let session = require_session(&config)?;
-                AxDump::exists_label(&session.udid, &label)?
+        Commands::ScrollUntil {
+            label,
+            id,
+            max_swipes,
+            timeout_ms,
+        } => {
+            if label.is_none() && id.is_none() {
+                anyhow::bail!("scroll-until needs --label or --id");
+            }
+            let data = hot_client()?.scroll_until(
+                label.as_deref(),
+                id.as_deref(),
+                Some(max_swipes),
+                Some(timeout_ms),
+            )?;
+            if use_json {
+                println!("{}", serde_json::json!({ "ok": true, "data": data }));
             } else {
-                hot_client()?.exists_label(&label)?
+                println!("✓ scroll-until {data}");
+            }
+        }
+
+        Commands::Wait {
+            label,
+            id,
+            timeout_ms,
+        } => {
+            if let Some(eid) = id {
+                if direct {
+                    let session = require_session(&config)?;
+                    let (nx, ny, waited) =
+                        AxDump::wait_id(&session.udid, &eid, Duration::from_millis(timeout_ms))?;
+                    if use_json {
+                        println!(
+                            "{}",
+                            serde_json::json!({
+                                "ok": true, "id": eid, "x": nx, "y": ny,
+                                "waited_ms": waited.as_secs_f64() * 1000.0, "path": "direct"
+                            })
+                        );
+                    } else {
+                        println!(
+                            "✓ wait id={eid:?} ({nx:.3}, {ny:.3}) in {:.0}ms",
+                            waited.as_secs_f64() * 1000.0
+                        );
+                    }
+                } else {
+                    let data = hot_client()?.wait_id(&eid, Some(timeout_ms))?;
+                    if use_json {
+                        println!("{}", serde_json::json!({ "ok": true, "data": data }));
+                    } else {
+                        println!("✓ wait id={eid:?} {data}");
+                    }
+                }
+            } else if let Some(label) = label {
+                if direct {
+                    let session = require_session(&config)?;
+                    let (nx, ny, waited) =
+                        AxDump::wait_label(&session.udid, &label, Duration::from_millis(timeout_ms))?;
+                    if use_json {
+                        println!(
+                            "{}",
+                            serde_json::json!({
+                                "ok": true, "label": label, "x": nx, "y": ny,
+                                "waited_ms": waited.as_secs_f64() * 1000.0, "path": "direct"
+                            })
+                        );
+                    } else {
+                        println!(
+                            "✓ wait {label:?} ({nx:.3}, {ny:.3}) in {:.0}ms",
+                            waited.as_secs_f64() * 1000.0
+                        );
+                    }
+                } else {
+                    let data = hot_client()?.wait_label(&label, Some(timeout_ms))?;
+                    if use_json {
+                        println!("{}", serde_json::json!({ "ok": true, "data": data }));
+                    } else {
+                        println!("✓ wait {label:?} {data}");
+                    }
+                }
+            } else {
+                anyhow::bail!("wait needs --label or --id");
+            }
+        }
+
+        Commands::Exists { label, id } => {
+            let found = if let Some(ref eid) = id {
+                if direct {
+                    let session = require_session(&config)?;
+                    AxDump::exists_id(&session.udid, eid)?
+                } else {
+                    hot_client()?
+                        .call(&ligh_core::DaemonRequest::Exists {
+                            label: None,
+                            id: Some(eid.clone()),
+                        })?
+                        .into_result()?
+                        .and_then(|d| d.get("found").and_then(|v| v.as_bool()))
+                        .unwrap_or(false)
+                }
+            } else if let Some(ref label) = label {
+                if direct {
+                    let session = require_session(&config)?;
+                    AxDump::exists_label(&session.udid, label)?
+                } else {
+                    hot_client()?.exists_label(label)?
+                }
+            } else {
+                anyhow::bail!("exists needs --label or --id");
             };
             if use_json {
-                println!("{}", serde_json::json!({ "ok": true, "label": label, "found": found }));
-            } else if found {
-                println!("✓ exists {label:?}");
+                println!("{}", serde_json::json!({ "ok": true, "found": found, "label": label, "id": id }));
             } else {
-                println!("✗ missing {label:?}");
-                std::process::exit(1);
+                println!("{}", if found { "found" } else { "missing" });
+            }
+        }
+
+        Commands::Clear { count } => {
+            if direct {
+                let session = require_session(&config)?;
+                HidInput::clear(&session.udid, count)?;
+            } else {
+                hot_client()?.clear(Some(count))?;
+            }
+            if use_json {
+                println!("{}", serde_json::json!({ "ok": true, "count": count }));
+            } else {
+                println!("✓ clear {count} deletes");
+            }
+        }
+
+        Commands::Key { name } => {
+            if direct {
+                let session = require_session(&config)?;
+                HidInput::key_named(&session.udid, &name)?;
+            } else {
+                hot_client()?.key(&name)?;
+            }
+            if use_json {
+                println!("{}", serde_json::json!({ "ok": true, "key": name }));
+            } else {
+                println!("✓ key {name}");
+            }
+        }
+
+        Commands::Sense => {
+            let data = hot_client()?.sense()?;
+            if use_json {
+                println!("{}", serde_json::to_string_pretty(&data)?);
+            } else {
+                println!("{data}");
             }
         }
 
@@ -672,7 +923,11 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
-        Commands::Observe { no_ax } => {
+        Commands::Observe {
+            no_ax,
+            settle_ms,
+            no_settle,
+        } => {
             if direct {
                 let snap = observe_direct(&config, !no_ax)?;
                 if use_json {
@@ -681,7 +936,8 @@ fn main() -> anyhow::Result<()> {
                     print_observe(&snap);
                 }
             } else {
-                let data = hot_client()?.observe_ax(!no_ax)?;
+                let settle = if no_settle { None } else { Some(settle_ms) };
+                let data = hot_client()?.observe_ax_settle(!no_ax, settle)?;
                 if use_json {
                     println!("{}", serde_json::to_string_pretty(&data)?);
                 } else if let Ok(snap) = serde_json::from_value::<ObserveSnapshot>(data.clone()) {
@@ -769,19 +1025,35 @@ fn hot_client() -> anyhow::Result<DaemonClient> {
 }
 
 fn print_observe(snap: &ObserveSnapshot) {
+    println!("schema:            {}", snap.schema_version);
     println!("udid:              {}", snap.udid);
     println!("booted:            {}", snap.booted);
-    println!("simulator_app:     {}", snap.simulator_app_running);
-    println!("path:              {:?}", snap.path);
-    if let Some(ms) = snap.observe_ms {
-        println!("observe_ms:        {ms:.2}");
+    println!("ax_quality:        {} settled={}", snap.ax_quality, snap.settled);
+    if let Some(scene) = &snap.scene {
+        println!(
+            "scene:             surface={:?} title={:?} kb={} alerts={}",
+            scene.surface,
+            scene.screen_title,
+            scene.keyboard_visible,
+            scene.alerts.len()
+        );
     }
-    if let Some(f) = &snap.frame {
-        println!("frame:             {}×{} @ {:.1}fps (id={})", f.width, f.height, f.fps, f.id);
-    } else {
-        println!("frame:             none");
+    if !snap.events.is_empty() {
+        println!("events:            {} sense event(s)", snap.events.len());
+        for e in snap.events.iter().take(6) {
+            println!("  • {} {:?}", e.kind, e.payload);
+        }
     }
-    println!("app_bundle_id:     {:?}", snap.app_bundle_id);
+    println!("actionable_topk:   {}", snap.actionable_topk.len());
+    for n in snap.actionable_topk.iter().take(12) {
+        let id = n.get("id").and_then(|v| v.as_str()).unwrap_or("");
+        let label = n.get("label").and_then(|v| v.as_str()).unwrap_or("");
+        let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+        let cn = n.get("center_norm");
+        let cx = cn.and_then(|c| c.get("x")).and_then(|v| v.as_f64()).unwrap_or(0.0);
+        let cy = cn.and_then(|c| c.get("y")).and_then(|v| v.as_f64()).unwrap_or(0.0);
+        println!("  • [{role}] {label} id={id} @({cx:.2},{cy:.2})");
+    }
     match &snap.accessibility_tree {
         AccessibilityTree::Available {
             nodes,
@@ -792,11 +1064,6 @@ fn print_observe(snap: &ObserveSnapshot) {
                 "accessibility:     available ({} elements)",
                 element_count.unwrap_or(nodes.len())
             );
-            for n in nodes.iter().take(12) {
-                let label = n.get("label").and_then(|v| v.as_str()).unwrap_or("");
-                let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
-                println!("  • [{role}] {label}");
-            }
         }
         AccessibilityTree::Empty => println!("accessibility:     empty"),
         AccessibilityTree::Error { message } => println!("accessibility:     error — {message}"),
@@ -831,7 +1098,7 @@ fn observe_direct(config: &LighConfig, include_ax: bool) -> anyhow::Result<Obser
     } else {
         AccessibilityTree::Empty
     };
-    Ok(ObserveSnapshot {
+    let mut snap = ObserveSnapshot {
         schema_version: ligh_core::OBSERVE_SCHEMA_VERSION,
         udid: session.udid.clone(),
         booted,
@@ -839,9 +1106,16 @@ fn observe_direct(config: &LighConfig, include_ax: bool) -> anyhow::Result<Obser
         frame,
         app_bundle_id: session.app_bundle_id.clone(),
         accessibility_tree: ax,
+        scene: None,
+        actionable_topk: vec![],
+        events: vec![],
+        ax_quality: "empty".into(),
+        settled: false,
         observe_ms: Some(t0.elapsed().as_secs_f64() * 1000.0),
         path: Some("direct".into()),
-    })
+    };
+    snap.enrich_v2();
+    Ok(snap)
 }
 
 fn require_session(config: &LighConfig) -> anyhow::Result<SessionState> {

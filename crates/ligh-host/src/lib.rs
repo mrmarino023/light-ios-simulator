@@ -254,6 +254,38 @@ impl HidInput {
         }
     }
 
+    pub fn tap_hold(
+        udid: &str,
+        norm_x: f64,
+        norm_y: f64,
+        width: f64,
+        height: f64,
+        hold_ms: f64,
+    ) -> Result<(), LighError> {
+        HostSession::init()?;
+        let _guard = bridge_lock();
+        let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
+        let mut err = ffi::LighHostError {
+            message: std::ptr::null(),
+            code: 0,
+        };
+        if unsafe {
+            ffi::ligh_host_hid_tap_hold(
+                c_udid.as_ptr(),
+                norm_x,
+                norm_y,
+                width,
+                height,
+                hold_ms,
+                &mut err,
+            )
+        } {
+            Ok(())
+        } else {
+            Err(host_err(&err, "ligh_host_hid_tap_hold"))
+        }
+    }
+
     pub fn swipe(
         udid: &str,
         from_norm_x: f64,
@@ -365,6 +397,49 @@ impl HidInput {
             Err(host_err(&err, "ligh_host_hid_type"))
         }
     }
+
+    /// USB HID usage down+up (e.g. 0x2A = Delete/Backspace, 0x28 = Return).
+    pub fn key_usage(udid: &str, usage: u32) -> Result<(), LighError> {
+        HostSession::init()?;
+        let _guard = bridge_lock();
+        let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
+        let mut err = ffi::LighHostError {
+            message: std::ptr::null(),
+            code: 0,
+        };
+        if unsafe { ffi::ligh_host_hid_key(c_udid.as_ptr(), usage, &mut err) } {
+            Ok(())
+        } else {
+            Err(host_err(&err, "ligh_host_hid_key"))
+        }
+    }
+
+    pub fn clear(udid: &str, count: u32) -> Result<(), LighError> {
+        for _ in 0..count.max(1) {
+            Self::key_usage(udid, 0x2A)?; // Delete/Backspace
+        }
+        Ok(())
+    }
+
+    pub fn key_named(udid: &str, name: &str) -> Result<(), LighError> {
+        let usage = match name.to_ascii_lowercase().as_str() {
+            "return" | "enter" => 0x28u32,
+            "delete" | "backspace" => 0x2A,
+            "escape" | "esc" => 0x29,
+            "tab" => 0x2B,
+            "space" => 0x2C,
+            "up" => 0x52,
+            "down" => 0x51,
+            "left" => 0x50,
+            "right" => 0x4F,
+            _ => {
+                return Err(LighError::Simctl(format!(
+                    "unknown key {name:?} (return|delete|escape|tab|space|up|down|left|right)"
+                )))
+            }
+        };
+        Self::key_usage(udid, usage)
+    }
 }
 
 /// Accessibility tree dump (headless AXPTranslator → SimDevice XPC).
@@ -442,9 +517,55 @@ impl AxDump {
         }
     }
 
+    pub fn wait_id(
+        udid: &str,
+        id: &str,
+        timeout: Duration,
+    ) -> Result<(f64, f64, Duration), LighError> {
+        let t0 = Instant::now();
+        let mut hits = 0u8;
+        loop {
+            match Self::dump(udid) {
+                Ok(dump) => {
+                    let rich = dump
+                        .get("element_count")
+                        .and_then(|c| c.as_u64())
+                        .unwrap_or(0)
+                        >= 5;
+                    if let Some((x, y)) = ligh_core::find_id_in_dump(&dump, id) {
+                        hits = hits.saturating_add(1);
+                        // Semantic ids are stable — accept first hit when tree has any elements.
+                        if rich || hits >= 1 {
+                            return Ok((x, y, t0.elapsed()));
+                        }
+                    } else {
+                        hits = 0;
+                    }
+                }
+                Err(e) => {
+                    hits = 0;
+                    if t0.elapsed() >= timeout {
+                        return Err(e);
+                    }
+                }
+            }
+            if t0.elapsed() >= timeout {
+                return Err(LighError::NotReady(format!(
+                    "wait timeout for id={id:?} after {timeout:?}"
+                )));
+            }
+            std::thread::sleep(Duration::from_millis(20));
+        }
+    }
+
     pub fn exists_label(udid: &str, label: &str) -> Result<bool, LighError> {
         let dump = Self::dump(udid)?;
         Ok(ligh_core::find_label_in_dump(&dump, label).is_some())
+    }
+
+    pub fn exists_id(udid: &str, id: &str) -> Result<bool, LighError> {
+        let dump = Self::dump(udid)?;
+        Ok(ligh_core::find_id_in_dump(&dump, id).is_some())
     }
 }
 

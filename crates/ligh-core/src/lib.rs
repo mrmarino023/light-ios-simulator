@@ -12,8 +12,10 @@ pub use config::LighConfig;
 pub use device::DevicePreset;
 pub use error::{LighError, Result};
 pub use observe::{
-    find_label_center, find_label_in_dump, AccessibilityTree, FrameMeta, ObserveSnapshot,
-    OBSERVE_SCHEMA_VERSION,
+    build_actionable_topk, build_scene, detect_surface, diff_sense_events, eyes_ready,
+    find_id_center, find_id_in_dump, find_label_center, find_label_in_dump, is_chrome_node,
+    is_transition_sparse, AccessibilityTree, FrameMeta, ObserveSnapshot, SceneMeta, SenseEvent,
+    ACTIONABLE_TOPK, OBSERVE_SCHEMA_VERSION,
 };
 pub use profile::{FeatureRequirements, resolve_disabled_jobs, slim_labels};
 pub use rpc::{

@@ -28,6 +28,15 @@ extern "C" {
         height: f64,
         err: *mut LighHostError,
     ) -> bool;
+    pub fn ligh_host_hid_tap_hold(
+        udid: *const i8,
+        norm_x: f64,
+        norm_y: f64,
+        width: f64,
+        height: f64,
+        hold_ms: f64,
+        err: *mut LighHostError,
+    ) -> bool;
     pub fn ligh_host_hid_swipe(
         udid: *const i8,
         from_norm_x: f64,
@@ -41,6 +50,7 @@ extern "C" {
     pub fn ligh_host_hid_home(udid: *const i8, err: *mut LighHostError) -> bool;
     pub fn ligh_host_hid_prepare(udid: *const i8, err: *mut LighHostError) -> bool;
     pub fn ligh_host_hid_type(udid: *const i8, text: *const i8, err: *mut LighHostError) -> bool;
+    pub fn ligh_host_hid_key(udid: *const i8, usage: u32, err: *mut LighHostError) -> bool;
     pub fn ligh_host_hid_pointer(
         udid: *const i8,
         norm_x: f64,

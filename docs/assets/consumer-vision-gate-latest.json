@@ -1,0 +1,22 @@
+{
+  "ts": 1787329633.709562,
+  "schema_version": 2,
+  "substrate": {
+    "ok": true,
+    "actionable_topk": 12,
+    "ax_quality": "ready"
+  },
+  "motor": {
+    "ok": true
+  },
+  "llm": {
+    "status": "pass",
+    "pass": 40,
+    "total": 40
+  },
+  "vision_compare": {
+    "status": "skipped"
+  },
+  "publish": true,
+  "claim": "llm_20x20_no_png_pass"
+}

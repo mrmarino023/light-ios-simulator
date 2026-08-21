@@ -27,6 +27,7 @@
   <a href="#demo"><strong>Demo</strong></a> ·
   <a href="#benchmark"><strong>Benchmark</strong></a> ·
   <a href="docs/OBSERVE.md"><strong>Observe contract</strong></a> ·
+  <a href="docs/CONSUMER_AGENT_VISION.md"><strong>Consumer Agent Vision</strong></a> ·
   <a href="docs/AGENT.md"><strong>Agent prompt</strong></a> ·
   <a href="ROADMAP.md"><strong>Roadmap</strong></a> ·
   <a href="LICENSE"><strong>MIT License</strong></a>
@@ -105,6 +106,17 @@ Stuck? Open an [issue](https://github.com/mrmarino023/light-ios-simulator/issues
 Raw: [`docs/assets/agent-reliability-latest.json`](docs/assets/agent-reliability-latest.json).
 
 Workloads: `scripts/workloads/`. Contract: [`docs/OBSERVE.md`](docs/OBSERVE.md). Plan: [`ROADMAP.md`](ROADMAP.md).
+
+**Consumer Agent Vision (frontier):** settled AX scene graph (`surface`, chrome filter, semantic ids) + motor — **not** pixel CV. Screenshots are debug-only.
+
+```bash
+./scripts/gate-consumer-vision.sh
+# LLM: OPENAI_API_KEY=… LIGH_LLM_GATE=1 OPENAI_MODEL=gpt-5-mini ./scripts/gate-consumer-vision.sh
+```
+
+**Published gate (2026-08-21):** substrate motor OK · **LLM 40/40** (20× Settings + 20× Messages, **no PNGs**, `gpt-5-mini`) · claim `llm_20x20_no_png_pass`.  
+Raw: [`docs/assets/consumer-vision-gate-latest.json`](docs/assets/consumer-vision-gate-latest.json). Design: [`docs/CONSUMER_AGENT_VISION.md`](docs/CONSUMER_AGENT_VISION.md).  
+**Caveat:** loop is settle → surface policy → act → verify (LLM when ambiguous) — not generic computer-use on unlabeled UIs. Vision-only baseline still not run.
 
 Requires a **booted** session (`ligh up`). Scripts wait for SpringBoard AX (IT/EN) — they do not assume English `Safari`/`Settings`.
 
@@ -321,7 +333,7 @@ flowchart TB
 | `ligh-sim` | simctl helpers, bench |
 | `ligh-core` | Session, presets, RPC types |
 
-More: [ARCHITECTURE.md](ARCHITECTURE.md) · [docs/OBSERVE.md](docs/OBSERVE.md) · [docs/AGENT.md](docs/AGENT.md) · [docs/XCODE.md](docs/XCODE.md) · [ROADMAP.md](ROADMAP.md) · [CONTRIBUTING.md](CONTRIBUTING.md)
+More: [ARCHITECTURE.md](ARCHITECTURE.md) · [docs/OBSERVE.md](docs/OBSERVE.md) · [docs/CONSUMER_AGENT_VISION.md](docs/CONSUMER_AGENT_VISION.md) · [docs/AGENT.md](docs/AGENT.md) · [docs/XCODE.md](docs/XCODE.md) · [ROADMAP.md](ROADMAP.md) · [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 

@@ -1,0 +1,6 @@
+{
+  "status": "skipped",
+  "reason": "set LIGH_VISION_COMPARE=1 to enable; default agent path is observe v2 only",
+  "ligh_path": "observe_v2_no_png",
+  "vision_path": "not_run"
+}

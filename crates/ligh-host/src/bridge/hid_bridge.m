@@ -158,6 +158,11 @@ static CGPoint point_from_norm(double norm_x, double norm_y, double width, doubl
 
 bool ligh_host_hid_tap(const char *udid, double norm_x, double norm_y, double width,
                        double height, LighHostError *err) {
+    return ligh_host_hid_tap_hold(udid, norm_x, norm_y, width, height, 80.0, err);
+}
+
+bool ligh_host_hid_tap_hold(const char *udid, double norm_x, double norm_y, double width,
+                            double height, double hold_ms, LighHostError *err) {
     if (!ligh_load_private_frameworks(NULL)) {
         if (err) { err->code = 20; err->message = "frameworks not loaded"; }
         return false;
@@ -174,9 +179,10 @@ bool ligh_host_hid_tap(const char *udid, double norm_x, double norm_y, double wi
         if (err) { err->code = 22; err->message = "touch down failed"; }
         return false;
     }
-    // Wait for down to land in the guest, then hold ~5 frames so SpringBoard
-    // treats it as a tap instead of a dropped mouse blip.
-    usleep(80000);
+    useconds_t hold = (useconds_t)(hold_ms * 1000.0);
+    if (hold < 80000) hold = 80000;
+    if (hold > 5000000) hold = 5000000;
+    usleep(hold);
     if (!send_mouse(client, pt, 2, 2, width, height)) {
         if (err) { err->code = 23; err->message = "touch up failed"; }
         return false;
@@ -413,4 +419,31 @@ bool ligh_host_hid_type(const char *udid, const char *text, LighHostError *err) 
         used_any = YES;
     }
     return used_any || len == 0;
+}
+
+bool ligh_host_hid_key(const char *udid, uint32_t usage, LighHostError *err) {
+    if (!usage) {
+        if (err) { err->code = 47; err->message = "invalid key usage"; }
+        return false;
+    }
+    if (!ligh_load_private_frameworks(NULL)) {
+        if (err) { err->code = 20; err->message = "frameworks not loaded"; }
+        return false;
+    }
+    id client = ensure_hid_client(udid);
+    if (!client) {
+        if (err) { err->code = 21; err->message = "HID client unavailable"; }
+        return false;
+    }
+    if (!g_kbd_arb) {
+        if (err) { err->code = 45; err->message = "IndigoHIDMessageForKeyboardArbitrary missing"; }
+        return false;
+    }
+    void *kd = g_kbd_arb(usage, 1);
+    if (kd) send_message(kd, client);
+    usleep(10000);
+    void *ku = g_kbd_arb(usage, 2);
+    if (ku) send_message(ku, client);
+    usleep(8000);
+    return true;
 }

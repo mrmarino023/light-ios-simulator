@@ -13,21 +13,58 @@ Agents should depend on **these fields**, not on CLI text output.
 
 CLI: `ligh --json observe` prints the snapshot (or error) as JSON.
 
-## `ObserveSnapshot`
+## `ObserveSnapshot` — schema_version **2**
+
+Breaking vs the flat v1 dump: agents should read **`actionable_topk`** + **`events`** first; full `accessibility_tree.nodes` remains for tooling.
 
 | Field | Type | Meaning |
 |-------|------|---------|
-| `schema_version` | u32 | Contract version (**`1`**). Additive fields keep `1`; breaking changes bump. |
+| `schema_version` | u32 | **`2`** |
 | `udid` | string | Active simulator |
 | `booted` | bool | Guest booted |
 | `simulator_app_running` | bool | Simulator.app present (LIGH prefers headless) |
 | `frame` | object? | IOSurface/Metal meta: `w`, `h`, `id`, `fps`, `imports_ok` |
 | `app_bundle_id` | string? | Foreground app if known |
 | `accessibility_tree` | tagged | See below |
+| `scene` | object? | Screen-level summary (title, keyboard, alerts) |
+| `actionable_topk` | array | Default LLM view: hittable/on-screen interesting nodes (capped) |
+| `events` | array | Sensation events since last observe (focus/value/alert/…) |
+| `ax_quality` | string | `ready` \| `empty` \| `stale` \| `error` |
 | `observe_ms` | number? | Server build time |
 | `path` | string? | `"lighd"` (hot) or `"direct"` (cold) |
 
 Source of truth: `crates/ligh-core/src/observe.rs` → `ObserveSnapshot` / `OBSERVE_SCHEMA_VERSION`.
+
+### `scene` (v2)
+
+| Field | Meaning |
+|-------|---------|
+| `bundle_id` | Same as `app_bundle_id` when known |
+| `screen_title` | Best heading / large title guess from AX |
+| `keyboard_visible` | Heuristic from keyboard-ish AX roles |
+| `keyboard_frame` | Optional frame object |
+| `alerts` / `sheets` | Dialog-like nodes in foreground (labels) |
+
+### `actionable_topk[]` node fields
+
+| Field | Meaning |
+|-------|---------|
+| `id` | Stable path hash (`n` + 8 hex) |
+| `role` / `traits` | AX role + trait hints |
+| `text` / `label` / `value` / `placeholder` | Visible / field text |
+| `focused` / `selected` / `enabled` / `hittable` / `visible` | Affordance |
+| `frame` | `{x,y,width,height}` device points |
+| `center_norm` | `{x,y}` in 0..1 |
+| `parent_id` | Parent node id when known |
+
+### `events[]` (sensation)
+
+```text
+{ "t": <unix_secs>, "kind": "focus_changed"|"value_changed"|"alert_appeared"
+         |"keyboard_shown"|"navigated"|"ax_empty"|"action_result", "payload": {…} }
+```
+
+Also available via RPC/CLI `sense` (recent buffer only).
 
 ## `accessibility_tree`
 
@@ -42,43 +79,42 @@ Tagged by `status`:
 
 When `available`:
 
-- `nodes[]` — flat elements
-- `root` — optional nested root
+- `nodes[]` — flat interactive elements (enriched in v2)
+- `root` — optional nested root (includes `id` / tree links)
 - `element_count` — optional
 - `point_size` — `[width, height]` device points for normalize
 
-### Node fields used by `wait` / `tap --label`
+### Match rules (`wait` / `tap --label` / `tap --id`)
 
-| Field | Use |
-|-------|-----|
-| `label` | Primary match string |
-| `identifier` | Secondary match |
-| `value` | Field contents when present |
-| `role` | Prefer search/text fields over static text |
-| `frame` | `{x,y,width,height}` in device points → tap center |
+- **label**: case-insensitive contains on label/identifier/value; prefer editable roles for Search/Cerca; prefer top-most among equals
+- **id**: exact match on `id`
+- Mid-transition trees can be `empty` — **always `wait` the destination** before acting
 
-Match rule (summary): case-insensitive contains on label/identifier; prefer editable roles; prefer top-most among equals. Mid-transition trees can be `empty` — **always `wait` the destination** before acting.
-
-## Related RPCs (same label semantics)
+## Related RPCs
 
 ```text
-wait   { label, timeout_ms }
-exists { label }
-tap    { label } | { x, y, normalized }
+wait   { label? , id? , timeout_ms }
+exists { label? , id? }
+tap    { label? , id? } | { x, y, normalized }
+long_press { label? , id? , hold_ms? } | coords
+scroll_until { label? , id? , max_swipes? }
 type   { text }
-home / swipe / screenshot
+clear  { count? }          # delete/backspace N times
+key    { name }            # return | delete | escape | tab | …
+sense  {}                  # recent sense_events
+home / swipe / screenshot  # screenshot = debug
 ```
 
-## Minimal agent loop
+## Minimal agent loop (v2)
 
 ```bash
 ligh daemon start
 ligh up
-ligh wait --label Impostazioni    # or Settings
+ligh --json observe    # actionable_topk + events — no screenshot
+ligh wait --label Impostazioni
 ligh tap --label Impostazioni
-ligh --json observe               # verify structured state
+# or: ligh tap --id n1a2b3c4
+ligh --json observe    # check value_changed / navigated
 ```
 
-## Compatibility
-
-Additive fields may appear. Do not require unknown keys. Treat unknown `accessibility_tree.status` as error and retry/`wait`.
+Design overview: [`CONSUMER_AGENT_VISION.md`](CONSUMER_AGENT_VISION.md).

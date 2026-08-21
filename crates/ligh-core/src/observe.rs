@@ -17,13 +17,41 @@ pub struct FrameMeta {
     pub imports_ok: bool,
 }
 
+/// Screen-level summary for Consumer Agent Vision (observe v2).
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct SceneMeta {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub bundle_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub screen_title: Option<String>,
+    /// Coarse surface: `springboard` | `settings` | `messages_composer` | `transition` | `app` | `unknown`
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub surface: Option<String>,
+    #[serde(default)]
+    pub keyboard_visible: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keyboard_frame: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub alerts: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub sheets: Vec<String>,
+}
+
+/// Sensation bus event (post-action / poll).
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SenseEvent {
+    /// Unix time seconds (f64).
+    pub t: f64,
+    pub kind: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub payload: Option<serde_json::Value>,
+}
+
 /// Full structured observation — returned by `ligh observe` and `lighd observe` RPC.
-///
-/// Deliberately minimal MVP observation contract.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ObserveSnapshot {
     /// Contract version — bump only on breaking changes; additive fields keep same version.
-    #[serde(default = "observe_schema_v1")]
+    #[serde(default = "observe_schema_default")]
     pub schema_version: u32,
     pub udid: String,
     pub booted: bool,
@@ -34,6 +62,21 @@ pub struct ObserveSnapshot {
     pub app_bundle_id: Option<String>,
     /// Accessibility tree from headless AXPTranslator (or empty/error).
     pub accessibility_tree: AccessibilityTree,
+    /// Screen summary (v2).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scene: Option<SceneMeta>,
+    /// Default LLM view: hittable / interesting nodes (capped).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub actionable_topk: Vec<serde_json::Value>,
+    /// Sensation events since previous observe (daemon) or empty (direct).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub events: Vec<SenseEvent>,
+    /// `ready` | `empty` | `stale` | `error` | `transition`
+    #[serde(default = "default_ax_quality")]
+    pub ax_quality: String,
+    /// True when this snapshot passed settle (not mid-animation sparse AX).
+    #[serde(default)]
+    pub settled: bool,
     /// Server-side time to build this snapshot (hot path metric).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub observe_ms: Option<f64>,
@@ -42,12 +85,19 @@ pub struct ObserveSnapshot {
     pub path: Option<String>,
 }
 
-fn observe_schema_v1() -> u32 {
+fn observe_schema_default() -> u32 {
     OBSERVE_SCHEMA_VERSION
 }
 
+fn default_ax_quality() -> String {
+    "empty".into()
+}
+
 /// Current observe JSON contract version (see `docs/OBSERVE.md`).
-pub const OBSERVE_SCHEMA_VERSION: u32 = 1;
+pub const OBSERVE_SCHEMA_VERSION: u32 = 2;
+
+/// Default cap for `actionable_topk`.
+pub const ACTIONABLE_TOPK: usize = 40;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "status")]
@@ -112,8 +162,21 @@ impl AccessibilityTree {
         }
     }
 
+    pub fn nodes(&self) -> &[serde_json::Value] {
+        match self {
+            Self::Available { nodes, .. } => nodes,
+            _ => &[],
+        }
+    }
+
+    pub fn point_size(&self) -> Option<(f64, f64)> {
+        match self {
+            Self::Available { point_size, .. } => *point_size,
+            _ => None,
+        }
+    }
+
     /// Center of best element whose label or identifier contains `needle`.
-    /// Prefers text/search fields, then top-most match (search bars beat list rows).
     pub fn find_label(&self, needle: &str) -> Option<(f64, f64)> {
         match self {
             Self::Available {
@@ -122,6 +185,542 @@ impl AccessibilityTree {
             _ => None,
         }
     }
+
+    /// Center of element with exact `id`.
+    pub fn find_id(&self, id: &str) -> Option<(f64, f64)> {
+        match self {
+            Self::Available {
+                nodes, point_size, ..
+            } => find_id_center(nodes, id, *point_size),
+            _ => None,
+        }
+    }
+
+    pub fn ax_quality(&self) -> &'static str {
+        match self {
+            Self::Available { nodes, .. } if is_transition_sparse(nodes) => "transition",
+            Self::Available { nodes, .. } if !nodes.is_empty() => "ready",
+            Self::Available { .. } | Self::Empty => "empty",
+            Self::Error { .. } => "error",
+            Self::NotImplemented => "empty",
+        }
+    }
+}
+
+impl ObserveSnapshot {
+    /// Fill v2 scene / actionable_topk / ax_quality from the AX tree.
+    pub fn enrich_v2(&mut self) {
+        self.schema_version = OBSERVE_SCHEMA_VERSION;
+        let nodes = self.accessibility_tree.nodes();
+        self.ax_quality = self.accessibility_tree.ax_quality().into();
+        self.settled = self.ax_quality == "ready";
+        self.actionable_topk = build_actionable_topk(nodes, ACTIONABLE_TOPK);
+        self.scene = Some(build_scene(nodes, self.app_bundle_id.clone()));
+    }
+
+    /// Whether an agent should act on this snapshot (not empty/transition).
+    pub fn is_actionable_eyes(&self) -> bool {
+        self.ax_quality == "ready" && !self.actionable_topk.is_empty()
+    }
+}
+
+/// Status-bar / Spotlight / chrome that must not drive agent policy.
+pub fn is_chrome_node(n: &serde_json::Value) -> bool {
+    let id = n
+        .get("identifier")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    if id == "spotlight-pill" || id.contains("spotlight") {
+        return true;
+    }
+    let lab = n
+        .get("label")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let val = n
+        .get("value")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    // Home Spotlight search affordance (IT/EN) — not Settings search.
+    if (lab == "cerca" || lab == "search") && val.contains("pagina") {
+        return true;
+    }
+    if lab.starts_with("carica batteria")
+        || lab.starts_with("battery")
+        || lab == "cellulare"
+        || lab == "cellular"
+        || lab == "wifi"
+        || lab == "wi-fi"
+    {
+        // Status items are often tiny and top-of-screen; treat as chrome when short height.
+        let h = n
+            .get("frame")
+            .and_then(|f| f.get("height"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
+        let y = n
+            .get("frame")
+            .and_then(|f| f.get("y"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(999.0);
+        if y < 60.0 || h < 28.0 {
+            return true;
+        }
+    }
+    // Clock-only status
+    if lab.len() <= 5 && lab.chars().all(|c| c.is_ascii_digit() || c == ':' || c == '.') {
+        let y = n
+            .get("frame")
+            .and_then(|f| f.get("y"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(999.0);
+        if y < 50.0 {
+            return true;
+        }
+    }
+    false
+}
+
+/// Mid-navigation AX: only status chrome or almost nothing.
+pub fn is_transition_sparse(nodes: &[serde_json::Value]) -> bool {
+    if nodes.is_empty() {
+        return false; // empty is empty, not transition
+    }
+    let useful: Vec<_> = nodes.iter().filter(|n| !is_chrome_node(n)).collect();
+    if useful.len() >= 4 {
+        return false;
+    }
+    // 1–3 non-chrome nodes that are only status-like → transition
+    useful.iter().all(|n| {
+        let lab = n.get("label").and_then(|v| v.as_str()).unwrap_or("");
+        let role = n
+            .get("role")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_ascii_lowercase();
+        lab.is_empty()
+            || role.contains("static")
+            || is_chrome_node(n)
+            || lab.chars().all(|c| c.is_ascii_digit() || c == ':' || c == ' ')
+    }) || useful.len() < 3 && nodes.iter().filter(|n| !is_chrome_node(n)).count() < 3
+}
+
+/// Detect high-level surface for agent policy (not bundle_id — AX labels).
+pub fn detect_surface(nodes: &[serde_json::Value]) -> &'static str {
+    if nodes.is_empty() {
+        return "transition";
+    }
+    let labs: Vec<String> = nodes
+        .iter()
+        .filter(|n| !is_chrome_node(n))
+        .filter_map(|n| n.get("label").and_then(|v| v.as_str()).map(|s| s.to_string()))
+        .collect();
+    let lower: Vec<String> = labs.iter().map(|s| s.to_ascii_lowercase()).collect();
+    let has = |xs: &[&str]| xs.iter().any(|x| lower.iter().any(|l| l == x || l.contains(x)));
+
+    if has(&["a:", "to:"]) && has(&["messaggio", "message"]) {
+        return "messages_composer";
+    }
+    if has(&["nuovo messaggio", "new message"]) {
+        return "messages_composer";
+    }
+    // Inside Settings: search field or settings rows — NOT SpringBoard Impostazioni icon alone.
+    if has(&["generali", "general", "bluetooth"])
+        || (has(&["cerca", "search"])
+            && nodes.iter().any(|n| {
+                let id = n.get("identifier").and_then(|v| v.as_str()).unwrap_or("");
+                is_editable_role(n.get("role").and_then(|v| v.as_str()).unwrap_or(""))
+                    && id != "spotlight-pill"
+                    && !is_chrome_node(n)
+            }))
+    {
+        return "settings";
+    }
+
+    let app_icons = lower
+        .iter()
+        .filter(|l| {
+            matches!(
+                l.as_str(),
+                "messaggi"
+                    | "messages"
+                    | "impostazioni"
+                    | "settings"
+                    | "safari"
+                    | "foto"
+                    | "photos"
+                    | "mappe"
+                    | "maps"
+                    | "calendario"
+                    | "calendar"
+                    | "wallet"
+                    | "salute"
+                    | "health"
+                    | "news"
+            )
+        })
+        .count();
+    if app_icons >= 3 {
+        return "springboard";
+    }
+
+    if is_transition_sparse(nodes) {
+        return "transition";
+    }
+    "app"
+}
+
+/// Snapshot is settled enough for the agent to act.
+pub fn eyes_ready(ax_quality: &str, actionable_len: usize) -> bool {
+    ax_quality == "ready" && actionable_len > 0
+}
+
+/// Build sensation events by comparing consecutive node fingerprints.
+pub fn diff_sense_events(
+    prev: Option<&[serde_json::Value]>,
+    curr: &[serde_json::Value],
+    now: f64,
+) -> Vec<SenseEvent> {
+    let mut out = Vec::new();
+    if curr.is_empty() {
+        if prev.map(|p| !p.is_empty()).unwrap_or(false) {
+            out.push(SenseEvent {
+                t: now,
+                kind: "ax_empty".into(),
+                payload: None,
+            });
+        }
+        return out;
+    }
+    let Some(prev) = prev else {
+        return out;
+    };
+
+    let prev_focus = focused_id(prev);
+    let curr_focus = focused_id(curr);
+    if prev_focus != curr_focus {
+        out.push(SenseEvent {
+            t: now,
+            kind: "focus_changed".into(),
+            payload: Some(serde_json::json!({ "from": prev_focus, "to": curr_focus })),
+        });
+    }
+
+    let prev_vals = value_map(prev);
+    let curr_vals = value_map(curr);
+    for (id, (label, val)) in &curr_vals {
+        match prev_vals.get(id) {
+            Some((_, old)) if old != val => {
+                out.push(SenseEvent {
+                    t: now,
+                    kind: "value_changed".into(),
+                    payload: Some(serde_json::json!({
+                        "id": id,
+                        "label": label,
+                        "from": old,
+                        "to": val,
+                    })),
+                });
+            }
+            None if !val.is_empty() => {
+                out.push(SenseEvent {
+                    t: now,
+                    kind: "value_changed".into(),
+                    payload: Some(serde_json::json!({
+                        "id": id,
+                        "label": label,
+                        "from": "",
+                        "to": val,
+                    })),
+                });
+            }
+            _ => {}
+        }
+    }
+
+    let prev_kb = keyboard_visible(prev);
+    let curr_kb = keyboard_visible(curr);
+    if !prev_kb && curr_kb {
+        out.push(SenseEvent {
+            t: now,
+            kind: "keyboard_shown".into(),
+            payload: None,
+        });
+    }
+
+    let prev_alerts = alert_labels(prev);
+    let curr_alerts = alert_labels(curr);
+    for a in &curr_alerts {
+        if !prev_alerts.iter().any(|p| p == a) {
+            out.push(SenseEvent {
+                t: now,
+                kind: "alert_appeared".into(),
+                payload: Some(serde_json::json!({ "label": a })),
+            });
+        }
+    }
+
+    let prev_title = screen_title(prev);
+    let curr_title = screen_title(curr);
+    if prev_title != curr_title && curr_title.is_some() {
+        out.push(SenseEvent {
+            t: now,
+            kind: "navigated".into(),
+            payload: Some(serde_json::json!({ "from": prev_title, "to": curr_title })),
+        });
+    }
+
+    out
+}
+
+fn focused_id(nodes: &[serde_json::Value]) -> Option<String> {
+    nodes.iter().find_map(|n| {
+        if n.get("focused").and_then(|v| v.as_bool()).unwrap_or(false) {
+            n.get("id").and_then(|v| v.as_str()).map(|s| s.to_string())
+        } else {
+            None
+        }
+    })
+}
+
+fn value_map(nodes: &[serde_json::Value]) -> std::collections::HashMap<String, (String, String)> {
+    let mut m = std::collections::HashMap::new();
+    for n in nodes {
+        let id = n
+            .get("id")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        if id.is_empty() {
+            continue;
+        }
+        let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+        if !is_editable_role(role) {
+            continue;
+        }
+        let label = n
+            .get("label")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        let val = n
+            .get("value")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+        m.insert(id, (label, val));
+    }
+    m
+}
+
+fn keyboard_visible(nodes: &[serde_json::Value]) -> bool {
+    nodes.iter().any(|n| {
+        let role = n
+            .get("role")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_ascii_lowercase();
+        role.contains("keyboard")
+            || n.get("traits")
+                .and_then(|v| v.as_str())
+                .map(|t| t.contains("keyboard"))
+                .unwrap_or(false)
+    })
+}
+
+fn alert_labels(nodes: &[serde_json::Value]) -> Vec<String> {
+    nodes
+        .iter()
+        .filter(|n| {
+            let role = n
+                .get("role")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_ascii_lowercase();
+            role.contains("alert") || role.contains("sheet") || role.contains("dialog")
+        })
+        .filter_map(|n| {
+            n.get("label")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string())
+                .filter(|s| !s.is_empty())
+        })
+        .collect()
+}
+
+fn screen_title(nodes: &[serde_json::Value]) -> Option<String> {
+    let mut best: Option<(f64, String)> = None;
+    for n in nodes {
+        let role = n
+            .get("role")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_ascii_lowercase();
+        let lab = n
+            .get("label")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .trim();
+        if lab.is_empty() || lab.len() > 48 {
+            continue;
+        }
+        let y = n
+            .get("frame")
+            .and_then(|f| f.get("y"))
+            .and_then(|v| v.as_f64())
+            .unwrap_or(9999.0);
+        let score = if role.contains("heading") {
+            y - 1000.0
+        } else if role.contains("static") && y < 120.0 {
+            y
+        } else {
+            continue;
+        };
+        match &best {
+            None => best = Some((score, lab.to_string())),
+            Some((s, _)) if score < *s => best = Some((score, lab.to_string())),
+            _ => {}
+        }
+    }
+    best.map(|(_, t)| t)
+}
+
+pub fn build_scene(nodes: &[serde_json::Value], bundle_id: Option<String>) -> SceneMeta {
+    let kb = keyboard_visible(nodes);
+    let kb_frame = nodes.iter().find_map(|n| {
+        let role = n
+            .get("role")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_ascii_lowercase();
+        if role.contains("keyboard") {
+            n.get("frame").cloned()
+        } else {
+            None
+        }
+    });
+    SceneMeta {
+        bundle_id,
+        screen_title: screen_title(nodes),
+        surface: Some(detect_surface(nodes).into()),
+        keyboard_visible: kb,
+        keyboard_frame: kb_frame,
+        alerts: alert_labels(nodes),
+        sheets: nodes
+            .iter()
+            .filter(|n| {
+                n.get("role")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_ascii_lowercase()
+                    .contains("sheet")
+            })
+            .filter_map(|n| n.get("label").and_then(|v| v.as_str()).map(|s| s.to_string()))
+            .collect(),
+    }
+}
+
+fn actionable_score(n: &serde_json::Value) -> i32 {
+    if is_chrome_node(n) {
+        return -1000;
+    }
+    let role = n
+        .get("role")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    let hittable = n.get("hittable").and_then(|v| v.as_bool()).unwrap_or(true);
+    let enabled = n.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true);
+    let focused = n.get("focused").and_then(|v| v.as_bool()).unwrap_or(false);
+    let has_label = n
+        .get("label")
+        .and_then(|v| v.as_str())
+        .map(|s| !s.is_empty())
+        .unwrap_or(false);
+    if !hittable || !enabled {
+        return -100;
+    }
+    let mut s = 0;
+    if focused {
+        s += 50;
+    }
+    if is_editable_role(&role) {
+        s += 40;
+    } else if role.contains("button") || role.contains("cell") || role.contains("link") {
+        s += 30;
+    } else if role.contains("switch") || role.contains("slider") {
+        s += 25;
+    } else if has_label {
+        s += 10;
+    } else {
+        return -50;
+    }
+    if role.contains("application") || role.contains("window") {
+        s -= 80;
+    }
+    s
+}
+
+/// Filter + rank interactive nodes for the LLM default view.
+pub fn build_actionable_topk(nodes: &[serde_json::Value], k: usize) -> Vec<serde_json::Value> {
+    let mut scored: Vec<(i32, &serde_json::Value)> = nodes
+        .iter()
+        .map(|n| (actionable_score(n), n))
+        .filter(|(s, _)| *s >= 0)
+        .collect();
+    scored.sort_by(|a, b| b.0.cmp(&a.0));
+    scored
+        .into_iter()
+        .take(k)
+        .map(|(_, n)| {
+            let mut slim = serde_json::Map::new();
+            for key in [
+                "id",
+                "role",
+                "traits",
+                "text",
+                "label",
+                "value",
+                "placeholder",
+                "focused",
+                "selected",
+                "enabled",
+                "hittable",
+                "visible",
+                "frame",
+                "center_norm",
+                "parent_id",
+                "identifier",
+            ] {
+                if let Some(v) = n.get(key) {
+                    slim.insert(key.to_string(), v.clone());
+                }
+            }
+            serde_json::Value::Object(slim)
+        })
+        .collect()
+}
+
+pub fn find_id_center(
+    nodes: &[serde_json::Value],
+    id: &str,
+    point_size: Option<(f64, f64)>,
+) -> Option<(f64, f64)> {
+    let el = nodes
+        .iter()
+        .find(|n| n.get("id").and_then(|v| v.as_str()) == Some(id))?;
+    node_center(el, point_size)
+}
+
+pub fn find_id_in_dump(dump: &serde_json::Value, id: &str) -> Option<(f64, f64)> {
+    let nodes = dump.get("elements").and_then(|e| e.as_array())?;
+    let point_size = dump.get("point_size").and_then(|ps| {
+        Some((ps.get("width")?.as_f64()?, ps.get("height")?.as_f64()?))
+    });
+    find_id_center(nodes, id, point_size)
 }
 
 fn is_editable_role(role: &str) -> bool {
@@ -129,17 +728,13 @@ fn is_editable_role(role: &str) -> bool {
     r.contains("searchfield") || r.contains("textfield") || r.contains("textarea")
 }
 
-/// Lower is better. Prefer fields/buttons over static copy (avoids matching
-/// "Nessun risultato per Bluetooth" when waiting for a Bluetooth row).
-/// Lower is better. Prefer fields only for Cerca/Search; otherwise prefer buttons
-/// so waiting for "Generali" hits the list row, not the search field value.
 fn role_rank(role: &str, prefer_editable: bool) -> u8 {
     let r = role.to_ascii_lowercase();
     if is_editable_role(&r) {
         if prefer_editable {
             0
         } else {
-            3 // demote fields when looking for list rows / icons
+            3
         }
     } else if r.contains("button")
         || r.contains("cell")
@@ -150,7 +745,7 @@ fn role_rank(role: &str, prefer_editable: bool) -> u8 {
     } else if r.contains("slider") {
         2
     } else if r.contains("application") || r.contains("window") {
-        5 // never prefer app/window chrome for agent taps
+        5
     } else if r.contains("static") || r.contains("image") || r.contains("heading") {
         4
     } else {
@@ -165,7 +760,6 @@ fn label_text(n: &serde_json::Value) -> String {
         .to_ascii_lowercase()
 }
 
-/// Nav back chrome like "< Impostazioni" must not match needle "Impostazioni".
 fn is_back_chrome_label(lab: &str) -> bool {
     let t = lab.trim();
     t.starts_with('<')
@@ -218,10 +812,12 @@ fn node_area(el: &serde_json::Value) -> f64 {
     w * h
 }
 
-fn node_center(
-    el: &serde_json::Value,
-    point_size: Option<(f64, f64)>,
-) -> Option<(f64, f64)> {
+fn node_center(el: &serde_json::Value, point_size: Option<(f64, f64)>) -> Option<(f64, f64)> {
+    if let Some(cn) = el.get("center_norm") {
+        let x = cn.get("x").and_then(|v| v.as_f64())?;
+        let y = cn.get("y").and_then(|v| v.as_f64())?;
+        return Some((x.clamp(0.0, 1.0), y.clamp(0.0, 1.0)));
+    }
     let frame = el.get("frame")?;
     let x = frame.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0);
     let y = frame.get("y").and_then(|v| v.as_f64()).unwrap_or(0.0);
@@ -231,7 +827,6 @@ fn node_center(
     if pw <= 0.0 || ph <= 0.0 {
         return None;
     }
-    // Full-screen / near-full frames (app root, dimming views) produce false 0.5,0.5 taps.
     if w >= pw * 0.9 && h >= ph * 0.5 {
         return None;
     }
@@ -262,7 +857,6 @@ pub fn find_label_center(
         .filter(|n| node_matches_label(n, &needle))
         .filter(|n| !(search_query && is_settings_search_row(n)))
         .collect();
-    // Settings search bar is often an empty-label AXTextField — include it for Cerca/Search.
     if search_query {
         for n in nodes {
             let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
@@ -285,25 +879,24 @@ pub fn find_label_center(
             .cmp(&role_rank(rb, search_query))
             .then_with(|| label_exactness(a, &needle).cmp(&label_exactness(b, &needle)))
             .then_with(|| {
-            // Home app icons are larger than Settings nav "Impostazioni" chrome.
-            let aa = node_area(a);
-            let ab = node_area(b);
-            ab.partial_cmp(&aa)
-                .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| {
-                    let ya = a
-                        .get("frame")
-                        .and_then(|f| f.get("y"))
-                        .and_then(|v| v.as_f64())
-                        .unwrap_or(f64::MAX);
-                    let yb = b
-                        .get("frame")
-                        .and_then(|f| f.get("y"))
-                        .and_then(|v| v.as_f64())
-                        .unwrap_or(f64::MAX);
-                    ya.partial_cmp(&yb).unwrap_or(std::cmp::Ordering::Equal)
-                })
-        })
+                let aa = node_area(a);
+                let ab = node_area(b);
+                ab.partial_cmp(&aa)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+                    .then_with(|| {
+                        let ya = a
+                            .get("frame")
+                            .and_then(|f| f.get("y"))
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(f64::MAX);
+                        let yb = b
+                            .get("frame")
+                            .and_then(|f| f.get("y"))
+                            .and_then(|v| v.as_f64())
+                            .unwrap_or(f64::MAX);
+                        ya.partial_cmp(&yb).unwrap_or(std::cmp::Ordering::Equal)
+                    })
+            })
     });
 
     for best in hits {
@@ -441,5 +1034,60 @@ mod tests {
         let (x, y) = find_label_center(&nodes, "Generali", Some((393.0, 852.0))).unwrap();
         assert!((y - (180.0 + 22.0) / 852.0).abs() < 0.01, "y={y}");
         assert!((x - (16.0 + 180.0) / 393.0).abs() < 0.01, "x={x}");
+    }
+
+    #[test]
+    fn actionable_topk_prefers_buttons() {
+        let nodes = vec![
+            json!({"id":"n1","role":"AXApplication","label":"SpringBoard","hittable":true,"enabled":true}),
+            json!({"id":"n2","role":"AXButton","label":"Messaggi","hittable":true,"enabled":true}),
+        ];
+        let top = build_actionable_topk(&nodes, 5);
+        assert_eq!(top[0]["id"], "n2");
+    }
+
+    #[test]
+    fn chrome_filters_spotlight() {
+        let n = json!({
+            "label": "Cerca",
+            "identifier": "spotlight-pill",
+            "value": "Pagina 1 di 2",
+            "hittable": true,
+            "enabled": true,
+            "role": "AXButton",
+        });
+        assert!(is_chrome_node(&n));
+        let top = build_actionable_topk(&[n], 5);
+        assert!(top.is_empty());
+    }
+
+    #[test]
+    fn surface_springboard_not_settings() {
+        let nodes = vec![
+            json!({"label":"Messaggi","role":"AXButton","hittable":true,"enabled":true}),
+            json!({"label":"Impostazioni","role":"AXButton","hittable":true,"enabled":true}),
+            json!({"label":"Safari","role":"AXButton","hittable":true,"enabled":true}),
+            json!({"label":"Cerca","identifier":"spotlight-pill","value":"Pagina 1 di 2","role":"AXButton","hittable":true,"enabled":true}),
+        ];
+        assert_eq!(detect_surface(&nodes), "springboard");
+    }
+
+    #[test]
+    fn surface_settings_inside() {
+        let nodes = vec![
+            json!({"label":"Cerca","role":"AXSearchField","hittable":true,"enabled":true}),
+            json!({"label":"Generali","role":"AXStaticText","frame":{"x":0,"y":180,"width":300,"height":44},"hittable":true,"enabled":true}),
+        ];
+        assert_eq!(detect_surface(&nodes), "settings");
+    }
+
+    #[test]
+    fn surface_messages_composer() {
+        let nodes = vec![
+            json!({"label":"A:","role":"AXTextField","hittable":true,"enabled":true}),
+            json!({"label":"Messaggio","role":"AXTextView","hittable":true,"enabled":true}),
+            json!({"label":"Invia","role":"AXButton","hittable":true,"enabled":true}),
+        ];
+        assert_eq!(detect_surface(&nodes), "messages_composer");
     }
 }

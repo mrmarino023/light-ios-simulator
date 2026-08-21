@@ -9,8 +9,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use ligh_core::{
-    default_sock_path, AccessibilityTree, DaemonRequest, DaemonResponse, DevicePreset,
-    FeatureRequirements, FrameMeta, LighConfig, ObserveSnapshot, SessionState,
+    default_sock_path, diff_sense_events, AccessibilityTree, DaemonRequest, DaemonResponse,
+    DevicePreset, FeatureRequirements, FrameMeta, LighConfig, ObserveSnapshot, SenseEvent,
+    SessionState,
 };
 use ligh_gpu::{HeadlessCompositor, Screenshot};
 use ligh_host::{AxDump, HidInput, HostSession};
@@ -25,6 +26,10 @@ struct DaemonState {
     sim_width: f64,
     sim_height: f64,
     udid: Option<String>,
+    /// Previous AX flat nodes for sensation diff.
+    last_ax_nodes: Option<Vec<serde_json::Value>>,
+    /// Recent sense events (ring, newest last).
+    sense_buf: Vec<SenseEvent>,
 }
 
 impl DaemonState {
@@ -37,6 +42,26 @@ impl DaemonState {
             .map_err(|e| e.to_string())?
             .map(|s| s.udid)
             .ok_or_else(|| "no session — run `lighd` boot or `ligh up` first".into())
+    }
+
+    fn push_action_result(&mut self, ok: bool, kind: &str, detail: serde_json::Value) {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .map(|d| d.as_secs_f64())
+            .unwrap_or(0.0);
+        self.sense_buf.push(SenseEvent {
+            t: now,
+            kind: "action_result".into(),
+            payload: Some(serde_json::json!({
+                "ok": ok,
+                "action": kind,
+                "detail": detail,
+            })),
+        });
+        if self.sense_buf.len() > 64 {
+            let drop_n = self.sense_buf.len() - 64;
+            self.sense_buf.drain(0..drop_n);
+        }
     }
 }
 
@@ -221,6 +246,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             y,
             normalized,
             label,
+            id,
             timeout_ms,
         } => {
             let st = state.lock().unwrap();
@@ -231,27 +257,164 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             let w = st.sim_width;
             let h = st.sim_height;
             drop(st);
-            let (nx, ny, waited_ms, used_label) = if let Some(ref label) = label {
+            let (nx, ny, waited_ms, used_label, used_id) = if let Some(ref lab) = label {
+                // Prefer label — semantic and stable across transitions.
                 let timeout = Duration::from_millis(timeout_ms.unwrap_or(2000));
-                match AxDump::wait_label(&udid, label, timeout) {
-                    Ok((x, y, waited)) => (x, y, Some(waited.as_secs_f64() * 1000.0), Some(label.clone())),
+                match AxDump::wait_label(&udid, lab, timeout) {
+                    Ok((x, y, waited)) => (
+                        x,
+                        y,
+                        Some(waited.as_secs_f64() * 1000.0),
+                        Some(lab.clone()),
+                        None,
+                    ),
+                    Err(e) => {
+                        // Optional id fallback
+                        if let Some(ref eid) = id {
+                            match AxDump::wait_id(&udid, eid, timeout) {
+                                Ok((x, y, waited)) => (
+                                    x,
+                                    y,
+                                    Some(waited.as_secs_f64() * 1000.0),
+                                    Some(lab.clone()),
+                                    Some(eid.clone()),
+                                ),
+                                Err(_) => return DaemonResponse::err(e),
+                            }
+                        } else {
+                            return DaemonResponse::err(e);
+                        }
+                    }
+                }
+            } else if let Some(ref eid) = id {
+                let timeout = Duration::from_millis(timeout_ms.unwrap_or(2000));
+                match AxDump::wait_id(&udid, eid, timeout) {
+                    Ok((x, y, waited)) => (
+                        x,
+                        y,
+                        Some(waited.as_secs_f64() * 1000.0),
+                        None,
+                        Some(eid.clone()),
+                    ),
                     Err(e) => return DaemonResponse::err(e),
                 }
             } else if normalized {
-                (x, y, None, None)
+                (x, y, None, None, None)
             } else {
                 let ww = w.max(1.0);
                 let hh = h.max(1.0);
-                (x / ww, y / hh, None, None)
+                (x / ww, y / hh, None, None, None)
             };
             match HidInput::tap(&udid, nx, ny, w, h) {
-                Ok(_) => DaemonResponse::ok(serde_json::json!({
-                    "x": nx,
-                    "y": ny,
-                    "label": used_label,
-                    "waited_ms": waited_ms,
-                })),
+                Ok(_) => {
+                    let detail = serde_json::json!({
+                        "x": nx, "y": ny, "label": used_label, "id": used_id, "waited_ms": waited_ms
+                    });
+                    state.lock().unwrap().push_action_result(true, "tap", detail.clone());
+                    DaemonResponse::ok(detail)
+                }
+                Err(e) => {
+                    state.lock().unwrap().push_action_result(
+                        false,
+                        "tap",
+                        serde_json::json!({ "error": e.to_string() }),
+                    );
+                    DaemonResponse::err(e)
+                }
+            }
+        }
+
+        DaemonRequest::LongPress {
+            x,
+            y,
+            normalized,
+            label,
+            id,
+            hold_ms,
+            timeout_ms,
+        } => {
+            let st = state.lock().unwrap();
+            let udid = match st.current_udid() {
+                Ok(u) => u,
+                Err(e) => return DaemonResponse::err(e),
+            };
+            let w = st.sim_width;
+            let h = st.sim_height;
+            drop(st);
+            let hold = hold_ms.unwrap_or(600) as f64;
+            let (nx, ny) = if let Some(ref eid) = id {
+                let timeout = Duration::from_millis(timeout_ms.unwrap_or(2000));
+                match AxDump::wait_id(&udid, eid, timeout) {
+                    Ok((x, y, _)) => (x, y),
+                    Err(e) => return DaemonResponse::err(e),
+                }
+            } else if let Some(ref label) = label {
+                let timeout = Duration::from_millis(timeout_ms.unwrap_or(2000));
+                match AxDump::wait_label(&udid, label, timeout) {
+                    Ok((x, y, _)) => (x, y),
+                    Err(e) => return DaemonResponse::err(e),
+                }
+            } else if normalized {
+                (x, y)
+            } else {
+                (x / w.max(1.0), y / h.max(1.0))
+            };
+            match HidInput::tap_hold(&udid, nx, ny, w, h, hold) {
+                Ok(_) => {
+                    let detail = serde_json::json!({ "x": nx, "y": ny, "hold_ms": hold, "label": label, "id": id });
+                    state.lock().unwrap().push_action_result(true, "long_press", detail.clone());
+                    DaemonResponse::ok(detail)
+                }
                 Err(e) => DaemonResponse::err(e),
+            }
+        }
+
+        DaemonRequest::ScrollUntil {
+            label,
+            id,
+            max_swipes,
+            timeout_ms,
+        } => {
+            if label.is_none() && id.is_none() {
+                return DaemonResponse::err("scroll_until needs label or id");
+            }
+            let st = state.lock().unwrap();
+            let udid = match st.current_udid() {
+                Ok(u) => u,
+                Err(e) => return DaemonResponse::err(e),
+            };
+            let w = st.sim_width;
+            let h = st.sim_height;
+            drop(st);
+            let max = max_swipes.unwrap_or(8);
+            let deadline = Instant::now() + Duration::from_millis(timeout_ms.unwrap_or(12000));
+            let mut swipes = 0u32;
+            loop {
+                if let Some(ref eid) = id {
+                    if let Ok(true) = AxDump::exists_id(&udid, eid) {
+                        let detail = serde_json::json!({ "found": true, "id": eid, "swipes": swipes });
+                        state.lock().unwrap().push_action_result(true, "scroll_until", detail.clone());
+                        return DaemonResponse::ok(detail);
+                    }
+                }
+                if let Some(ref lab) = label {
+                    if let Ok(true) = AxDump::exists_label(&udid, lab) {
+                        let detail = serde_json::json!({ "found": true, "label": lab, "swipes": swipes });
+                        state.lock().unwrap().push_action_result(true, "scroll_until", detail.clone());
+                        return DaemonResponse::ok(detail);
+                    }
+                }
+                if swipes >= max || Instant::now() >= deadline {
+                    return DaemonResponse::err(format!(
+                        "scroll_until miss after {swipes} swipes (label={label:?} id={id:?})"
+                    ));
+                }
+                // Human-like fling up (content moves up → finger moves down→up on screen).
+                if let Err(e) = HidInput::swipe(&udid, 0.5, 0.72, 0.5, 0.28, w, h) {
+                    return DaemonResponse::err(e);
+                }
+                swipes += 1;
+                std::thread::sleep(Duration::from_millis(280));
             }
         }
 
@@ -263,12 +426,66 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             };
             drop(st);
             match HidInput::type_text(&udid, &text) {
-                Ok(_) => DaemonResponse::ok(serde_json::json!({ "chars": text.chars().count() })),
+                Ok(_) => {
+                    let detail = serde_json::json!({ "chars": text.chars().count(), "text": text });
+                    let mut st = state.lock().unwrap();
+                    st.push_action_result(true, "type", detail.clone());
+                    // Host-side sensation: Messages often omits body in AX value.
+                    let now = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .map(|d| d.as_secs_f64())
+                        .unwrap_or(0.0);
+                    st.sense_buf.push(ligh_core::SenseEvent {
+                        t: now,
+                        kind: "typed".into(),
+                        payload: Some(serde_json::json!({ "text": text, "verified": "host_accepted" })),
+                    });
+                    DaemonResponse::ok(detail)
+                }
                 Err(e) => DaemonResponse::err(e),
             }
         }
 
-        DaemonRequest::Wait { label, timeout_ms } => {
+        DaemonRequest::Clear { count } => {
+            let st = state.lock().unwrap();
+            let udid = match st.current_udid() {
+                Ok(u) => u,
+                Err(e) => return DaemonResponse::err(e),
+            };
+            drop(st);
+            let n = count.unwrap_or(40);
+            match HidInput::clear(&udid, n) {
+                Ok(_) => {
+                    let detail = serde_json::json!({ "count": n });
+                    state.lock().unwrap().push_action_result(true, "clear", detail.clone());
+                    DaemonResponse::ok(detail)
+                }
+                Err(e) => DaemonResponse::err(e),
+            }
+        }
+
+        DaemonRequest::Key { name } => {
+            let st = state.lock().unwrap();
+            let udid = match st.current_udid() {
+                Ok(u) => u,
+                Err(e) => return DaemonResponse::err(e),
+            };
+            drop(st);
+            match HidInput::key_named(&udid, &name) {
+                Ok(_) => {
+                    let detail = serde_json::json!({ "key": name });
+                    state.lock().unwrap().push_action_result(true, "key", detail.clone());
+                    DaemonResponse::ok(detail)
+                }
+                Err(e) => DaemonResponse::err(e),
+            }
+        }
+
+        DaemonRequest::Wait {
+            label,
+            id,
+            timeout_ms,
+        } => {
             let st = state.lock().unwrap();
             let udid = match st.current_udid() {
                 Ok(u) => u,
@@ -276,32 +493,63 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             };
             drop(st);
             let timeout = Duration::from_millis(timeout_ms.unwrap_or(8000));
-            match AxDump::wait_label(&udid, &label, timeout) {
-                Ok((x, y, waited)) => DaemonResponse::ok(serde_json::json!({
-                    "label": label,
-                    "x": x,
-                    "y": y,
-                    "waited_ms": waited.as_secs_f64() * 1000.0,
-                    "found": true,
-                })),
-                Err(e) => DaemonResponse::err(e),
+            if let Some(ref eid) = id {
+                match AxDump::wait_id(&udid, eid, timeout) {
+                    Ok((x, y, waited)) => DaemonResponse::ok(serde_json::json!({
+                        "id": eid, "x": x, "y": y,
+                        "waited_ms": waited.as_secs_f64() * 1000.0, "found": true,
+                    })),
+                    Err(e) => DaemonResponse::err(e),
+                }
+            } else if let Some(ref label) = label {
+                match AxDump::wait_label(&udid, label, timeout) {
+                    Ok((x, y, waited)) => DaemonResponse::ok(serde_json::json!({
+                        "label": label, "x": x, "y": y,
+                        "waited_ms": waited.as_secs_f64() * 1000.0, "found": true,
+                    })),
+                    Err(e) => DaemonResponse::err(e),
+                }
+            } else {
+                DaemonResponse::err("wait needs label or id")
             }
         }
 
-        DaemonRequest::Exists { label } => {
+        DaemonRequest::Exists { label, id } => {
             let st = state.lock().unwrap();
             let udid = match st.current_udid() {
                 Ok(u) => u,
                 Err(e) => return DaemonResponse::err(e),
             };
             drop(st);
-            match AxDump::exists_label(&udid, &label) {
-                Ok(found) => DaemonResponse::ok(serde_json::json!({ "label": label, "found": found })),
-                Err(e) => DaemonResponse::err(e),
+            if let Some(ref eid) = id {
+                match AxDump::exists_id(&udid, eid) {
+                    Ok(found) => DaemonResponse::ok(serde_json::json!({ "id": eid, "found": found })),
+                    Err(e) => DaemonResponse::err(e),
+                }
+            } else if let Some(ref label) = label {
+                match AxDump::exists_label(&udid, label) {
+                    Ok(found) => {
+                        DaemonResponse::ok(serde_json::json!({ "label": label, "found": found }))
+                    }
+                    Err(e) => DaemonResponse::err(e),
+                }
+            } else {
+                DaemonResponse::err("exists needs label or id")
             }
         }
 
-        DaemonRequest::Swipe { from_x, from_y, to_x, to_y, normalized } => {
+        DaemonRequest::Sense => {
+            let st = state.lock().unwrap();
+            DaemonResponse::ok(serde_json::json!({ "events": st.sense_buf }))
+        }
+
+        DaemonRequest::Swipe {
+            from_x,
+            from_y,
+            to_x,
+            to_y,
+            normalized,
+        } => {
             let st = state.lock().unwrap();
             let udid = match st.current_udid() {
                 Ok(u) => u,
@@ -318,7 +566,14 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             let h = st.sim_height;
             drop(st);
             match HidInput::swipe(&udid, fnx, fny, tnx, tny, w, h) {
-                Ok(_) => DaemonResponse::ok_empty(),
+                Ok(_) => {
+                    state.lock().unwrap().push_action_result(
+                        true,
+                        "swipe",
+                        serde_json::json!({ "from": [fnx, fny], "to": [tnx, tny] }),
+                    );
+                    DaemonResponse::ok_empty()
+                }
                 Err(e) => DaemonResponse::err(e),
             }
         }
@@ -331,7 +586,13 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             };
             drop(st);
             match HidInput::home(&udid) {
-                Ok(_) => DaemonResponse::ok_empty(),
+                Ok(_) => {
+                    state
+                        .lock()
+                        .unwrap()
+                        .push_action_result(true, "home", serde_json::json!({}));
+                    DaemonResponse::ok_empty()
+                }
                 Err(e) => DaemonResponse::err(e),
             }
         }
@@ -340,18 +601,18 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             let st = state.lock().unwrap();
             let comp = st.compositor.clone();
             drop(st);
-            // Poll one more frame before capture
             HostSession::poll_stream();
             match Screenshot::capture(&comp) {
                 Err(e) => DaemonResponse::err(e),
                 Ok(shot) => {
                     if let Some(p) = path {
                         match shot.write_png(std::path::Path::new(&p)) {
-                            Ok(_) => DaemonResponse::ok(serde_json::json!({ "path": p, "width": shot.width, "height": shot.height })),
+                            Ok(_) => DaemonResponse::ok(serde_json::json!({
+                                "path": p, "width": shot.width, "height": shot.height
+                            })),
                             Err(e) => DaemonResponse::err(e),
                         }
                     } else {
-                        // Return base64 PNG in response
                         match shot.to_png_bytes() {
                             Ok(bytes) => {
                                 let b64 = base64_encode(&bytes);
@@ -382,50 +643,98 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             DaemonResponse::ok(meta)
         }
 
-        DaemonRequest::Observe { ax: include_ax } => {
+        DaemonRequest::Observe {
+            ax: include_ax,
+            settle_ms,
+        } => {
             let t0 = Instant::now();
-            HostSession::poll_stream();
-            let st = state.lock().unwrap();
-            let udid = st.udid.clone().unwrap_or_default();
-            let gpu = st.compositor.stats();
-            let booted = !udid.is_empty();
-            drop(st);
-            let app_bundle_id = LighConfig::load()
-                .ok()
-                .and_then(|c| SessionState::load(&c.state_dir).ok().flatten())
-                .and_then(|s| s.app_bundle_id);
-            let frame = if gpu.imports_ok > 0 {
-                Some(FrameMeta {
-                    width: gpu.last_width,
-                    height: gpu.last_height,
-                    id: gpu.imports_ok,
-                    fps: gpu.fps,
-                    imports_ok: true,
-                })
-            } else {
+            let settle_budget = Duration::from_millis(settle_ms.unwrap_or(0));
+            let deadline = if settle_budget.is_zero() {
                 None
-            };
-            let ax = if include_ax && !udid.is_empty() {
-                match AxDump::dump(&udid) {
-                    Ok(v) => AccessibilityTree::from_ax_dump(v),
-                    Err(e) => AccessibilityTree::Error {
-                        message: e.to_string(),
-                    },
-                }
             } else {
-                AccessibilityTree::Empty
+                Some(Instant::now() + settle_budget)
             };
-            let snap = ObserveSnapshot {
-                schema_version: ligh_core::OBSERVE_SCHEMA_VERSION,
-                udid,
-                booted,
-                simulator_app_running: false,
-                frame,
-                app_bundle_id,
-                accessibility_tree: ax,
-                observe_ms: Some(t0.elapsed().as_secs_f64() * 1000.0),
-                path: Some("lighd".into()),
+
+            let build_once = |state: &Arc<Mutex<DaemonState>>, include_ax: bool| -> ObserveSnapshot {
+                HostSession::poll_stream();
+                let (udid, gpu) = {
+                    let st = state.lock().unwrap();
+                    let udid = st.udid.clone().unwrap_or_default();
+                    let gpu = st.compositor.stats();
+                    (udid, gpu)
+                };
+                let booted = !udid.is_empty();
+                let app_bundle_id = LighConfig::load()
+                    .ok()
+                    .and_then(|c| SessionState::load(&c.state_dir).ok().flatten())
+                    .and_then(|s| s.app_bundle_id);
+                let frame = if gpu.imports_ok > 0 {
+                    Some(FrameMeta {
+                        width: gpu.last_width,
+                        height: gpu.last_height,
+                        id: gpu.imports_ok,
+                        fps: gpu.fps,
+                        imports_ok: true,
+                    })
+                } else {
+                    None
+                };
+                let ax = if include_ax && !udid.is_empty() {
+                    match AxDump::dump(&udid) {
+                        Ok(v) => AccessibilityTree::from_ax_dump(v),
+                        Err(e) => AccessibilityTree::Error {
+                            message: e.to_string(),
+                        },
+                    }
+                } else {
+                    AccessibilityTree::Empty
+                };
+                let mut snap = ObserveSnapshot {
+                    schema_version: ligh_core::OBSERVE_SCHEMA_VERSION,
+                    udid,
+                    booted,
+                    simulator_app_running: false,
+                    frame,
+                    app_bundle_id,
+                    accessibility_tree: ax,
+                    scene: None,
+                    actionable_topk: vec![],
+                    events: vec![],
+                    ax_quality: "empty".into(),
+                    settled: false,
+                    observe_ms: None,
+                    path: Some("lighd".into()),
+                };
+                snap.enrich_v2();
+                snap
             };
+
+            let mut snap = build_once(state, include_ax);
+            while let Some(dl) = deadline {
+                if snap.is_actionable_eyes() {
+                    break;
+                }
+                if Instant::now() >= dl {
+                    break;
+                }
+                std::thread::sleep(Duration::from_millis(40));
+                snap = build_once(state, include_ax);
+            }
+
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_secs_f64())
+                .unwrap_or(0.0);
+            snap.observe_ms = Some(t0.elapsed().as_secs_f64() * 1000.0);
+            {
+                let mut st = state.lock().unwrap();
+                let curr = snap.accessibility_tree.nodes().to_vec();
+                let mut ev = diff_sense_events(st.last_ax_nodes.as_deref(), &curr, now);
+                ev.extend(st.sense_buf.iter().cloned());
+                st.sense_buf.clear();
+                st.last_ax_nodes = Some(curr);
+                snap.events = ev;
+            }
             DaemonResponse::ok(snap)
         }
 
@@ -533,6 +842,8 @@ fn main() -> anyhow::Result<()> {
         sim_width,
         sim_height,
         udid,
+        last_ax_nodes: None,
+        sense_buf: Vec::new(),
     }));
 
     // DisplayRing — keep IOSurface imports hot (~60 Hz).

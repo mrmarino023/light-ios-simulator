@@ -9,18 +9,21 @@ Setup (once):
   ligh daemon start
   ligh up
 
-Loop:
-  1. ligh wait --label <Destination> --timeout-ms 8000
-  2. ligh tap --label <Destination>
-  3. ligh --json observe   # structured state; see docs/OBSERVE.md (schema_version 1)
-  4. verify destination via wait/exists — never assume tap worked
+Loop (Consumer Agent Vision — no screenshots):
+  1. ligh --json observe
+     → use actionable_topk + events + ax_quality (schema_version 2)
+  2. wait / tap by id or label; type / clear / key / long-press / scroll-until as needed
+  3. observe again — trust value_changed / focus_changed / navigated (not PNG)
+  4. never ask for screenshot on the happy path
 
 Rules:
-  - Prefer label taps over raw x/y.
-  - If AX is empty, ligh home twice and wait for Impostazioni|Settings|Messaggi|Messages.
-  - Italian locales use Impostazioni / Cerca / Messaggi / Messaggio / Annulla.
-  - Do not use cloud or remote sims — lighd speaks ~/.ligh/lighd.sock only.
-  - Smoke suite: ./scripts/agent-harness.sh
+  - Prefer tap --id from actionable_topk; else tap --label.
+  - If ax_quality is empty/error: ligh home twice, wait for Impostazioni|Settings|Messaggi|Messages.
+  - If a text field value already contains the goal text: do NOT type again — done.
+  - Italian: Impostazioni / Cerca / Messaggi / Messaggio / Annulla.
+  - English: Settings / Search / Messages / Message / Cancel.
+  - Socket only: ~/.ligh/lighd.sock
+  - Gates: ./scripts/gate-consumer-vision.sh
 ```
 
-English Settings labels: Settings, Search, Messages, Message, Cancel.
+See [`CONSUMER_AGENT_VISION.md`](CONSUMER_AGENT_VISION.md) and [`OBSERVE.md`](OBSERVE.md).
