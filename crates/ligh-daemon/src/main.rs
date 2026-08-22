@@ -4,6 +4,7 @@
 
 mod capabilities;
 mod motor;
+mod qa_cap;
 
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
@@ -918,6 +919,91 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 do_install,
                 launch_args.as_deref(),
             );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::Perceive { settle_ms } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = qa_cap::cap_perceive(&build, state, settle);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::Attempt {
+            intent,
+            label,
+            id,
+            text,
+            key,
+            expect,
+            settle_ms,
+            timeout_ms,
+        } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let timeout = timeout_ms.unwrap_or(8000);
+            let exp = parse_expectation(expect.as_ref());
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = qa_cap::cap_attempt(
+                &build,
+                state,
+                &intent,
+                label.as_deref(),
+                id.as_deref(),
+                text.as_deref(),
+                key.as_deref(),
+                exp.as_ref(),
+                settle,
+                timeout,
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::Find {
+            label,
+            id,
+            scroll,
+            settle_ms,
+            timeout_ms,
+            max_swipes,
+        } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let timeout = timeout_ms.unwrap_or(12000);
+            let do_scroll = scroll.unwrap_or(true);
+            let swipes = max_swipes.unwrap_or(8);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = qa_cap::cap_find(
+                &build,
+                state,
+                label.as_deref(),
+                id.as_deref(),
+                do_scroll,
+                settle,
+                timeout,
+                swipes,
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::Dismiss { settle_ms } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = qa_cap::cap_dismiss(&build, state, settle);
             if let Some(ref mut obs) = r.observe {
                 attach_sense(state, obs, Instant::now());
             }

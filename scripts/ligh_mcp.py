@@ -120,6 +120,24 @@ def compact_cap(raw: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def compact_qa_cap(raw: dict[str, Any]) -> dict[str, Any]:
+    """Flatten QA capability (perceive/attempt/find/dismiss) for agents."""
+    base = compact_cap(raw)
+    data = raw.get("data") if raw.get("ok") else None
+    if isinstance(data, dict) and isinstance(data.get("detail"), dict):
+        detail = data["detail"]
+        if "perceive" in detail:
+            base["perceive"] = detail["perceive"]
+        if "verdict" in detail:
+            v = detail["verdict"]
+            base["intent_met"] = v.get("intent_met")
+            base["evidence"] = v.get("evidence")
+            base["perceive_after"] = v.get("perceive_after")
+            if v.get("fault"):
+                base["fault"] = v["fault"]
+    return base
+
+
 def agent_rules_text() -> str:
     if os.path.isfile(AGENT_MD):
         return open(AGENT_MD, encoding="utf-8").read()
@@ -360,6 +378,58 @@ TOOLS = [
             "required": ["app", "steps"],
         },
     },
+    {
+        "name": "ligh_perceive",
+        "description": "QA layer (preferred): settled world model — fingerprint, typed affordances, blocking overlay. One call replaces raw observe parsing.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"settle_ms": {"type": "integer", "default": 2500}},
+        },
+    },
+    {
+        "name": "ligh_attempt",
+        "description": "QA layer (preferred): tap|type|key with built-in verify. Returns intent_met + evidence (fingerprints, delta, hypotheses).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "intent": {"type": "string", "enum": ["tap", "type", "key"]},
+                "label": {"type": "string"},
+                "id": {"type": "string"},
+                "text": {"type": "string"},
+                "key": {"type": "string"},
+                "expect": {
+                    "type": "object",
+                    "description": "see_id, see_label, surface, fingerprint_changed",
+                },
+                "settle_ms": {"type": "integer", "default": 2500},
+                "timeout_ms": {"type": "integer", "default": 8000},
+            },
+            "required": ["intent"],
+        },
+    },
+    {
+        "name": "ligh_find",
+        "description": "QA layer: locate label/id on screen; scroll_until host-owned.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "label": {"type": "string"},
+                "id": {"type": "string"},
+                "scroll": {"type": "boolean", "default": True},
+                "settle_ms": {"type": "integer", "default": 2500},
+                "timeout_ms": {"type": "integer", "default": 12000},
+                "max_swipes": {"type": "integer", "default": 8},
+            },
+        },
+    },
+    {
+        "name": "ligh_dismiss",
+        "description": "QA layer: dismiss keyboard/alert/sheet blocking overlay.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"settle_ms": {"type": "integer", "default": 2500}},
+        },
+    },
 ]
 
 
@@ -455,6 +525,49 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         for la in args.get("launch_args") or []:
             cmd += [f"--launch-arg={la}"]
         return compact_cap(ligh(*cmd, timeout=300))
+    if name == "ligh_perceive":
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        return compact_qa_cap(ligh("--json", "cap", "perceive", "--settle-ms", ms))
+    if name == "ligh_attempt":
+        import json as _json
+        intent = str(args.get("intent") or "")
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 8000)
+        cmd = ["--json", "cap", "attempt", intent, "--settle-ms", ms, "--timeout-ms", to]
+        if args.get("label"):
+            cmd += ["--label", str(args["label"])]
+        if args.get("id"):
+            cmd += ["--id", str(args["id"])]
+        if args.get("text"):
+            cmd += ["--text", str(args["text"])]
+        if args.get("key"):
+            cmd += ["--key", str(args["key"])]
+        if args.get("expect"):
+            cmd += ["--expect", _json.dumps(args["expect"])]
+        return compact_qa_cap(ligh(*cmd, timeout=120))
+    if name == "ligh_find":
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 12000)
+        sw = str(args.get("max_swipes") if args.get("max_swipes") is not None else 8)
+        scroll = args.get("scroll")
+        scroll_flag = "true" if scroll is None or scroll else "false"
+        cmd = [
+            "--json", "cap", "find",
+            "--settle-ms", ms, "--timeout-ms", to,
+            "--max-swipes", sw,
+        ]
+        if scroll is not None:
+            cmd += ["--scroll", scroll_flag]
+        if args.get("label"):
+            cmd += ["--label", str(args["label"])]
+        if args.get("id"):
+            cmd += ["--id", str(args["id"])]
+        if not args.get("label") and not args.get("id"):
+            return {"ok": False, "fault": "target_missing", "error": "need label or id"}
+        return compact_qa_cap(ligh(*cmd, timeout=120))
+    if name == "ligh_dismiss":
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        return compact_qa_cap(ligh("--json", "cap", "dismiss", "--settle-ms", ms))
     if name == "ligh_observe":
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
         raw = ligh("--json", "observe", "--settle-ms", ms)

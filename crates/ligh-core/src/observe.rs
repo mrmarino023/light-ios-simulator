@@ -745,7 +745,7 @@ pub fn find_id_in_dump(dump: &serde_json::Value, id: &str) -> Option<(f64, f64)>
     find_id_center(nodes, id, point_size)
 }
 
-fn is_editable_role(role: &str) -> bool {
+pub fn is_editable_role(role: &str) -> bool {
     let r = role.to_ascii_lowercase();
     r.contains("searchfield") || r.contains("textfield") || r.contains("textarea")
 }

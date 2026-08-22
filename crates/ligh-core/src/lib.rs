@@ -6,6 +6,7 @@ pub mod device;
 pub mod error;
 pub mod observe;
 pub mod profile;
+pub mod qa;
 pub mod rpc;
 pub mod state;
 
@@ -19,8 +20,13 @@ pub use error::{LighError, Result};
 pub use observe::{
     build_actionable_topk, build_scene, detect_surface, diff_sense_events, eyes_ready,
     find_id_center, find_id_in_dump, find_label_center, find_label_in_dump, is_chrome_node,
-    is_transition_sparse, AccessibilityTree, FrameMeta, ObserveSnapshot, SceneMeta, SenseEvent,
+    is_editable_role, is_transition_sparse, AccessibilityTree, FrameMeta, ObserveSnapshot, SceneMeta, SenseEvent,
     ACTIONABLE_TOPK, OBSERVE_SCHEMA_VERSION,
+};
+pub use qa::{
+    build_perceive, evaluate_attempt, fingerprint_of, infer_affordances, parse_expectation,
+    screen_fingerprint, Affordance, AffordanceKind, AttemptEvidence, AttemptVerdict, BlockingView,
+    Expectation, Hypothesis, LocationView, PerceiveView,
 };
 pub use profile::{FeatureRequirements, resolve_disabled_jobs, slim_labels};
 pub use rpc::{

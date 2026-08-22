@@ -327,6 +327,51 @@ enum CapCommands {
         #[arg(long = "launch-arg")]
         launch_args: Vec<String>,
     },
+    /// QA layer: settled world model (affordances + fingerprint).
+    Perceive {
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+    },
+    /// QA layer: act with built-in verify (intent tap|type|key).
+    Attempt {
+        /// tap | type | key
+        intent: String,
+        #[arg(long)]
+        label: Option<String>,
+        #[arg(long)]
+        id: Option<String>,
+        #[arg(long)]
+        text: Option<String>,
+        #[arg(long)]
+        key: Option<String>,
+        /// JSON expectation: see_id, see_label, surface, fingerprint_changed
+        #[arg(long)]
+        expect: Option<String>,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 8000)]
+        timeout_ms: u64,
+    },
+    /// QA layer: find label/id (scroll by default).
+    Find {
+        #[arg(long)]
+        label: Option<String>,
+        #[arg(long)]
+        id: Option<String>,
+        #[arg(long, default_value_t = true)]
+        scroll: bool,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 12000)]
+        timeout_ms: u64,
+        #[arg(long, default_value_t = 8)]
+        max_swipes: u32,
+    },
+    /// QA layer: dismiss blocking overlay.
+    Dismiss {
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+    },
 }
 
 #[derive(Subcommand)]
@@ -1161,6 +1206,53 @@ fn main() -> anyhow::Result<()> {
                             Some(launch_args)
                         },
                     }
+                },
+                CapCommands::Perceive { settle_ms } => DaemonRequest::Perceive {
+                    settle_ms: Some(settle_ms),
+                },
+                CapCommands::Attempt {
+                    intent,
+                    label,
+                    id,
+                    text,
+                    key,
+                    expect,
+                    settle_ms,
+                    timeout_ms,
+                } => {
+                    let expect_json = expect
+                        .as_ref()
+                        .map(|s| serde_json::from_str(s))
+                        .transpose()
+                        .map_err(|e| anyhow::anyhow!("--expect JSON: {e}"))?;
+                    DaemonRequest::Attempt {
+                        intent,
+                        label,
+                        id,
+                        text,
+                        key,
+                        expect: expect_json,
+                        settle_ms: Some(settle_ms),
+                        timeout_ms: Some(timeout_ms),
+                    }
+                },
+                CapCommands::Find {
+                    label,
+                    id,
+                    scroll,
+                    settle_ms,
+                    timeout_ms,
+                    max_swipes,
+                } => DaemonRequest::Find {
+                    label,
+                    id,
+                    scroll: Some(scroll),
+                    settle_ms: Some(settle_ms),
+                    timeout_ms: Some(timeout_ms),
+                    max_swipes: Some(max_swipes),
+                },
+                CapCommands::Dismiss { settle_ms } => DaemonRequest::Dismiss {
+                    settle_ms: Some(settle_ms),
                 },
             };
             let resp = client.call(&req)?;

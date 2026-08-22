@@ -212,6 +212,49 @@ pub enum DaemonRequest {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         launch_args: Option<Vec<String>>,
     },
+    /// QA layer: settled world model for agents (affordances + fingerprint).
+    Perceive {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+    },
+    /// QA layer: act with built-in verify (tap/type/key + optional expect).
+    Attempt {
+        intent: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        text: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        key: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        expect: Option<serde_json::Value>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+    },
+    /// QA layer: find label/id, optionally scroll.
+    Find {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        scroll: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        max_swipes: Option<u32>,
+    },
+    /// QA layer: dismiss blocking overlay (keyboard/alert/sheet).
+    Dismiss {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+    },
     StreamStats,
     /// Tear down the simulator session and exit the daemon.
     Shutdown,
@@ -294,7 +337,9 @@ fn read_timeout_for(req: &DaemonRequest) -> Duration {
             Duration::from_millis(timeout_ms.unwrap_or(8_000).saturating_add(60_000))
         }
         DaemonRequest::ActTap { timeout_ms, .. }
-        | DaemonRequest::WaitLabel { timeout_ms, .. } => {
+        | DaemonRequest::WaitLabel { timeout_ms, .. }
+        | DaemonRequest::Attempt { timeout_ms, .. }
+        | DaemonRequest::Find { timeout_ms, .. } => {
             Duration::from_millis(timeout_ms.unwrap_or(8_000).saturating_add(15_000))
         }
         DaemonRequest::ActType { .. } => Duration::from_secs(30),

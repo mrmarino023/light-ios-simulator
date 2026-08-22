@@ -31,6 +31,7 @@ These answers are **not enough** alone:
 - Dirty-state **50/50** — back-to-back app-jobs, no reboot, 0 AX-empty (LIGH-only session)
 - Rigor N=50 isolated arms — LIGH **50/50** p50 **2.2s** vs Maestro **30/50** (60%) p50 **27.5s** p95 **127s** (~**12×** p50 on this job). At N=20 Maestro was **20/20**; reliability breaks under back-to-back load at N=50 (bimodal fast aborts vs ~127s timeouts). Published: [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json)
 - MCP **mechanism** — structured fault → scripted corrective retry → `ok`
+- **QA layer** — `perceive` + `attempt` with fingerprint evidence + hypotheses ([`qa-layer-latest.json`](docs/assets/qa-layer-latest.json))
 - **LLM autonomous (1×)** — `gpt-5-mini` + vague prompt → fault step 5 → Swift fix → verify ([`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json))
 
 ### Not demonstrated (product)

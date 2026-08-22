@@ -1,0 +1,13 @@
+{
+  "gate": "qa_layer_unit",
+  "ts": 1787441037.7231448,
+  "claim": "screen fingerprint + affordances + attempt verdict (host-owned QA loop)",
+  "tests": "ligh-core qa::",
+  "mcp_tools": [
+    "ligh_perceive",
+    "ligh_attempt",
+    "ligh_find",
+    "ligh_dismiss"
+  ],
+  "claim_pass": true
+}
