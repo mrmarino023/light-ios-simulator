@@ -1,0 +1,14 @@
+{
+  "gate": "uxgraph_unit",
+  "ts": 1787442735.1835356,
+  "claim": "computational UX graph \u2014 persist, baseline, regress, explore, source hints",
+  "store": ".ligh/uxgraph.json",
+  "mcp_tools": [
+    "ligh_ux_status",
+    "ligh_ux_baseline",
+    "ligh_ux_regress",
+    "ligh_ux_explore",
+    "ligh_ux_hint"
+  ],
+  "claim_pass": true
+}

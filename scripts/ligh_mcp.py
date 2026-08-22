@@ -430,6 +430,67 @@ TOOLS = [
             "properties": {"settle_ms": {"type": "integer", "default": 2500}},
         },
     },
+    {
+        "name": "ligh_ux_status",
+        "description": "UX graph: nodes, edges, baselines summary (.ligh/uxgraph.json).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"workspace": {"type": "string", "description": "Repo root (default: LIGH_WORKSPACE or cwd)"}},
+        },
+    },
+    {
+        "name": "ligh_ux_baseline",
+        "description": "UX graph: snapshot current screens as named baseline for regress diff.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "name": {"type": "string"},
+                "workspace": {"type": "string"},
+                "settle_ms": {"type": "integer", "default": 2500},
+            },
+            "required": ["name"],
+        },
+    },
+    {
+        "name": "ligh_ux_regress",
+        "description": "UX graph: diff current screen vs baseline (structural regress, not pixels).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "baseline": {"type": "string"},
+                "workspace": {"type": "string"},
+                "settle_ms": {"type": "integer", "default": 2500},
+            },
+            "required": ["baseline"],
+        },
+    },
+    {
+        "name": "ligh_ux_explore",
+        "description": "UX graph: safe BFS explore — records screens/transitions into uxgraph.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "max_steps": {"type": "integer", "default": 6},
+                "max_depth": {"type": "integer", "default": 3},
+                "workspace": {"type": "string"},
+                "settle_ms": {"type": "integer", "default": 2500},
+                "timeout_ms": {"type": "integer", "default": 8000},
+            },
+        },
+    },
+    {
+        "name": "ligh_ux_hint",
+        "description": "UX graph: link screen fingerprint to Swift source file (learns over edits).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "fingerprint": {"type": "string"},
+                "source_path": {"type": "string"},
+                "workspace": {"type": "string"},
+            },
+            "required": ["fingerprint", "source_path"],
+        },
+    },
 ]
 
 
@@ -527,13 +588,18 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         return compact_cap(ligh(*cmd, timeout=300))
     if name == "ligh_perceive":
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
-        return compact_qa_cap(ligh("--json", "cap", "perceive", "--settle-ms", ms))
+        cmd = ["--json", "cap", "perceive", "--settle-ms", ms]
+        if args.get("workspace"):
+            cmd += ["--workspace", str(args["workspace"])]
+        return compact_qa_cap(ligh(*cmd))
     if name == "ligh_attempt":
         import json as _json
         intent = str(args.get("intent") or "")
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
         to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 8000)
         cmd = ["--json", "cap", "attempt", intent, "--settle-ms", ms, "--timeout-ms", to]
+        if args.get("workspace"):
+            cmd += ["--workspace", str(args["workspace"])]
         if args.get("label"):
             cmd += ["--label", str(args["label"])]
         if args.get("id"):
@@ -568,6 +634,45 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
     if name == "ligh_dismiss":
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
         return compact_qa_cap(ligh("--json", "cap", "dismiss", "--settle-ms", ms))
+    if name == "ligh_ux_status":
+        cmd = ["--json", "uxgraph", "status"]
+        if args.get("workspace"):
+            cmd += ["--workspace", str(args["workspace"])]
+        return compact_qa_cap(ligh(*cmd))
+    if name == "ligh_ux_baseline":
+        name_b = str(args.get("name") or "")
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        cmd = ["--json", "uxgraph", "baseline", name_b, "--settle-ms", ms]
+        if args.get("workspace"):
+            cmd += ["--workspace", str(args["workspace"])]
+        return compact_qa_cap(ligh(*cmd, timeout=120))
+    if name == "ligh_ux_regress":
+        base = str(args.get("baseline") or "")
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        cmd = ["--json", "uxgraph", "regress", base, "--settle-ms", ms]
+        if args.get("workspace"):
+            cmd += ["--workspace", str(args["workspace"])]
+        return compact_qa_cap(ligh(*cmd, timeout=120))
+    if name == "ligh_ux_explore":
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 8000)
+        st = str(args.get("max_steps") if args.get("max_steps") is not None else 6)
+        dp = str(args.get("max_depth") if args.get("max_depth") is not None else 3)
+        cmd = [
+            "--json", "uxgraph", "explore",
+            "--settle-ms", ms, "--timeout-ms", to,
+            "--max-steps", st, "--max-depth", dp,
+        ]
+        if args.get("workspace"):
+            cmd += ["--workspace", str(args["workspace"])]
+        return compact_qa_cap(ligh(*cmd, timeout=180))
+    if name == "ligh_ux_hint":
+        fp = str(args.get("fingerprint") or "")
+        sp = str(args.get("source_path") or "")
+        cmd = ["--json", "uxgraph", "hint", fp, sp]
+        if args.get("workspace"):
+            cmd += ["--workspace", str(args["workspace"])]
+        return compact_qa_cap(ligh(*cmd))
     if name == "ligh_observe":
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
         raw = ligh("--json", "observe", "--settle-ms", ms)

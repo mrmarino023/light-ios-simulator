@@ -212,6 +212,11 @@ enum Commands {
         #[command(subcommand)]
         command: CapCommands,
     },
+    /// UX graph ops (computational UX model).
+    Uxgraph {
+        #[command(subcommand)]
+        command: UxgraphCommands,
+    },
     /// Start / stop / status of the persistent agent host (`lighd`).
     Daemon {
         #[command(subcommand)]
@@ -331,6 +336,8 @@ enum CapCommands {
     Perceive {
         #[arg(long, default_value_t = 2500)]
         settle_ms: u64,
+        #[arg(long)]
+        workspace: Option<String>,
     },
     /// QA layer: act with built-in verify (intent tap|type|key).
     Attempt {
@@ -351,6 +358,8 @@ enum CapCommands {
         settle_ms: u64,
         #[arg(long, default_value_t = 8000)]
         timeout_ms: u64,
+        #[arg(long)]
+        workspace: Option<String>,
     },
     /// QA layer: find label/id (scroll by default).
     Find {
@@ -371,6 +380,51 @@ enum CapCommands {
     Dismiss {
         #[arg(long, default_value_t = 2500)]
         settle_ms: u64,
+    },
+}
+
+#[derive(Subcommand)]
+enum UxgraphCommands {
+    /// Graph summary (nodes, edges, baselines).
+    Status {
+        #[arg(long)]
+        workspace: Option<String>,
+    },
+    /// Save current screens as named baseline.
+    Baseline {
+        name: String,
+        #[arg(long)]
+        workspace: Option<String>,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+    },
+    /// Diff current screen vs baseline.
+    Regress {
+        baseline: String,
+        #[arg(long)]
+        workspace: Option<String>,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+    },
+    /// Safe explore: BFS taps on non-destructive affordances.
+    Explore {
+        #[arg(long, default_value_t = 6)]
+        max_steps: u32,
+        #[arg(long, default_value_t = 3)]
+        max_depth: u32,
+        #[arg(long)]
+        workspace: Option<String>,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 8000)]
+        timeout_ms: u64,
+    },
+    /// Record source-file hint for a screen fingerprint.
+    Hint {
+        fingerprint: String,
+        source_path: String,
+        #[arg(long)]
+        workspace: Option<String>,
     },
 }
 
@@ -1207,8 +1261,9 @@ fn main() -> anyhow::Result<()> {
                         },
                     }
                 },
-                CapCommands::Perceive { settle_ms } => DaemonRequest::Perceive {
+                CapCommands::Perceive { settle_ms, workspace } => DaemonRequest::Perceive {
                     settle_ms: Some(settle_ms),
+                    workspace,
                 },
                 CapCommands::Attempt {
                     intent,
@@ -1219,6 +1274,7 @@ fn main() -> anyhow::Result<()> {
                     expect,
                     settle_ms,
                     timeout_ms,
+                    workspace,
                 } => {
                     let expect_json = expect
                         .as_ref()
@@ -1234,6 +1290,7 @@ fn main() -> anyhow::Result<()> {
                         expect: expect_json,
                         settle_ms: Some(settle_ms),
                         timeout_ms: Some(timeout_ms),
+                        workspace,
                     }
                 },
                 CapCommands::Find {
@@ -1270,6 +1327,69 @@ fn main() -> anyhow::Result<()> {
                 } else {
                     println!("✗ {cap} fault={fault} — {}", resp.error.unwrap_or_default());
                 }
+            }
+            if !resp.ok {
+                std::process::exit(2);
+            }
+        }
+
+        Commands::Uxgraph { command } => {
+            use ligh_core::DaemonRequest;
+            let client = hot_client()?;
+            let req = match command {
+                UxgraphCommands::Status { workspace } => DaemonRequest::UxStatus { workspace },
+                UxgraphCommands::Baseline {
+                    name,
+                    workspace,
+                    settle_ms,
+                } => DaemonRequest::UxBaseline {
+                    name,
+                    workspace,
+                    settle_ms: Some(settle_ms),
+                },
+                UxgraphCommands::Regress {
+                    baseline,
+                    workspace,
+                    settle_ms,
+                } => DaemonRequest::UxRegress {
+                    baseline,
+                    workspace,
+                    settle_ms: Some(settle_ms),
+                },
+                UxgraphCommands::Explore {
+                    max_steps,
+                    max_depth,
+                    workspace,
+                    settle_ms,
+                    timeout_ms,
+                } => DaemonRequest::UxExplore {
+                    max_steps: Some(max_steps),
+                    max_depth: Some(max_depth),
+                    workspace,
+                    settle_ms: Some(settle_ms),
+                    timeout_ms: Some(timeout_ms),
+                },
+                UxgraphCommands::Hint {
+                    fingerprint,
+                    source_path,
+                    workspace,
+                } => DaemonRequest::UxHint {
+                    fingerprint,
+                    source_path,
+                    workspace,
+                },
+            };
+            let resp = client.call(&req)?;
+            let data = resp.data.clone().unwrap_or(serde_json::json!({
+                "ok": resp.ok,
+                "error": resp.error,
+            }));
+            if use_json {
+                println!("{}", serde_json::to_string_pretty(&data)?);
+            } else if resp.ok {
+                println!("✓ uxgraph ok");
+            } else {
+                println!("✗ uxgraph — {}", resp.error.unwrap_or_default());
             }
             if !resp.ok {
                 std::process::exit(2);

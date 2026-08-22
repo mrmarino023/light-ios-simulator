@@ -22,8 +22,8 @@
   <strong>Product claim:</strong> coding agent verifies Debug <code>.app</code> via
   <code>app-job</code> — <strong>verified or explicit fault</strong>, never “probably tapped”<br/>
   <a href="docs/assets/app-reliability-latest.json">fixture N=50</a> ·
-  <a href="docs/assets/qa-layer-latest.json">QA layer</a> ·
-  <a href="docs/QA_LAYER.md">perceive/attempt</a> ·
+  <a href="docs/assets/uxgraph-latest.json">UX graph</a> ·
+  <a href="docs/UX_GRAPH.md">uxgraph</a> ·
   <a href="docs/assets/fail-closed-latest.json">fail-closed 5/5</a> ·
   <a href="docs/assets/dirty-state-latest.json">dirty 50/50</a> ·
   <a href="docs/assets/third-party-rigor-latest.json">rigor N=50</a> ·

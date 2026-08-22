@@ -121,6 +121,7 @@ Published: [`docs/assets/app-reliability-latest.json`](docs/assets/app-reliabili
 
 ```text
 ✅ Engineering baseline (fixture + XCUITestDemo + fail-closed + dirty 50 + rigor N=50 + MCP + 1× LLM autonomous)
+✅ QA layer v1 (perceive/attempt/find/dismiss + fingerprint evidence)
        ↓
 ⏭️  STOP adding N=50 / matrix runs until developers speak
        ↓

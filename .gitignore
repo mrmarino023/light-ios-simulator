@@ -11,5 +11,5 @@ node_modules/
 package-lock.json
 docs/assets/_*.png
 fixtures/**/build/
-scripts/__pycache__/
+.ligh/
 **/xcuserdata/

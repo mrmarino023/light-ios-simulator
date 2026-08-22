@@ -5,6 +5,7 @@
 mod capabilities;
 mod motor;
 mod qa_cap;
+mod ux_cap;
 
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
@@ -925,11 +926,15 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             cap_response(r)
         }
 
-        DaemonRequest::Perceive { settle_ms } => {
+        DaemonRequest::Perceive {
+            settle_ms,
+            workspace,
+        } => {
             let settle = settle_ms.unwrap_or(2500);
+            let ws = workspace.as_deref().map(std::path::Path::new);
             let state_c = state.clone();
             let build = move || build_observe_once(&state_c, true);
-            let mut r = qa_cap::cap_perceive(&build, state, settle);
+            let mut r = qa_cap::cap_perceive(&build, state, settle, ws);
             if let Some(ref mut obs) = r.observe {
                 attach_sense(state, obs, Instant::now());
             }
@@ -945,9 +950,11 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             expect,
             settle_ms,
             timeout_ms,
+            workspace,
         } => {
             let settle = settle_ms.unwrap_or(2500);
             let timeout = timeout_ms.unwrap_or(8000);
+            let ws = workspace.as_deref().map(std::path::Path::new);
             let exp = parse_expectation(expect.as_ref());
             let state_c = state.clone();
             let build = move || build_observe_once(&state_c, true);
@@ -962,6 +969,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 exp.as_ref(),
                 settle,
                 timeout,
+                ws,
             );
             if let Some(ref mut obs) = r.observe {
                 attach_sense(state, obs, Instant::now());
@@ -1008,6 +1016,74 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 attach_sense(state, obs, Instant::now());
             }
             cap_response(r)
+        }
+
+        DaemonRequest::UxStatus { workspace } => {
+            let ws = workspace.as_deref().map(std::path::Path::new);
+            cap_response(ux_cap::cap_ux_status(ws))
+        }
+
+        DaemonRequest::UxBaseline {
+            name,
+            workspace,
+            settle_ms,
+        } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let ws = workspace.as_deref().map(std::path::Path::new);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = ux_cap::cap_ux_baseline(ws, &name, &build, state, settle);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::UxRegress {
+            baseline,
+            workspace,
+            settle_ms,
+        } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let ws = workspace.as_deref().map(std::path::Path::new);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = ux_cap::cap_ux_regress(ws, &baseline, &build, state, settle);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::UxExplore {
+            max_steps,
+            max_depth,
+            workspace,
+            settle_ms,
+            timeout_ms,
+        } => {
+            let steps = max_steps.unwrap_or(6);
+            let depth = max_depth.unwrap_or(3);
+            let settle = settle_ms.unwrap_or(2500);
+            let timeout = timeout_ms.unwrap_or(8000);
+            let ws = workspace.as_deref().map(std::path::Path::new);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r =
+                ux_cap::cap_ux_explore(ws, &build, state, steps, depth, settle, timeout);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::UxHint {
+            fingerprint,
+            source_path,
+            workspace,
+        } => {
+            let ws = workspace.as_deref().map(std::path::Path::new);
+            cap_response(ux_cap::cap_ux_hint(ws, &fingerprint, &source_path))
         }
 
         DaemonRequest::StreamStats => {

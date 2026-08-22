@@ -74,4 +74,4 @@ cargo test -p ligh-core qa::
 
 > Every host call answers: what I did, what changed, whether your intent worked, and what to try next.
 
-See also: [`OBSERVE.md`](OBSERVE.md) · [`AGENT.md`](AGENT.md) · [`CONTROL.md`](CONTROL.md).
+See also: [`UX_GRAPH.md`](UX_GRAPH.md) · [`OBSERVE.md`](OBSERVE.md) · [`AGENT.md`](AGENT.md) · [`CONTROL.md`](CONTROL.md).

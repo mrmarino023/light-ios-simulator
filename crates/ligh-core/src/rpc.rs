@@ -216,6 +216,8 @@ pub enum DaemonRequest {
     Perceive {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
     },
     /// QA layer: act with built-in verify (tap/type/key + optional expect).
     Attempt {
@@ -234,6 +236,8 @@ pub enum DaemonRequest {
         settle_ms: Option<u64>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         timeout_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
     },
     /// QA layer: find label/id, optionally scroll.
     Find {
@@ -254,6 +258,47 @@ pub enum DaemonRequest {
     Dismiss {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         settle_ms: Option<u64>,
+    },
+    /// UX graph: status (nodes, edges, baselines).
+    UxStatus {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
+    },
+    /// UX graph: snapshot current screens as baseline.
+    UxBaseline {
+        name: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+    },
+    /// UX graph: diff current screen vs baseline.
+    UxRegress {
+        baseline: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+    },
+    /// UX graph: safe BFS explore (records transitions).
+    UxExplore {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        max_steps: Option<u32>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        max_depth: Option<u32>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+    },
+    /// UX graph: correlate fingerprint with source file edit.
+    UxHint {
+        fingerprint: String,
+        source_path: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
     },
     StreamStats,
     /// Tear down the simulator session and exit the daemon.
@@ -335,6 +380,9 @@ fn read_timeout_for(req: &DaemonRequest) -> Duration {
         }
         DaemonRequest::RunApp { timeout_ms, .. } => {
             Duration::from_millis(timeout_ms.unwrap_or(8_000).saturating_add(60_000))
+        }
+        DaemonRequest::UxExplore { timeout_ms, .. } => {
+            Duration::from_millis(timeout_ms.unwrap_or(8_000).saturating_mul(6).saturating_add(60_000))
         }
         DaemonRequest::ActTap { timeout_ms, .. }
         | DaemonRequest::WaitLabel { timeout_ms, .. }

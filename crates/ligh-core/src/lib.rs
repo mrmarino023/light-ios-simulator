@@ -9,6 +9,7 @@ pub mod profile;
 pub mod qa;
 pub mod rpc;
 pub mod state;
+pub mod uxgraph;
 
 pub use config::LighConfig;
 pub use control::{
@@ -20,13 +21,18 @@ pub use error::{LighError, Result};
 pub use observe::{
     build_actionable_topk, build_scene, detect_surface, diff_sense_events, eyes_ready,
     find_id_center, find_id_in_dump, find_label_center, find_label_in_dump, is_chrome_node,
-    is_editable_role, is_transition_sparse, AccessibilityTree, FrameMeta, ObserveSnapshot, SceneMeta, SenseEvent,
-    ACTIONABLE_TOPK, OBSERVE_SCHEMA_VERSION,
+    is_editable_role, is_transition_sparse, AccessibilityTree, FrameMeta, ObserveSnapshot,
+    SceneMeta, SenseEvent, ACTIONABLE_TOPK, OBSERVE_SCHEMA_VERSION,
 };
 pub use qa::{
     build_perceive, evaluate_attempt, fingerprint_of, infer_affordances, parse_expectation,
     screen_fingerprint, Affordance, AffordanceKind, AttemptEvidence, AttemptVerdict, BlockingView,
     Expectation, Hypothesis, LocationView, PerceiveView,
+};
+pub use uxgraph::{
+    default_graph_path, resolve_workspace, ExploreResult, ExploreStep, GraphDiff, GraphSummary,
+    ScreenChange, SourceHint, UxBaseline, UxGraph, UxGraphStats, UxScreenNode, UxTransitionEdge,
+    UXGRAPH_SCHEMA_VERSION,
 };
 pub use profile::{FeatureRequirements, resolve_disabled_jobs, slim_labels};
 pub use rpc::{

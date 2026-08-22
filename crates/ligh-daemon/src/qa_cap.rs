@@ -11,6 +11,7 @@ use ligh_host::{AxDump, HidInput};
 use serde_json::json;
 
 use crate::capabilities::{ensure_ready, phase_of, settle_eyes, surface_of};
+use crate::ux_cap::{ux_persist_attempt, ux_persist_perceive};
 use crate::DaemonState;
 
 fn perceive_from_snap(snap: &ObserveSnapshot) -> PerceiveView {
@@ -21,6 +22,7 @@ pub(crate) fn cap_perceive(
     build: &dyn Fn() -> ObserveSnapshot,
     state: &Arc<Mutex<DaemonState>>,
     settle_ms: u64,
+    workspace: Option<&std::path::Path>,
 ) -> CapabilityResult {
     let ready = ensure_ready(build, state, settle_ms, 4);
     if !ready.ok {
@@ -38,6 +40,7 @@ pub(crate) fn cap_perceive(
         .clone()
         .unwrap_or_else(|| settle_eyes(build, settle_ms));
     let view = perceive_from_snap(&snap);
+    ux_persist_perceive(workspace, &view);
     CapabilityResult::success(
         phase_of(&snap),
         surface_of(&snap),
@@ -58,6 +61,7 @@ pub(crate) fn cap_attempt(
     expect: Option<&Expectation>,
     settle_ms: u64,
     timeout_ms: u64,
+    workspace: Option<&std::path::Path>,
 ) -> CapabilityResult {
     let ready = ensure_ready(build, state, settle_ms.min(2000), 3);
     if !ready.ok {
@@ -104,6 +108,8 @@ pub(crate) fn cap_attempt(
         id,
         label,
     );
+    let pre_view = build_perceive(&pre, &pre.events);
+    ux_persist_attempt(workspace, &pre_view, &verdict, label, id);
 
     let fault = if verdict.intent_met {
         FaultClass::Ok
