@@ -294,6 +294,9 @@ enum CapCommands {
         /// Skip simctl install (relaunch only).
         #[arg(long, default_value_t = false)]
         no_install: bool,
+        /// Extra argv for simctl launch (repeatable).
+        #[arg(long = "launch-arg")]
+        launch_args: Vec<String>,
     },
     /// Settle → wait until AX label exists.
     #[command(name = "wait-label")]
@@ -320,6 +323,9 @@ enum CapCommands {
         /// Skip simctl install (relaunch only).
         #[arg(long, default_value_t = false)]
         no_install: bool,
+        /// Extra argv for simctl launch (repeatable).
+        #[arg(long = "launch-arg")]
+        launch_args: Vec<String>,
     },
 }
 
@@ -1107,6 +1113,7 @@ fn main() -> anyhow::Result<()> {
                     settle_ms,
                     timeout_ms,
                     no_install,
+                    launch_args,
                 } => DaemonRequest::RunApp {
                     app,
                     bundle_id,
@@ -1115,6 +1122,11 @@ fn main() -> anyhow::Result<()> {
                     settle_ms: Some(settle_ms),
                     timeout_ms: Some(timeout_ms),
                     install: Some(!no_install),
+                    launch_args: if launch_args.is_empty() {
+                        None
+                    } else {
+                        Some(launch_args)
+                    },
                 },
                 CapCommands::WaitLabel {
                     label,
@@ -1132,6 +1144,7 @@ fn main() -> anyhow::Result<()> {
                     settle_ms,
                     timeout_ms,
                     no_install,
+                    launch_args,
                 } => {
                     let parsed: Vec<serde_json::Value> = serde_json::from_str(&steps)
                         .map_err(|e| anyhow::anyhow!("--steps JSON: {e}"))?;
@@ -1142,6 +1155,11 @@ fn main() -> anyhow::Result<()> {
                         settle_ms: Some(settle_ms),
                         timeout_ms: Some(timeout_ms),
                         install: Some(!no_install),
+                        launch_args: if launch_args.is_empty() {
+                            None
+                        } else {
+                            Some(launch_args)
+                        },
                     }
                 },
             };

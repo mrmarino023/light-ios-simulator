@@ -35,6 +35,16 @@ def ligh(*args: str, timeout: float = 120) -> dict[str, Any]:
     p = subprocess.run([LIGH, *args], capture_output=True, text=True, timeout=timeout)
     out = (p.stdout or "").strip()
     err = (p.stderr or "").strip()
+    for blob in (out, err):
+        if blob.startswith("{") or blob.startswith("["):
+            try:
+                data = json.loads(blob)
+                if isinstance(data, dict):
+                    # Cap/observe JSON is valid even when ok:false (fail-closed fault).
+                    return {"ok": True, "data": data}
+                return {"ok": True, "data": data}
+            except json.JSONDecodeError:
+                pass
     if p.returncode != 0:
         return {"ok": False, "error": err or out or f"exit {p.returncode}"}
     if out.startswith("{") or out.startswith("["):
@@ -340,7 +350,12 @@ TOOLS = [
                 },
                 "settle_ms": {"type": "integer", "default": 3500},
                 "timeout_ms": {"type": "integer", "default": 12000},
-                "no_install": {"type": "boolean", "default": false},
+                "no_install": {"type": "boolean", "default": False},
+                "launch_args": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Extra argv for simctl launch (e.g. --ui_test_login_failure)",
+                },
             },
             "required": ["app", "steps"],
         },
@@ -437,6 +452,8 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
             cmd += ["--bundle-id", str(args["bundle_id"])]
         if args.get("no_install"):
             cmd += ["--no-install"]
+        for la in args.get("launch_args") or []:
+            cmd += [f"--launch-arg={la}"]
         return compact_cap(ligh(*cmd, timeout=300))
     if name == "ligh_observe":
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)

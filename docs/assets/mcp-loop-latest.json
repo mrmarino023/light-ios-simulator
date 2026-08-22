@@ -1,0 +1,103 @@
+{
+  "gate": "mcp_loop",
+  "claim": "MCP ligh_cap_app_job returns actionable fault \u2192 agent fixes \u2192 verified retry",
+  "app": "XCUITestDemo (OSS third-party)",
+  "bundle_id": "com.himali.XCUITestDemo",
+  "app_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app",
+  "protocol": [
+    "bad postcondition \u2192 fault+step",
+    "fix steps \u2192 ok",
+    "launch_args failure \u2192 fault",
+    "fix \u2192 ok"
+  ],
+  "rounds": [
+    {
+      "round": "bad_postcondition",
+      "ms": 23033,
+      "ok": false,
+      "fault": "target_missing",
+      "detail": {
+        "detail": {
+          "error": "timeout waiting for clear path",
+          "id": "NoSuchHomeTitle",
+          "label": null,
+          "overlay": "none"
+        },
+        "op": "wait",
+        "step": 6
+      },
+      "compact": {
+        "ok": false,
+        "fault": "target_missing",
+        "step": 6
+      }
+    },
+    {
+      "round": "fixed_happy_path",
+      "ms": 3653,
+      "ok": true,
+      "fault": "ok",
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "homeTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 7
+      },
+      "compact": {
+        "ok": true,
+        "fault": "ok",
+        "step": null
+      }
+    },
+    {
+      "round": "invalid_credentials",
+      "ms": 16927,
+      "ok": false,
+      "fault": "target_missing",
+      "detail": {
+        "detail": {
+          "error": "timeout waiting for clear path",
+          "id": "homeTitle",
+          "label": null,
+          "overlay": "none"
+        },
+        "op": "wait",
+        "step": 6
+      },
+      "compact": {
+        "ok": false,
+        "fault": "target_missing",
+        "step": 6
+      }
+    },
+    {
+      "round": "recovery_happy_path",
+      "ms": 2357,
+      "ok": true,
+      "fault": "ok",
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "homeTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 7
+      },
+      "compact": {
+        "ok": true,
+        "fault": "ok",
+        "step": null
+      }
+    }
+  ],
+  "checks": {
+    "fault_actionable": true,
+    "retry_ok": true,
+    "fail_closed": true,
+    "recovery_ok": true
+  },
+  "claim_pass": true,
+  "total_ms": 45972
+}

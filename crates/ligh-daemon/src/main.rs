@@ -852,6 +852,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             settle_ms,
             timeout_ms,
             install,
+            launch_args,
         } => {
             let settle = settle_ms.unwrap_or(3500);
             let timeout = timeout_ms.unwrap_or(8000);
@@ -868,6 +869,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 settle,
                 timeout,
                 do_install,
+                launch_args.as_deref(),
             );
             if let Some(ref mut obs) = r.observe {
                 attach_sense(state, obs, Instant::now());
@@ -898,6 +900,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             settle_ms,
             timeout_ms,
             install,
+            launch_args,
         } => {
             let settle = settle_ms.unwrap_or(3500);
             let timeout = timeout_ms.unwrap_or(10000);
@@ -913,6 +916,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 settle,
                 timeout,
                 do_install,
+                launch_args.as_deref(),
             );
             if let Some(ref mut obs) = r.observe {
                 attach_sense(state, obs, Instant::now());

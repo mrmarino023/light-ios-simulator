@@ -185,6 +185,9 @@ pub enum DaemonRequest {
         /// When false, skip simctl install (relaunch only). Default true.
         #[serde(default, skip_serializing_if = "Option::is_none")]
         install: Option<bool>,
+        /// Extra argv passed to simctl launch (e.g. `--ui_test_login_failure`).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        launch_args: Option<Vec<String>>,
     },
     /// Capability: settle → wait until AX label exists.
     WaitLabel {
@@ -206,6 +209,8 @@ pub enum DaemonRequest {
         timeout_ms: Option<u64>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         install: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        launch_args: Option<Vec<String>>,
     },
     StreamStats,
     /// Tear down the simulator session and exit the daemon.

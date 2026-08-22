@@ -443,6 +443,7 @@ pub(crate) fn run_app(
     settle_ms: u64,
     timeout_ms: u64,
     install: bool,
+    launch_args: Option<&[String]>,
 ) -> CapabilityResult {
     let app_path = match std::path::Path::new(app).canonicalize() {
         Ok(p) => p,
@@ -495,8 +496,17 @@ pub(crate) fn run_app(
         }
         let _ = ligh_sim::Simctl::run(&["terminate", &udid, &bid]);
         std::thread::sleep(Duration::from_millis(150));
-        ligh_sim::Simctl::run(&["launch", &udid, &bid, "--terminate-running-process"])
-            .map_err(|e| e.to_string())?;
+        let mut launch_cmd = vec![
+            "launch".to_string(),
+            udid.clone(),
+            bid.clone(),
+            "--terminate-running-process".to_string(),
+        ];
+        if let Some(extra) = launch_args {
+            launch_cmd.extend(extra.iter().cloned());
+        }
+        let launch_refs: Vec<&str> = launch_cmd.iter().map(|s| s.as_str()).collect();
+        ligh_sim::Simctl::run(&launch_refs).map_err(|e| e.to_string())?;
         // Let AX attach to the new process before first dump.
         std::thread::sleep(Duration::from_millis(250));
         Ok(())
@@ -670,6 +680,7 @@ pub(crate) fn app_job(
     settle_ms: u64,
     timeout_ms: u64,
     install: bool,
+    launch_args: Option<&[String]>,
 ) -> CapabilityResult {
     let home_label = steps.first().and_then(|s| {
         if s.get("op").and_then(|v| v.as_str()) == Some("wait") {
@@ -695,6 +706,7 @@ pub(crate) fn app_job(
         settle_ms,
         timeout_ms,
         install,
+        launch_args,
     );
     if !launched.ok {
         return CapabilityResult::fail(

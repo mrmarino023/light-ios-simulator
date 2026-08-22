@@ -22,7 +22,10 @@
   <strong>Product claim:</strong> coding agent verifies Debug <code>.app</code> via
   <code>app-job</code> — <strong>verified or explicit fault</strong>, never “probably tapped”<br/>
   <a href="docs/assets/app-reliability-latest.json">fixture N=50</a> ·
-  <a href="docs/assets/third-party-bakeoff-latest.json">third-party vs Maestro</a> ·
+  <a href="docs/assets/fail-closed-latest.json">fail-closed 5/5</a> ·
+  <a href="docs/assets/dirty-state-latest.json">dirty 50/50</a> ·
+  <a href="docs/assets/third-party-rigor-latest.json">rigor N=20</a> ·
+  <a href="docs/assets/mcp-loop-latest.json">MCP loop</a> ·
   <a href="docs/assets/cold-start-latest.json">cold start</a>
 </p>
 
@@ -134,6 +137,10 @@ LIGH_APP_N=50 ./scripts/gate-app-reliability.sh
 
 # Third-party proof (OSS app, not designed for LIGH)
 ./scripts/gate-xcuitestdemo-bakeoff.sh
+./scripts/gate-fail-closed.sh                      # injected faults → explicit fault, never soft-success
+LIGH_DIRTY_N=50 ./scripts/gate-dirty-state.sh      # 50× back-to-back, no sim reboot
+LIGH_APP_N=20 ./scripts/gate-third-party-rigor.sh  # isolated clean arms: LIGH vs Maestro
+./scripts/gate-mcp-loop.sh                       # MCP fault → fix → verify (no LLM)
 
 # Your app
 # LIGH_APP_PATH=…/MyApp.app LIGH_APP_BUNDLE_ID=… \
@@ -159,13 +166,17 @@ All raw JSON is the source of truth. Summaries below.
 | Gate | LIGH | Maestro | JSON |
 |------|------|---------|------|
 | Bakeoff N=10 (clean sim) | **10/10** · p50 **2.4s** | **10/10** · p50 **21.7s** | [`third-party-bakeoff-latest.json`](docs/assets/third-party-bakeoff-latest.json) |
+| **Fail-closed matrix** | **5/5** injected faults | — | [`fail-closed-latest.json`](docs/assets/fail-closed-latest.json) |
+| **Dirty-state N=50** (no reboot between iters) | **50/50** · warm p50 **2.7s** · p95 **5.5s** · 0 AX-empty | — | [`dirty-state-latest.json`](docs/assets/dirty-state-latest.json) |
+| **Rigor N=20** (isolated clean arms) | **20/20** · p50 **2.2s** | **20/20** · p50 **23.8s** | [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json) |
+| **MCP closed loop** | **claim_pass** — fault+step → fix → ok | — | [`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json) |
 
 **How to read the Maestro comparison**
 
 | Dimension | Fixture | Third-party (XCUITestDemo) |
 |-----------|---------|----------------------------|
-| Reliability | Tie 10/10 | Tie 10/10 |
-| Latency p50 | LIGH ~11× faster | LIGH ~9× faster |
+| Reliability | Tie 10/10 (N=10 bakeoff); **20/20 rigor** | Tie **20/20** rigor |
+| Latency p50 | LIGH ~11× faster | LIGH ~**10.7×** faster (rigor N=20) |
 | Product wedge | Fail-closed `app-job` + MCP for agents | Same |
 
 Reliability ties on these two jobs do **not** generalize to all apps. Latency wins are **bakeoff datapoints**, not the headline claim.

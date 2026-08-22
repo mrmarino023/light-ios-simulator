@@ -1,0 +1,129 @@
+{
+  "gate": "fail_closed",
+  "claim": "injected failures return ok=false + explicit fault \u2014 never soft-success",
+  "app": "XCUITestDemo (OSS third-party)",
+  "bundle_id": "com.himali.XCUITestDemo",
+  "cases": [
+    {
+      "case": "happy_login",
+      "note": "control: valid credentials \u2192 homeTitle",
+      "expect_ok": true,
+      "got_ok": true,
+      "fault": "ok",
+      "fail_closed": true,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "homeTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 7
+      },
+      "compact": {
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null
+      }
+    },
+    {
+      "case": "invalid_credentials",
+      "note": "launch --ui_test_login_failure \u2192 homeTitle must fail",
+      "expect_ok": false,
+      "got_ok": false,
+      "fault": "fail",
+      "fail_closed": true,
+      "detail": {},
+      "compact": {
+        "ok": false,
+        "fault": "fail",
+        "step": null,
+        "op": null
+      }
+    },
+    {
+      "case": "missing_username_field",
+      "note": "wait nonexistent id at step 0",
+      "expect_ok": false,
+      "got_ok": false,
+      "fault": "target_missing",
+      "fail_closed": true,
+      "detail": {
+        "detail": {
+          "detail": {
+            "attempt": "3",
+            "bundle_id": "com.himali.XCUITestDemo",
+            "error": "timeout waiting for clear path",
+            "id": "NoSuchUsernameField",
+            "install": false,
+            "label": null,
+            "overlay": "none"
+          },
+          "install": false,
+          "step": "wait_chrome",
+          "wait_id": "NoSuchUsernameField",
+          "wait_label": null
+        },
+        "op": "run_app",
+        "step": 0
+      },
+      "compact": {
+        "ok": false,
+        "fault": "target_missing",
+        "step": 0,
+        "op": "run_app"
+      }
+    },
+    {
+      "case": "wrong_postcondition",
+      "note": "login ok but final wait id missing",
+      "expect_ok": false,
+      "got_ok": false,
+      "fault": "target_missing",
+      "fail_closed": true,
+      "detail": {
+        "detail": {
+          "error": "timeout waiting for clear path",
+          "id": "NoSuchHomeTitle",
+          "label": null,
+          "overlay": "none"
+        },
+        "op": "wait",
+        "step": 6
+      },
+      "compact": {
+        "ok": false,
+        "fault": "target_missing",
+        "step": 6,
+        "op": "wait"
+      }
+    },
+    {
+      "case": "empty_credentials",
+      "note": "empty fields \u2192 no homeTitle",
+      "expect_ok": false,
+      "got_ok": false,
+      "fault": "target_missing",
+      "fail_closed": true,
+      "detail": {
+        "detail": {
+          "error": "timeout waiting for clear path",
+          "id": "homeTitle",
+          "label": null,
+          "overlay": "none"
+        },
+        "op": "wait",
+        "step": 2
+      },
+      "compact": {
+        "ok": false,
+        "fault": "target_missing",
+        "step": 2,
+        "op": "wait"
+      }
+    }
+  ],
+  "pass": 5,
+  "total": 5,
+  "claim_pass": true
+}
