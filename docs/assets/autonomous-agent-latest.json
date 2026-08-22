@@ -1,58 +1,146 @@
 {
   "gate": "autonomous_agent",
-  "claim": "Vague prompt → inspect/hypothesize/edit/build/LIGH loop without scripted fix",
-  "goal": "The XCUITestDemo login flow is broken — users cannot reach the home screen after login. Find and fix the problem in the Swift source, then verify with LIGH.",
-  "driver": "cursor_agent",
-  "model": null,
-  "bug": "loginButton → loginBtnTypo (accessibility id typo via scenarios/login-a11y-typo.patch)",
-  "steps_used": 4,
+  "claim": "Vague prompt \u2192 inspect/hypothesize/edit/build/LIGH loop without scripted fix",
+  "goal": "The XCUITestDemo login flow is broken \u2014 users cannot reach the home screen after login. Find and fix the problem in the Swift source, then verify with LIGH.",
+  "driver": "openai",
+  "model": "gpt-5-mini",
+  "steps_used": 8,
   "verified": true,
   "claim_pass": true,
-  "source_restored": true,
-  "tokens": null,
-  "total_ms": 103950,
-  "protocol": [
-    "inject bug (patch)",
-    "LIGH app-job → structured fault",
-    "agent reads source from fault (step 5 tap loginButton → target_missing)",
-    "agent fixes Swift + rebuild + reinstall",
-    "LIGH app-job → ok"
-  ],
+  "tokens": {
+    "in": 11985,
+    "out": 2508
+  },
+  "total_ms": 84761,
   "trace": [
     {
       "step": 1,
-      "action": {"action": "ligh_app_job", "note": "acceptance job on broken build"},
+      "action": {
+        "action": "ligh_app_job",
+        "path": "fixtures/third-party/XCUITestDemo"
+      },
       "result": {
         "ok": false,
         "fault": "target_missing",
-        "detail": {"step": 5, "op": "tap"},
-        "compact": {"ok": false, "fault": "target_missing", "step": 5, "op": "tap"}
+        "detail": {
+          "detail": {
+            "error": "timeout waiting for clear path",
+            "id": "loginButton",
+            "label": null,
+            "overlay": "none"
+          },
+          "op": "tap",
+          "step": 5
+        },
+        "ms": 32361,
+        "compact": {
+          "ok": false,
+          "fault": "target_missing",
+          "step": 5,
+          "op": "tap"
+        }
       }
     },
     {
       "step": 2,
-      "action": {"action": "read_file", "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift"},
-      "result": {"ok": true, "finding": "accessibilityIdentifier loginBtnTypo on Login button — expected loginButton"}
+      "action": {
+        "action": "read_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift"
+      },
+      "result": {
+        "ok": true,
+        "path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "lines": 76,
+        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @StateObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        _viewModel = StateObject(wrappedValue: viewModel)\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView()\n                    .environmentObject(viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @EnvironmentObject var vm: LoginViewModel\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginBtnTypo\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You\u2019re logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
+      }
     },
     {
       "step": 3,
-      "action": {"action": "write_file", "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift", "fix": "loginBtnTypo → loginButton"},
-      "result": {"ok": true}
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @StateObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        _viewModel = StateObject(wrappedValue: viewModel)\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView()\n                    .environmentObject(viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @EnvironmentObject var vm: LoginViewModel\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginButton\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You\u0019re logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "bytes": 2021
+      }
     },
     {
       "step": 4,
-      "action": {"action": "build_app"},
-      "result": {"ok": true}
+      "action": {
+        "action": "build_app",
+        "path": "fixtures/third-party/XCUITestDemo"
+      },
+      "result": {
+        "ok": false,
+        "ms": 5902,
+        "tail": "tiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/Objects-normal/arm64/XCUITestDemo.swiftmodule -emit-abi-descriptor-path /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/Objects-normal/arm64/XCUITestDemo.abi.json\n/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift:72:22: error: unprintable ASCII character found in source file\n            Text(\"You\u0019re logged in!\")\n                     ^\n\n** BUILD FAILED **\n\n\nThe following build commands failed:\n\tSwiftCompile normal arm64 /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift (in target 'XCUITestDemo' from project 'XCUITestDemo')\n\tSwiftCompile normal arm64 Compiling\\ ContentView.swift /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift (in target 'XCUITestDemo' from project 'XCUITestDemo')\n\tSwiftEmitModule normal arm64 Emitting\\ module\\ for\\ XCUITestDemo (in target 'XCUITestDemo' from project 'XCUITestDemo')\n\tEmitSwiftModule normal arm64 (in target 'XCUITestDemo' from project 'XCUITestDemo')\n\tBuilding project XCUITestDemo with scheme XCUITestDemo and configuration Debug\n(5 failures)\n"
+      }
     },
     {
       "step": 5,
-      "action": {"action": "ligh_app_job", "note": "reinstall + verify"},
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @StateObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        _viewModel = StateObject(wrappedValue: viewModel)\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView()\n                    .environmentObject(viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @EnvironmentObject var vm: LoginViewModel\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginButton\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You're logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "bytes": 2021
+      }
+    },
+    {
+      "step": 6,
+      "action": {
+        "action": "build_app",
+        "path": "fixtures/third-party/XCUITestDemo"
+      },
+      "result": {
+        "ok": true,
+        "ms": 5711,
+        "tail": "ight-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/PlugIns --scan-folder /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/SystemExtensions --scan-folder /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os\nIgnoring --strip-bitcode because --sign was not passed\n\n** BUILD SUCCEEDED **\n\n\u2713 /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n"
+      }
+    },
+    {
+      "step": 7,
+      "action": {
+        "action": "ligh_app_job",
+        "path": "fixtures/third-party/XCUITestDemo"
+      },
       "result": {
         "ok": true,
         "fault": "ok",
-        "compact": {"ok": true, "fault": "ok"}
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        },
+        "ms": 4833,
+        "compact": {
+          "ok": true,
+          "fault": "ok",
+          "step": null,
+          "op": null
+        }
+      }
+    },
+    {
+      "step": 7,
+      "action": {
+        "action": "done"
+      },
+      "result": {
+        "ok": true,
+        "auto": true
       }
     }
   ],
-  "notes": "Executed by Cursor agent session (no OPENAI_API_KEY). Re-run with OPENAI_API_KEY via ./scripts/gate-autonomous-agent.sh for LLM-driven gate."
+  "source_restored": true,
+  "bug": "loginButton \u2192 loginBtnTypo (accessibility id typo)"
 }

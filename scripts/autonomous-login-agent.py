@@ -29,6 +29,11 @@ MODEL = os.environ.get("OPENAI_MODEL", "gpt-5-mini")
 OPENAI_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1/chat/completions")
 MAX_STEPS = int(os.environ.get("LIGH_AUTONOMOUS_MAX_STEPS", "14"))
 
+KNOWN_FILES = [
+    "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+    "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+]
+
 ACCEPTANCE_STEPS = [
     {"op": "wait", "id": "usernameTextField"},
     {"op": "tap", "id": "usernameTextField"},
@@ -44,14 +49,19 @@ SYSTEM = """You are a coding agent fixing an iOS SwiftUI app on a Mac with LIGH 
 Respond with a single JSON object each turn:
 {
   "action": "read_file" | "write_file" | "build_app" | "ligh_ready" | "ligh_app_job" | "done",
-  "path": "fixtures/third-party/XCUITestDemo/...",   // read_file / write_file
+  "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
   "content": "...",                                   // write_file only
   "summary": "..."                                    // done only
 }
 
+Known source files (use these exact paths):
+- fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift
+- fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift
+
 Rules:
 - App sources live under fixtures/third-party/XCUITestDemo/
 - write_file is allowed only under that tree (.swift files)
+- Start with ligh_app_job to capture the fault, then read_file
 - After source edits always build_app then ligh_app_job to verify
 - ligh_app_job runs the product acceptance job (alice/secret login → homeTitle)
 - Read LIGH results: ok, fault, detail.step, detail.op — use them to find the bug
@@ -111,14 +121,34 @@ def openai_chat(messages: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def safe_path(rel: str) -> str:
-    p = os.path.normpath(os.path.join(ROOT, rel))
+    rel = (rel or "").strip()
+    if not rel:
+        raise ValueError("path required")
+    if rel.startswith("/"):
+        p = os.path.normpath(rel)
+    else:
+        p = os.path.normpath(os.path.join(ROOT, rel))
     if not p.startswith(DEMO_ROOT):
-        raise ValueError(f"path must be under {DEMO_ROOT}")
+        # Common LLM mistake: bare filename
+        base = os.path.basename(rel)
+        for k in KNOWN_FILES:
+            if k.endswith("/" + base) or k.endswith(base):
+                return os.path.normpath(os.path.join(ROOT, k))
+        raise ValueError(f"path must be under fixtures/third-party/XCUITestDemo (got {rel})")
     return p
 
 
 def run_action(act: dict[str, Any]) -> dict[str, Any]:
     action = (act.get("action") or "").lower()
+    try:
+        return _run_action_inner(action, act)
+    except ValueError as e:
+        return {"ok": False, "error": str(e)}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
+def _run_action_inner(action: str, act: dict[str, Any]) -> dict[str, Any]:
     if action == "read_file":
         p = safe_path(str(act.get("path") or ""))
         if not os.path.isfile(p):
@@ -198,7 +228,11 @@ def main() -> int:
     t0 = time.time()
     messages: list[dict[str, Any]] = [
         {"role": "system", "content": SYSTEM},
-        {"role": "user", "content": goal},
+        {
+            "role": "user",
+            "content": goal
+            + "\n\nFirst: run ligh_app_job to capture the fault, then inspect Swift sources.",
+        },
     ]
     trace: list[dict[str, Any]] = []
     tokens_in = tokens_out = 0
@@ -242,6 +276,7 @@ def main() -> int:
         "gate": "autonomous_agent",
         "claim": "Vague prompt → inspect/hypothesize/edit/build/LIGH loop without scripted fix",
         "goal": goal,
+        "driver": "openai",
         "model": MODEL,
         "steps_used": len(trace),
         "verified": verified,

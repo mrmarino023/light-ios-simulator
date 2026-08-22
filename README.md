@@ -181,7 +181,7 @@ All raw JSON is the source of truth. Summaries below.
 | **Dirty-state N=50** (no reboot between iters) | **50/50** · warm p50 **2.7s** · p95 **5.5s** · 0 AX-empty | — | [`dirty-state-latest.json`](docs/assets/dirty-state-latest.json) |
 | **Rigor N=20** (isolated clean arms) | **20/20** · p50 **2.2s** | **20/20** · p50 **23.8s** | [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json) |
 | **Agent control loop** | Mechanism demonstrated (4 scripted scenarios) | — | [`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json) |
-| **Autonomous agent** | **1/1** — fault `target_missing` step 5 → source fix → `ok` (Cursor session) | — | [`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json) |
+| **Autonomous agent (LLM)** | **1/1** — gpt-5-mini, 8 steps, fault→read→fix→build→ok | — | [`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json) |
 
 **Agent control loop (mechanism, not reliability):** structured failures (`fault`, `step`) can be consumed and followed by a corrective action/retry that reaches `ok`. The gate scripts the fix — it does **not** prove Cursor/Claude can autonomously debug from “login broken, find and fix it.”
 

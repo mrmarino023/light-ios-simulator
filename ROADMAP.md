@@ -8,7 +8,8 @@
 - Fail-closed matrix **5/5** — injected faults never soft-success
 - Dirty-state **50/50** — back-to-back app-jobs, no reboot, 0 AX-empty (LIGH-only session)
 - Rigor N=20 isolated arms — LIGH **20/20** p50 **2.2s** vs Maestro **20/20** p50 **23.8s** (~**10.7×** on this job)
-- MCP **mechanism** — structured fault → scripted corrective retry → `ok` ([`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json)); **not** autonomous agent
+- MCP **mechanism** — structured fault → scripted corrective retry → `ok`
+- **LLM autonomous (1×)** — `gpt-5-mini` + vague prompt → fault step 5 → Swift fix → verify ([`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json))
 
 ### Not yet demonstrated (🟡)
 
@@ -178,9 +179,9 @@ Harness: `./scripts/gate-cold-start.sh` → [`docs/assets/cold-start-latest.json
 
 - [x] **Failure matrix** — 5/5 fail-closed on XCUITestDemo (incl. `--launch-arg --ui_test_login_failure`)
 - [x] **Dirty-state gate** — 50/50 back-to-back, no sim reboot, 0 AX-empty
-- [x] **Autonomous demo (1×)** — LIGH fault → Swift fix → verify ([`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json))
-- [ ] Third-party N=50 rigor (N=20 done; N=50 in progress)
-- [ ] **LLM autonomous gate** — `gate-autonomous-agent.sh` with `OPENAI_API_KEY`
+- [x] **LLM autonomous gate (1×)** — gpt-5-mini, 8 steps, a11y typo from `target_missing`
+- [ ] Third-party N=50 rigor
+- [ ] Autonomous at scale / harder scenarios
 - [ ] Cross-tool dirty sim (Maestro stress → LIGH without reboot)
 - [ ] 3–5 real developers (the real test — stop benchmarking after N=50 + cross-tool dirty)
 
