@@ -186,7 +186,13 @@ All raw JSON is the source of truth. Summaries below.
 | **Agent control loop** | Mechanism demonstrated (4 scripted scenarios) | — | [`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json) |
 | **Autonomous agent (LLM)** | **1/1** proof — gpt-5-mini, vague prompt, structured fault → source fix (not a reliability stat) | — | [`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json) |
 
-**Maestro rigor variance (N=50):** 20 failures on one job — 4 timeouts (~127–149s), 16 fast/mid fails (~2.6–45s). Failures cluster after the first timeout (iter #17), not i.i.d.; consistent with sim-state degradation under Maestro load on back-to-back runs. Raw per-iter data: [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json).
+**Maestro rigor variance (N=50):**
+
+- **Bimodal failures:** fast aborts (~2.6–5.5s) vs long timeouts (~127–149s) — not a single failure mode.
+- **Clustered under load:** most failures land mid/late in the arm, after the first timeout (iter #17); consistent with sim-state degradation on back-to-back Maestro runs, not i.i.d. noise.
+- **N=20 was 20/20:** same job, same protocol — reliability only breaks when stretched to N=50.
+
+Raw per-iter data: [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json).
 
 **Thesis (not speed):** LIGH gives coding agents a **fast, structured, verifiable** interface to a running Debug `.app`. ~12× p50 vs Maestro on this login job is a footnote.
 
@@ -449,7 +455,7 @@ Global: `--json`, `--direct` (cold path / benches only).
 |-------|---------|
 | “Lightweight iOS Simulator” | Same CoreSimulator guest |
 | “Nicer Rust simctl / MCP” | Commodity alone — we won’t compete there |
-| “Faster than Maestro” (headline) | Sometimes true on latency; **ties on reliability** on published jobs — see bakeoff JSON |
+| “Faster than Maestro” (headline) | Sometimes true on latency; fixture bakeoff ties reliability (10/10); rigor N=50 is **50/50 vs 30/50** — see bakeoff JSON |
 | “~4× vs WDA” (headline) | Research microbench only |
 | Guest RAM crusher | Apple owns the guest |
 | Screenshot ms is the win | Thesis is **app-job + fail-closed outcomes** |

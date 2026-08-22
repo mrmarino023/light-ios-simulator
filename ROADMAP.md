@@ -1,28 +1,69 @@
 # Roadmap — bet the project on one experiment
 
-**Position today (honest):** promising **agent infrastructure**, not a commercially validated product.
+**Position today (brutal):** interesting **engineering experiment** + agent **proof-of-concept**. As a **product**, it could still be crap — we have not shown anyone needs it.
 
-### Demonstrated (🟢)
+| | |
+|---|---|
+| Engineering | 🟢 interesting |
+| Benchmark (login job) | 🟢 narrow but real |
+| Agent demo | 🟢 PoC (1× LLM + mechanism gate) |
+| Generalization | 🔴 not demonstrated |
+| Developer need | 🟠 not demonstrated |
+| Moat / business | 🔴 no evidence |
+| Worth continuing to **test** | 🟢 yes |
+
+### The question we must destroy
+
+> **Why not Maestro / Appium / WDA + a well-built MCP?**
+
+These answers are **not enough** alone:
+
+- “LIGH is faster on our benchmark” — footnote, not wedge
+- “LIGH has structured faults” — any backend can wrap errors in JSON
+- “LIGH is Rust” — irrelevant to the buyer
+
+**Only answer that matters:** a coding agent (or developer) gets **materially better** outcomes on **their** app/workflow with LIGH vs the same MCP on Maestro — and can say *why* in one sentence.
+
+### Demonstrated (engineering — do not oversell)
 
 - Third-party OSS app (XCUITestDemo), not designed for LIGH
 - Fail-closed matrix **5/5** — injected faults never soft-success
 - Dirty-state **50/50** — back-to-back app-jobs, no reboot, 0 AX-empty (LIGH-only session)
-- Rigor N=20 isolated arms — LIGH **20/20** p50 **2.2s** vs Maestro **20/20** p50 **23.8s** (~**10.7×** on this job)
+- Rigor N=50 isolated arms — LIGH **50/50** p50 **2.2s** vs Maestro **30/50** (60%) p50 **27.5s** p95 **127s** (~**12×** p50 on this job). At N=20 Maestro was **20/20**; reliability breaks under back-to-back load at N=50 (bimodal fast aborts vs ~127s timeouts). Published: [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json)
 - MCP **mechanism** — structured fault → scripted corrective retry → `ok`
 - **LLM autonomous (1×)** — `gpt-5-mini` + vague prompt → fault step 5 → Swift fix → verify ([`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json))
 
-### Not yet demonstrated (🟡)
+### Not demonstrated (product)
 
-- Autonomous Cursor/Claude loop from vague prompt (“login broken, fix it”) without scripted intermediate steps
-- Rigor **N=50** (running / pending)
-- Cross-tool dirty (Maestro stress → LIGH without reboot)
-- Harder workflows, more apps, no-a11y-id targets
+- Scroll, modals, keyboard, gestures, WebView, permissions, deep links, crashes, multi-screen, large real apps
+- 5 different apps · 5 different workflows (not login-only)
+- **5 external developers** — install, Cursor, their app, minimal hand-holding
+- **Maestro replacement test** — same MCP, same agent, same task; blind preference
+- Autonomous matrix at scale (harness exists; **not** the next priority)
 
-### Not claimed (🔴)
+### Stop doing (benchmark trap)
 
-- Developer demand · general Maestro superiority · business / moat
+Do **not** chase: N=50 → N=100 → more login bakeoffs → prettier latency charts.
 
-We have **not** proved: “LIGH is 10× faster than Maestro” in general, arbitrary apps, or dirty sim **after** cross-tool stress (Maestro → LIGH still a red flag).
+We have enough numbers on the **ideal** job (launch → type → tap → assert). Further benchmark optimization without humans is sunk cost.
+
+### Next (the benchmark is a human)
+
+```text
+① 5 external developers — "install, use with Cursor on your Debug .app" (say little)
+       ↓
+② Same task: LIGH MCP vs Maestro MCP (identical agent prompt)
+       ↓
+③ 5 apps × 5 workflows (not designed for LIGH; not login-only)
+       ↓
+④ Kill decision
+```
+
+**Kill criteria:** after 5 apps + 5 developers, if nobody prefers LIGH or can't articulate why → **stop the product thesis**. The experiment succeeded by falsifying itself early.
+
+**Win signal:** unprompted *"why would I use anything else for agent iOS verify?"* or measurable agent loop win on **their** repo.
+
+### Legacy gates (published — footnotes, not roadmap center)
 
 **Thesis:** A coding agent can reliably use LIGH to verify an Debug `.app`, with fail-closed structured outcomes — **if** that survives hard workflows and dirty Simulator state.
 
@@ -75,26 +116,22 @@ or:
 
 Published: [`docs/assets/app-reliability-latest.json`](docs/assets/app-reliability-latest.json).
 
-## Sequence (revised — do not skip failure / dirty-state)
+## Sequence (frozen — no more login benchmark expansion)
 
 ```text
-① Failure matrix — injected faults must be fail-closed (never soft-success)  ✅ 5/5
+✅ Engineering baseline (fixture + XCUITestDemo + fail-closed + dirty 50 + rigor N=50 + MCP + 1× LLM autonomous)
        ↓
-② Dirty-state reliability — 50 workflows WITHOUT reboot between iters  ✅ 50/50
+⏭️  STOP adding N=50 / matrix runs until developers speak
        ↓
-③ Clean third-party N=50 — isolated arms (LIGH then Maestro, reboot between tools only)  ⏳ N=20 done
+→ 5 developers + Maestro A/B + harder apps/workflows
        ↓
-④ MCP agent loop — **mechanism** demonstrated (scripted); **autonomous** Cursor loop TBD
-       ↓
-⑤ Cold Mac < 5 min  ✅ 10.6s
-       ↓
-⑥ 3–5 developers using it repeatedly
+→ Kill or double down
 ```
 
 Harnesses:
 - `./scripts/gate-fail-closed.sh` → `docs/assets/fail-closed-latest.json` (**5/5**)
 - `./scripts/gate-dirty-state.sh` → `docs/assets/dirty-state-latest.json` (**50/50**, `LIGH_DIRTY_N=50`)
-- `./scripts/gate-third-party-rigor.sh` → `docs/assets/third-party-rigor-latest.json` (clean arms; default **N=20**)
+- `./scripts/gate-third-party-rigor.sh` → `docs/assets/third-party-rigor-latest.json` (clean arms; published **N=50** — LIGH 50/50, Maestro 30/50)
 - `./scripts/gate-mcp-loop.sh` → `docs/assets/mcp-loop-latest.json` (proof-of-mechanism; harness scripts the fix)
 - `./scripts/gate-app-reliability.sh` (fixture motor)
 
@@ -177,13 +214,14 @@ Harness: `./scripts/gate-cold-start.sh` → [`docs/assets/cold-start-latest.json
 
 ## Next (in order)
 
-- [x] **Failure matrix** — 5/5 fail-closed on XCUITestDemo (incl. `--launch-arg --ui_test_login_failure`)
-- [x] **Dirty-state gate** — 50/50 back-to-back, no sim reboot, 0 AX-empty
-- [x] **LLM autonomous gate (1×)** — gpt-5-mini, 8 steps, a11y typo from `target_missing`
-- [ ] Third-party N=50 rigor
-- [ ] Autonomous at scale / harder scenarios
-- [ ] Cross-tool dirty sim (Maestro stress → LIGH without reboot)
-- [ ] 3–5 real developers (the real test — stop benchmarking after N=50 + cross-tool dirty)
+- [ ] **Developer pack** — install, MCP config, minimal prompt (no benchmark deck)
+- [ ] **5 external developers** — their app; observe where it breaks
+- [ ] **Maestro MCP A/B** — same agent, same task, blind preference
+- [ ] **5 apps × 5 workflows** — not login-only
+- [ ] **Kill decision** — no pull after above → stop product thesis
+- [x] Engineering baseline + rigor N=50 publish + 1× LLM autonomous (published JSON footnotes)
+- [x] ~~N=50 rigor~~ — published; do not re-run without developer signal
+- [ ] ~~Autonomous matrix at scale~~ — **deprioritized** (benchmark trap)
 
 ## Demote (research only — never marketing)
 
