@@ -1,0 +1,23 @@
+{
+  "gate": "blind_bakeoff",
+  "ts": 1787442931.7474558,
+  "claim": "same prompt \u2014 measure llm_turns + success; ligh vs raw MCP",
+  "arm": "ligh",
+  "goal": "Complete XCUITestDemo login (alice/secret) and reach home screen.",
+  "protocol": [
+    "no host_policy",
+    "no goal-string cap matching",
+    "no pre-built maestro yaml",
+    "score: success, llm_turns, tokens, wrong_actions"
+  ],
+  "can_run": false,
+  "is_mac": false,
+  "has_openai_key": false,
+  "claim_pass": false,
+  "note": "Execute on Mac with gate-autonomous-qa.sh for ligh arm; raw arm TBD",
+  "arms": {
+    "ligh": "perceive + attempt + ux (autonomous-login-agent-qa.py)",
+    "raw": "ligh_observe + ligh_tap loop (not implemented \u2014 honest gap)",
+    "computer_use": "Cursor computer use on Simulator \u2014 manual A/B"
+  }
+}
