@@ -119,7 +119,7 @@ claim_pass = fault_actionable and retry_ok and fail_closed and recovery_ok
 
 doc = {
     "gate": "mcp_loop",
-    "claim": "MCP ligh_cap_app_job returns actionable fault → agent fixes → verified retry",
+    "claim": "Proof-of-mechanism: MCP ligh_cap_app_job returns actionable fault; harness scripts corrective retry (not autonomous agent).",
     "app": "XCUITestDemo (OSS third-party)",
     "bundle_id": bid,
     "app_path": app,

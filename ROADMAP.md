@@ -1,13 +1,27 @@
 # Roadmap — bet the project on one experiment
 
-**Position today (honest):** stronger **engineering wedge** — still not a validated product for arbitrary agent workflows.
+**Position today (honest):** promising **agent infrastructure**, not a commercially validated product.
 
-We proved on OSS XCUITestDemo (clean + dirty sim):
-- **Fail-closed matrix 5/5** — injected faults never soft-success ([`fail-closed-latest.json`](docs/assets/fail-closed-latest.json))
-- **Dirty-state 50/50** — 50 app-jobs back-to-back, **no reboot**, 0 AX-empty ([`dirty-state-latest.json`](docs/assets/dirty-state-latest.json))
-- **Rigor N=20 isolated arms** — LIGH 20/20 p50 **2.2s** vs Maestro 20/20 p50 **23.8s** (~**10.7×** on this job) ([`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json))
+### Demonstrated (🟢)
 
-We have **not** proved: “LIGH is 10× faster than Maestro” in general, arbitrary apps / no-a11y-id flows, MCP agent recovery loop, or dirty sim **after** cross-tool stress (Maestro → LIGH still a red flag).
+- Third-party OSS app (XCUITestDemo), not designed for LIGH
+- Fail-closed matrix **5/5** — injected faults never soft-success
+- Dirty-state **50/50** — back-to-back app-jobs, no reboot, 0 AX-empty (LIGH-only session)
+- Rigor N=20 isolated arms — LIGH **20/20** p50 **2.2s** vs Maestro **20/20** p50 **23.8s** (~**10.7×** on this job)
+- MCP **mechanism** — structured fault → scripted corrective retry → `ok` ([`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json)); **not** autonomous agent
+
+### Not yet demonstrated (🟡)
+
+- Autonomous Cursor/Claude loop from vague prompt (“login broken, fix it”) without scripted intermediate steps
+- Rigor **N=50** (running / pending)
+- Cross-tool dirty (Maestro stress → LIGH without reboot)
+- Harder workflows, more apps, no-a11y-id targets
+
+### Not claimed (🔴)
+
+- Developer demand · general Maestro superiority · business / moat
+
+We have **not** proved: “LIGH is 10× faster than Maestro” in general, arbitrary apps, or dirty sim **after** cross-tool stress (Maestro → LIGH still a red flag).
 
 **Thesis:** A coding agent can reliably use LIGH to verify an Debug `.app`, with fail-closed structured outcomes — **if** that survives hard workflows and dirty Simulator state.
 
@@ -20,7 +34,7 @@ Not: “faster Simulator host.” Not: Settings LLM demos. Not: “we beat Maest
 | **Dirty sim → AX empty → LIGH 0/10** | Observed after long **Maestro** sessions (cross-tool). LIGH-only 50× dirty passed 2026-08-22 — reboot still required between tool arms in bakeoffs. |
 | **Workflow too easy** | login + 2 fields + assert — not nav, lists, modals, WebView, no-a11y-id apps. |
 | **Maestro ≠ agent competitor** | Maestro proves UI automation parity/speed; **product** proof = Cursor → MCP → build → verify → fix loop. |
-| **Structured fault unproven for agents** | API exists; need failure matrix + agent recovery A/B vs generic timeout. |
+| **Structured fault for agents** | **Mechanism** proven (scripted MCP loop). **Autonomous** recovery from vague prompt — not proven. |
 
 **Danger ranking for agents:** wrong action ≫ crash ≫ timeout ≫ slow.
 
@@ -69,7 +83,7 @@ Published: [`docs/assets/app-reliability-latest.json`](docs/assets/app-reliabili
        ↓
 ③ Clean third-party N=50 — isolated arms (LIGH then Maestro, reboot between tools only)  ⏳ N=20 done
        ↓
-④ MCP agent loop proof — Cursor build → app-job → fault → fix → repeat  ✅ gate (scripted)
+④ MCP agent loop — **mechanism** demonstrated (scripted); **autonomous** Cursor loop TBD
        ↓
 ⑤ Cold Mac < 5 min  ✅ 10.6s
        ↓
@@ -80,7 +94,7 @@ Harnesses:
 - `./scripts/gate-fail-closed.sh` → `docs/assets/fail-closed-latest.json` (**5/5**)
 - `./scripts/gate-dirty-state.sh` → `docs/assets/dirty-state-latest.json` (**50/50**, `LIGH_DIRTY_N=50`)
 - `./scripts/gate-third-party-rigor.sh` → `docs/assets/third-party-rigor-latest.json` (clean arms; default **N=20**)
-- `./scripts/gate-mcp-loop.sh` → `docs/assets/mcp-loop-latest.json` (**claim_pass**)
+- `./scripts/gate-mcp-loop.sh` → `docs/assets/mcp-loop-latest.json` (proof-of-mechanism; harness scripts the fix)
 - `./scripts/gate-app-reliability.sh` (fixture motor)
 
 If ① returns silent wrong-target or ok:true on bad asserts → **stop shipping claims**.  
@@ -164,11 +178,11 @@ Harness: `./scripts/gate-cold-start.sh` → [`docs/assets/cold-start-latest.json
 
 - [x] **Failure matrix** — 5/5 fail-closed on XCUITestDemo (incl. `--launch-arg --ui_test_login_failure`)
 - [x] **Dirty-state gate** — 50/50 back-to-back, no sim reboot, 0 AX-empty
-- [x] **MCP closed loop gate** — `./scripts/gate-mcp-loop.sh` (scripted fault→fix; real Cursor loop TBD)
-- [ ] Third-party N=50 rigor (N=20 isolated arms done: 20/20 both, p50 2.2s vs 23.8s)
-- [ ] Real Cursor agent loop (LLM uses fault to fix source, not scripted steps)
-- [ ] Cross-tool dirty sim (Maestro stress → LIGH without reboot — product blocker if fails)
-- [ ] 3–5 real developers
+- [x] **Autonomous demo (1×)** — LIGH fault → Swift fix → verify ([`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json))
+- [ ] Third-party N=50 rigor (N=20 done; N=50 in progress)
+- [ ] **LLM autonomous gate** — `gate-autonomous-agent.sh` with `OPENAI_API_KEY`
+- [ ] Cross-tool dirty sim (Maestro stress → LIGH without reboot)
+- [ ] 3–5 real developers (the real test — stop benchmarking after N=50 + cross-tool dirty)
 
 ## Demote (research only — never marketing)
 

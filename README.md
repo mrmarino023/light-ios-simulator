@@ -25,7 +25,7 @@
   <a href="docs/assets/fail-closed-latest.json">fail-closed 5/5</a> ·
   <a href="docs/assets/dirty-state-latest.json">dirty 50/50</a> ·
   <a href="docs/assets/third-party-rigor-latest.json">rigor N=20</a> ·
-  <a href="docs/assets/mcp-loop-latest.json">MCP loop</a> ·
+  <a href="docs/assets/mcp-loop-latest.json">agent loop (mechanism)</a> ·
   <a href="docs/assets/cold-start-latest.json">cold start</a>
 </p>
 
@@ -123,7 +123,18 @@ Cursor → build .app → app-job → install/launch → ensure_path → act →
 ```
 
 **We do not claim:** “faster than Maestro” or “more reliable than Maestro in general.”  
+**We do not claim:** autonomous Cursor can fix arbitrary bugs from a vague prompt (that demo is **not** done yet).  
 **We do claim:** structured agent control + reproducible gates you can falsify.
+
+### Demonstrated vs not yet
+
+| Status | What |
+|--------|------|
+| **Demonstrated** | Third-party OSS app (XCUITestDemo) · fail-closed faults · dirty 50/50 (LIGH-only) · ~10× p50 on this login job vs Maestro · MCP **mechanism** · **one autonomous fix** (a11y typo from LIGH fault → Swift edit → verify) |
+| **Not yet** | LLM-only autonomous gate (needs `OPENAI_API_KEY`) · rigor N=50 · cross-tool dirty · harder workflows / more apps |
+| **Not claimed** | Developer demand · general Maestro superiority · business / moat |
+
+The MCP gate is a **proof-of-mechanism** — the harness scripts the “agent fix.” It shows the primitive is consumable; it is **not** a reliability statistic like 50/50.
 
 ### Reproduce the gates
 
@@ -140,7 +151,7 @@ LIGH_APP_N=50 ./scripts/gate-app-reliability.sh
 ./scripts/gate-fail-closed.sh                      # injected faults → explicit fault, never soft-success
 LIGH_DIRTY_N=50 ./scripts/gate-dirty-state.sh      # 50× back-to-back, no sim reboot
 LIGH_APP_N=20 ./scripts/gate-third-party-rigor.sh  # isolated clean arms: LIGH vs Maestro
-./scripts/gate-mcp-loop.sh                       # MCP fault → fix → verify (no LLM)
+./scripts/gate-mcp-loop.sh                       # proof-of-mechanism: scripted fault → fix → ok (not LLM)
 
 # Your app
 # LIGH_APP_PATH=…/MyApp.app LIGH_APP_BUNDLE_ID=… \
@@ -169,7 +180,10 @@ All raw JSON is the source of truth. Summaries below.
 | **Fail-closed matrix** | **5/5** injected faults | — | [`fail-closed-latest.json`](docs/assets/fail-closed-latest.json) |
 | **Dirty-state N=50** (no reboot between iters) | **50/50** · warm p50 **2.7s** · p95 **5.5s** · 0 AX-empty | — | [`dirty-state-latest.json`](docs/assets/dirty-state-latest.json) |
 | **Rigor N=20** (isolated clean arms) | **20/20** · p50 **2.2s** | **20/20** · p50 **23.8s** | [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json) |
-| **MCP closed loop** | **claim_pass** — fault+step → fix → ok | — | [`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json) |
+| **Agent control loop** | Mechanism demonstrated (4 scripted scenarios) | — | [`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json) |
+| **Autonomous agent** | **1/1** — fault `target_missing` step 5 → source fix → `ok` (Cursor session) | — | [`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json) |
+
+**Agent control loop (mechanism, not reliability):** structured failures (`fault`, `step`) can be consumed and followed by a corrective action/retry that reaches `ok`. The gate scripts the fix — it does **not** prove Cursor/Claude can autonomously debug from “login broken, find and fix it.”
 
 **How to read the Maestro comparison**
 
@@ -180,6 +194,14 @@ All raw JSON is the source of truth. Summaries below.
 | Product wedge | Fail-closed `app-job` + MCP for agents | Same |
 
 Reliability ties on these two jobs do **not** generalize to all apps. Latency wins are **bakeoff datapoints**, not the headline claim.
+
+**The product primitive (what matters beyond speed):**
+
+```text
+agent → app-job → { ok: false, fault, detail.step } → agent fixes → app-job → { ok: true }
+```
+
+That loop is what justifies LIGH for coding agents. Speed on one login job is a footnote.
 
 **Agent loop (MCP):** settled AX + HID — not computer vision. Screenshots = debug only.
 

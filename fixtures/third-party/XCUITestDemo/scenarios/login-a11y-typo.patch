@@ -1,0 +1,11 @@
+--- a/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift
++++ b/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift
+@@ -58,7 +58,7 @@ private struct LoginView: View {
+                 }
+             }
+             .buttonStyle(.borderedProminent)
+-            .accessibilityIdentifier("loginButton")
++            .accessibilityIdentifier("loginBtnTypo")
+         }
+         .padding()
+     }

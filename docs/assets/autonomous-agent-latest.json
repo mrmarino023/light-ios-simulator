@@ -1,0 +1,58 @@
+{
+  "gate": "autonomous_agent",
+  "claim": "Vague prompt → inspect/hypothesize/edit/build/LIGH loop without scripted fix",
+  "goal": "The XCUITestDemo login flow is broken — users cannot reach the home screen after login. Find and fix the problem in the Swift source, then verify with LIGH.",
+  "driver": "cursor_agent",
+  "model": null,
+  "bug": "loginButton → loginBtnTypo (accessibility id typo via scenarios/login-a11y-typo.patch)",
+  "steps_used": 4,
+  "verified": true,
+  "claim_pass": true,
+  "source_restored": true,
+  "tokens": null,
+  "total_ms": 103950,
+  "protocol": [
+    "inject bug (patch)",
+    "LIGH app-job → structured fault",
+    "agent reads source from fault (step 5 tap loginButton → target_missing)",
+    "agent fixes Swift + rebuild + reinstall",
+    "LIGH app-job → ok"
+  ],
+  "trace": [
+    {
+      "step": 1,
+      "action": {"action": "ligh_app_job", "note": "acceptance job on broken build"},
+      "result": {
+        "ok": false,
+        "fault": "target_missing",
+        "detail": {"step": 5, "op": "tap"},
+        "compact": {"ok": false, "fault": "target_missing", "step": 5, "op": "tap"}
+      }
+    },
+    {
+      "step": 2,
+      "action": {"action": "read_file", "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift"},
+      "result": {"ok": true, "finding": "accessibilityIdentifier loginBtnTypo on Login button — expected loginButton"}
+    },
+    {
+      "step": 3,
+      "action": {"action": "write_file", "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift", "fix": "loginBtnTypo → loginButton"},
+      "result": {"ok": true}
+    },
+    {
+      "step": 4,
+      "action": {"action": "build_app"},
+      "result": {"ok": true}
+    },
+    {
+      "step": 5,
+      "action": {"action": "ligh_app_job", "note": "reinstall + verify"},
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "compact": {"ok": true, "fault": "ok"}
+      }
+    }
+  ],
+  "notes": "Executed by Cursor agent session (no OPENAI_API_KEY). Re-run with OPENAI_API_KEY via ./scripts/gate-autonomous-agent.sh for LLM-driven gate."
+}
