@@ -1,0 +1,36 @@
+{
+  "gate": "app_bakeoff",
+  "claim": "same Debug.app job: LIGH app-job vs Maestro",
+  "n": 10,
+  "app": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighFixture/build/LighFixture.app",
+  "job": [
+    "wait LighHome",
+    "tap NameField",
+    "type",
+    "tap GoNext",
+    "wait LighDone"
+  ],
+  "ligh": {
+    "pass": 10,
+    "total": 10,
+    "pass_rate": 1.0,
+    "latency": {
+      "p50_ms": 1831,
+      "p95_ms": 1989,
+      "mean_ms": 1946
+    }
+  },
+  "maestro": {
+    "skip": false,
+    "pass": 10,
+    "total": 10,
+    "pass_rate": 1.0,
+    "latency": {
+      "p50_ms": 19974,
+      "p95_ms": 38910,
+      "mean_ms": 25898
+    }
+  },
+  "ligh_wins_reliability": true,
+  "ligh_wins_latency_p50": true
+}

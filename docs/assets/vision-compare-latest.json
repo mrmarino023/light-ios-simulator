@@ -1,6 +1,81 @@
 {
-  "status": "skipped",
-  "reason": "set LIGH_VISION_COMPARE=1 to enable; default agent path is observe v2 only",
-  "ligh_path": "observe_v2_no_png",
-  "vision_path": "not_run"
+  "ts": 1787332449.153177,
+  "model": "gpt-5-mini",
+  "n": 2,
+  "goals": [
+    {
+      "goal": "Open Settings (Impostazioni or Settings), wait until list/search visible, done",
+      "ligh": [
+        {
+          "ok": true,
+          "seconds": 4.810069799423218,
+          "approx_input_tokens": 8838,
+          "log_tail": "rch visible, done\nwant_text='' settle_ms=2500\nmode=structured-control (no screenshots)\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u25b6 step 1/12  ax=ready settled=True surface=springboard actionable=12\n  see: Mappe, Calendario, Calendario, Foto, Promemoria\n  plan: {\"action\": \"tap\", \"label\": \"Impostazioni\", \"reason\": \"open Settings\"}\n  act: tap:Impostazioni:rc=0\n\n\u2713 done after settle \u2014 surface=settings\n"
+        },
+        {
+          "ok": true,
+          "seconds": 1.0275650024414062,
+          "approx_input_tokens": 8838,
+          "log_tail": "rch visible, done\nwant_text='' settle_ms=2500\nmode=structured-control (no screenshots)\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u25b6 step 1/12  ax=ready settled=True surface=springboard actionable=12\n  see: Mappe, Calendario, Calendario, Foto, Promemoria\n  plan: {\"action\": \"tap\", \"label\": \"Impostazioni\", \"reason\": \"open Settings\"}\n  act: tap:Impostazioni:rc=0\n\n\u2713 done after settle \u2014 surface=settings\n"
+        }
+      ],
+      "vision": [
+        {
+          "ok": false,
+          "seconds": 135.23235607147217,
+          "input_tokens": 24281,
+          "output_tokens": 5752,
+          "steps": 10
+        },
+        {
+          "ok": false,
+          "seconds": 144.95180702209473,
+          "input_tokens": 24281,
+          "output_tokens": 5992,
+          "steps": 10
+        }
+      ]
+    },
+    {
+      "goal": "Open Messages, new message, type: vision-cmp-ok, done",
+      "ligh": [
+        {
+          "ok": true,
+          "seconds": 57.32377767562866,
+          "approx_input_tokens": 4488,
+          "log_tail": "tap\", \"label\": \"Messaggi\", \"reason\": \"open Messages\"}\n  act: tap:Messaggi:rc=0\n\n\u25b6 step 8/12  ax=ready settled=True surface=messages_composer actionable=6\n  see: Nuovo messaggio, Annulla, A:, App, Messaggio\n  plan: {\"action\": \"type\", \"text\": \"vision-cmp-ok\", \"reason\": \"composer \u2014 type (host_typed)\"}\n  act: type:rc=0:host_typed\n\n\u2713 done after settle \u2014 host_typed (HID accepted \u2014 AX body may be empty)\n"
+        },
+        {
+          "ok": true,
+          "seconds": 0.3032100200653076,
+          "approx_input_tokens": 7128,
+          "log_tail": "model=gpt-5-mini policy=host\ngoal=Open Messages, new message, type: vision-cmp-ok, done\nwant_text='vision-cmp-ok' settle_ms=2500\nmode=structured-control (no screenshots)\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n\n\u25b6 step 1/12  ax=ready settled=True surface=springboard actionable=12\n\n\u2713 done \u2014 host_typed (HID accepted \u2014 AX body may be empty)\n"
+        }
+      ],
+      "vision": [
+        {
+          "ok": true,
+          "seconds": 66.81998777389526,
+          "input_tokens": 12076,
+          "output_tokens": 2209,
+          "steps": 5
+        },
+        {
+          "ok": true,
+          "seconds": 102.11558103561401,
+          "input_tokens": 14513,
+          "output_tokens": 3826,
+          "steps": 6
+        }
+      ]
+    }
+  ],
+  "status": "ok",
+  "summary": {
+    "ligh_pass": 4,
+    "ligh_total": 4,
+    "vision_pass": 2,
+    "vision_total": 4,
+    "note": "LIGH token estimate is approximate; vision uses API usage.prompt_tokens"
+  }
 }

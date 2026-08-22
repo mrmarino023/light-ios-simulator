@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Consumer Agent Vision gate — human eyes (observe v2) + motor, no screenshots.
+# Consumer Agent Vision gate — structured AX control (observe v2) + motor, no screenshots.
 # Exit 0 only if substrate gates pass. LLM 20× is optional (needs OPENAI_API_KEY).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"

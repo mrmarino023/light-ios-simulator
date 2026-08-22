@@ -127,6 +127,86 @@ pub enum DaemonRequest {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         settle_ms: Option<u64>,
     },
+    /// Control plane: recover until Ready (home + settle) or fault.
+    EnsureReady {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        /// Max Home presses while recovering (default 6).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        recover_homes: Option<u32>,
+    },
+    /// Capability: open Settings (IT/EN) → assert surface=settings.
+    OpenSettings {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+    },
+    /// Capability: Settings search field → type query → settle.
+    SettingsSearch {
+        query: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+    },
+    /// Capability: settle then assert scene.surface.
+    AssertSurface {
+        surface: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+    },
+    /// Capability: settle → tap label/id → settle (act-with-settle).
+    ActTap {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+    },
+    /// Capability: settle → type → settle.
+    ActType {
+        text: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+    },
+    /// Product path: install Debug `.app` → launch → settle → optional wait_label.
+    RunApp {
+        app: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        bundle_id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        wait_label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        wait_id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+        /// When false, skip simctl install (relaunch only). Default true.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        install: Option<bool>,
+    },
+    /// Capability: settle → wait until AX label exists.
+    WaitLabel {
+        label: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+    },
+    /// Product job: install+launch then motor steps (wait/tap/type) as one capability.
+    AppJob {
+        app: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        bundle_id: Option<String>,
+        steps: Vec<serde_json::Value>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        install: Option<bool>,
+    },
     StreamStats,
     /// Tear down the simulator session and exit the daemon.
     Shutdown,
@@ -173,6 +253,14 @@ impl DaemonResponse {
         }
     }
 
+    pub fn fault(msg: impl std::fmt::Display, data: impl Serialize) -> Self {
+        Self {
+            ok: false,
+            error: Some(msg.to_string()),
+            data: Some(serde_json::to_value(data).unwrap_or(serde_json::Value::Null)),
+        }
+    }
+
     pub fn into_result(self) -> Result<Option<serde_json::Value>> {
         if self.ok {
             Ok(self.data)
@@ -181,6 +269,31 @@ impl DaemonResponse {
                 self.error.unwrap_or_else(|| "lighd error".into()),
             ))
         }
+    }
+}
+
+/// Long-running capabilities (app-job, run-app) can exceed the default RPC read window.
+fn read_timeout_for(req: &DaemonRequest) -> Duration {
+    match req {
+        DaemonRequest::AppJob {
+            timeout_ms,
+            steps,
+            ..
+        } => {
+            let per = timeout_ms.unwrap_or(10_000);
+            let n = steps.len().max(1) as u64;
+            // install/launch + motor steps + settle slack
+            Duration::from_millis(per.saturating_mul(n).saturating_add(90_000))
+        }
+        DaemonRequest::RunApp { timeout_ms, .. } => {
+            Duration::from_millis(timeout_ms.unwrap_or(8_000).saturating_add(60_000))
+        }
+        DaemonRequest::ActTap { timeout_ms, .. }
+        | DaemonRequest::WaitLabel { timeout_ms, .. } => {
+            Duration::from_millis(timeout_ms.unwrap_or(8_000).saturating_add(15_000))
+        }
+        DaemonRequest::ActType { .. } => Duration::from_secs(30),
+        _ => Duration::from_secs(45),
     }
 }
 
@@ -217,7 +330,7 @@ impl DaemonClient {
             ))
         })?;
         stream
-            .set_read_timeout(Some(Duration::from_secs(45)))
+            .set_read_timeout(Some(read_timeout_for(req)))
             .ok();
         stream
             .set_write_timeout(Some(Duration::from_secs(10)))
@@ -251,6 +364,109 @@ impl DaemonClient {
         let resp = self.call(&DaemonRequest::Observe { ax, settle_ms })?;
         resp.into_result()?
             .ok_or_else(|| LighError::Simctl("observe returned no data".into()))
+    }
+
+    pub fn ensure_ready(
+        &self,
+        settle_ms: Option<u64>,
+        recover_homes: Option<u32>,
+    ) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::EnsureReady {
+            settle_ms,
+            recover_homes,
+        })?;
+        if resp.ok {
+            resp.into_result()?
+                .ok_or_else(|| LighError::Simctl("ensure_ready returned no data".into()))
+        } else {
+            Err(LighError::Simctl(format!(
+                "{} — {}",
+                resp.error.unwrap_or_else(|| "ensure_ready failed".into()),
+                resp.data
+                    .map(|d| d.to_string())
+                    .unwrap_or_default()
+            )))
+        }
+    }
+
+    pub fn open_settings(&self, settle_ms: Option<u64>) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::OpenSettings { settle_ms })?;
+        if resp.ok {
+            resp.into_result()?
+                .ok_or_else(|| LighError::Simctl("open_settings returned no data".into()))
+        } else {
+            Err(LighError::NotReady(
+                resp.error.unwrap_or_else(|| "open_settings failed".into()),
+            ))
+        }
+    }
+
+    pub fn settings_search(&self, query: &str, settle_ms: Option<u64>) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::SettingsSearch {
+            query: query.to_string(),
+            settle_ms,
+        })?;
+        if resp.ok {
+            resp.into_result()?
+                .ok_or_else(|| LighError::Simctl("settings_search returned no data".into()))
+        } else {
+            Err(LighError::NotReady(
+                resp.error.unwrap_or_else(|| "settings_search failed".into()),
+            ))
+        }
+    }
+
+    pub fn assert_surface(&self, surface: &str, settle_ms: Option<u64>) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::AssertSurface {
+            surface: surface.to_string(),
+            settle_ms,
+        })?;
+        if resp.ok {
+            resp.into_result()?
+                .ok_or_else(|| LighError::Simctl("assert_surface returned no data".into()))
+        } else {
+            Err(LighError::NotReady(
+                resp.error.unwrap_or_else(|| "assert_surface failed".into()),
+            ))
+        }
+    }
+
+    pub fn act_tap(
+        &self,
+        label: Option<&str>,
+        id: Option<&str>,
+        settle_ms: Option<u64>,
+        timeout_ms: Option<u64>,
+    ) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::ActTap {
+            label: label.map(|s| s.to_string()),
+            id: id.map(|s| s.to_string()),
+            settle_ms,
+            timeout_ms,
+        })?;
+        if resp.ok {
+            resp.into_result()?
+                .ok_or_else(|| LighError::Simctl("act_tap returned no data".into()))
+        } else {
+            Err(LighError::NotReady(
+                resp.error.unwrap_or_else(|| "act_tap failed".into()),
+            ))
+        }
+    }
+
+    pub fn act_type(&self, text: &str, settle_ms: Option<u64>) -> Result<serde_json::Value> {
+        let resp = self.call(&DaemonRequest::ActType {
+            text: text.to_string(),
+            settle_ms,
+        })?;
+        if resp.ok {
+            resp.into_result()?
+                .ok_or_else(|| LighError::Simctl("act_type returned no data".into()))
+        } else {
+            Err(LighError::NotReady(
+                resp.error.unwrap_or_else(|| "act_type failed".into()),
+            ))
+        }
     }
 
     pub fn tap(&self, x: f64, y: f64, normalized: bool) -> Result<()> {

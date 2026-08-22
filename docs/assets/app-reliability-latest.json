@@ -1,0 +1,538 @@
+{
+  "gate": "app_reliability",
+  "claim": "coding agent verifies Debug.app via app-job \u2014 fail-closed, no silent wrong-target",
+  "architecture": "overlay-aware ensure_path + relaunch recovery inside lighd",
+  "job": [
+    "wait Home",
+    "tap Field",
+    "type",
+    "tap Go",
+    "wait Done"
+  ],
+  "n": 50,
+  "pass": 50,
+  "fail": 0,
+  "pass_rate": 1.0,
+  "fault_taxonomy": {},
+  "infra_faults": 0,
+  "recovered_iters": 0,
+  "latency_ms": {
+    "warm_p50": 1944,
+    "warm_p95": 4638,
+    "warm_mean": 2337,
+    "p95_budget": 8000,
+    "note": "warm = iterations after first install"
+  },
+  "no_silent_wrong_target": true,
+  "claim_pass": true,
+  "claim_dimensions": {
+    "reliability_100": true,
+    "no_silent_wrong_target": true,
+    "warm_p95_within_budget": true
+  },
+  "total_ms": 127867,
+  "app": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighFixture/build/LighFixture.app",
+  "bundle_id": "dev.ligh.Fixture",
+  "results": [
+    {
+      "i": 1,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 10037,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 2,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2308,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 3,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1882,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 4,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1882,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 5,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2334,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 6,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 3003,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 7,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1932,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 8,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1944,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 9,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1912,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 10,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1891,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 11,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2484,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 12,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 4638,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 13,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2997,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 14,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 5136,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 15,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2287,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 16,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1796,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 17,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 4037,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 18,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 7822,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 19,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 4474,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 20,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2362,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 21,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1949,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 22,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2260,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 23,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1927,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 24,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1929,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 25,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2034,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 26,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1769,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 27,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1827,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 28,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1975,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 29,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2070,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 30,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1998,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 31,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2552,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 32,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2169,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 33,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1901,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 34,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2259,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 35,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1791,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 36,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1947,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 37,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1786,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 38,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1676,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 39,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1812,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 40,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1740,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 41,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1774,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 42,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1759,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 43,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1719,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 44,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1685,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 45,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1677,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 46,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1691,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 47,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1781,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 48,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2021,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 49,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 2089,
+      "postcondition": "LighDone",
+      "attempt": null
+    },
+    {
+      "i": 50,
+      "ok": true,
+      "fault": "ok",
+      "step": null,
+      "op": null,
+      "ms": 1831,
+      "postcondition": "LighDone",
+      "attempt": null
+    }
+  ]
+}

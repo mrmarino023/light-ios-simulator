@@ -1,0 +1,239 @@
+{
+  "ts": 1787338776.986947,
+  "model": "gpt-5-mini",
+  "policy": "llm",
+  "n_per_goal": 3,
+  "claim": "frontier_bakeoff_control_plane_vs_vision_vs_wda",
+  "ligh_driver": "control_plane_capabilities",
+  "goals": [
+    {
+      "goal": "Open Settings (Impostazioni or Settings), use search Cerca/Search, find Bluetooth, leave the Bluetooth row or screen visible, then done",
+      "ligh": [
+        {
+          "ok": false,
+          "seconds": 4.743038892745972,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\"Apple\\u00a0Account, Effettua il login per accedere ai dati di iCloud, ad App\\u00a0Store, ai servizi Apple e altro ancora.\", \"Generali\", \"Accessibilit\\u00e0\", \"Apple\\u00a0Intelligence e Siri\", \"Cerca\", \"Fotocamera\", \"Schermata Home e libreria app\", \"StandBy\", \"Tasto Azione\", \"Tempo di utilizzo\", \"Privacy e sicurezza\", \"Impostazioni\"], \"query\": \"Bluetooth\"}}\n\u2717 bluetooth via settings_search in 4.7s\n"
+        },
+        {
+          "ok": true,
+          "seconds": 2.589514970779419,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=springboard\n{\"cap\": \"settings_search\", \"ok\": true, \"fault\": \"ok\", \"detail\": {\"hit\": true, \"query\": \"Bluetooth\"}}\n\u2713 bluetooth via settings_search in 2.5s\n"
+        },
+        {
+          "ok": true,
+          "seconds": 5.398411989212036,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=settings\n{\"cap\": \"settings_search\", \"ok\": true, \"fault\": \"ok\", \"detail\": {\"hit\": true, \"query\": \"Bluetooth\"}}\n\u2713 bluetooth via settings_search in 5.1s\n"
+        }
+      ],
+      "vision": [
+        {
+          "ok": false,
+          "seconds": 136.92323088645935,
+          "input_tokens": 24391,
+          "output_tokens": 6343,
+          "steps": 10
+        },
+        {
+          "ok": true,
+          "seconds": 134.70359563827515,
+          "input_tokens": 24255,
+          "output_tokens": 8145,
+          "steps": 10
+        },
+        {
+          "ok": false,
+          "seconds": 128.57049584388733,
+          "input_tokens": 24359,
+          "output_tokens": 5170,
+          "steps": 10
+        }
+      ],
+      "wda": []
+    },
+    {
+      "goal": "Open Safari, make sure the browser chrome or address field is visible, then done",
+      "ligh": [
+        {
+          "ok": true,
+          "seconds": 3.0673961639404297,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=springboard\n{\"cap\": \"tap_safari\", \"ok\": true, \"surface\": \"app\", \"labels\": [\"Indirizzo\", \"Apple\", \"Bing\", \"Google\", \"Yahoo\", \"Modifica\", \"microfono\", \"Preferiti\"]}\n"
+        },
+        {
+          "ok": true,
+          "seconds": 2.296544075012207,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=app\n{\"cap\": \"tap_safari\", \"ok\": true, \"surface\": \"settings\", \"labels\": [\"Indirizzo\", \"Apple\", \"Bing\", \"Google\", \"Yahoo\", \"Modifica\", \"Ricerca vocale\", \"Preferiti\"]}\n"
+        },
+        {
+          "ok": true,
+          "seconds": 0.8336970806121826,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=springboard\n{\"cap\": \"tap_safari\", \"ok\": true, \"surface\": \"settings\", \"labels\": [\"Indirizzo\", \"Apple\", \"Bing\", \"Google\", \"Yahoo\", \"Modifica\", \"Ricerca vocale\", \"Preferiti\"]}\n"
+        }
+      ],
+      "vision": [
+        {
+          "ok": false,
+          "seconds": 108.08146715164185,
+          "input_tokens": 24233,
+          "output_tokens": 5120,
+          "steps": 10
+        },
+        {
+          "ok": true,
+          "seconds": 14.560117959976196,
+          "input_tokens": 4802,
+          "output_tokens": 607,
+          "steps": 1
+        },
+        {
+          "ok": true,
+          "seconds": 79.91325902938843,
+          "input_tokens": 19315,
+          "output_tokens": 4320,
+          "steps": 7
+        }
+      ],
+      "wda": []
+    },
+    {
+      "goal": "Open Settings, open Generali or General, then navigate back so Impostazioni/Settings root list is visible again, then done",
+      "ligh": [
+        {
+          "ok": true,
+          "seconds": 5.916584014892578,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=springboard\n{\"cap\": \"settings_general_back\", \"ok\": true, \"labels\": [\"\", \"Avvia dettatura\", \"Apple\\u00a0Account, Effettua il login per accedere ai dati di iCloud, ad App\\u00a0Store, ai servizi Apple e altro ancora.\", \"Generali\", \"Accessibilit\\u00e0\", \"Apple\\u00a0Intelligence e Siri\", \"Cerca\", \"Fotocamera\", \"Schermata Home e libreria app\", \"StandBy\"]}\n"
+        },
+        {
+          "ok": true,
+          "seconds": 4.629230976104736,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=springboard\n{\"cap\": \"settings_general_back\", \"ok\": true, \"labels\": [\"\", \"Avvia dettatura\", \"Apple\\u00a0Account, Effettua il login per accedere ai dati di iCloud, ad App\\u00a0Store, ai servizi Apple e altro ancora.\", \"Generali\", \"Accessibilit\\u00e0\", \"Apple\\u00a0Intelligence e Siri\", \"Cerca\", \"Fotocamera\", \"Schermata Home e libreria app\", \"StandBy\"]}\n"
+        },
+        {
+          "ok": true,
+          "seconds": 4.12965726852417,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=springboard\n{\"cap\": \"settings_general_back\", \"ok\": true, \"labels\": [\"\", \"Avvia dettatura\", \"Apple\\u00a0Account, Effettua il login per accedere ai dati di iCloud, ad App\\u00a0Store, ai servizi Apple e altro ancora.\", \"Generali\", \"Accessibilit\\u00e0\", \"Apple\\u00a0Intelligence e Siri\", \"Cerca\", \"Fotocamera\", \"Schermata Home e libreria app\", \"StandBy\"]}\n"
+        }
+      ],
+      "vision": [
+        {
+          "ok": false,
+          "seconds": 129.67895984649658,
+          "input_tokens": 24221,
+          "output_tokens": 7311,
+          "steps": 10
+        },
+        {
+          "ok": false,
+          "seconds": 119.14601302146912,
+          "input_tokens": 24325,
+          "output_tokens": 6795,
+          "steps": 10
+        },
+        {
+          "ok": false,
+          "seconds": 132.24544215202332,
+          "input_tokens": 24293,
+          "output_tokens": 7043,
+          "steps": 10
+        }
+      ],
+      "wda": []
+    },
+    {
+      "goal": "Open Maps (Mappe or Maps), ensure map chrome or search field is visible, then done",
+      "ligh": [
+        {
+          "ok": false,
+          "seconds": 14.3787682056427,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=springboard\n{\"cap\": \"maps\", \"ok\": false, \"surface\": \"springboard\", \"labels\": [\"Mappe\", \"Calendario\", \"Calendario\", \"Foto\", \"Promemoria\", \"News\", \"Mappe\", \"Salute\", \"Wallet\", \"Impostazioni\"]}\n"
+        },
+        {
+          "ok": false,
+          "seconds": 8.86532998085022,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=app\n{\"cap\": \"maps\", \"ok\": false, \"surface\": \"settings\", \"labels\": [\"\", \"Elemento di controllo scheda\", \"Avvia dettatura\", \"Annulla\", \"Suggerimenti di ricerca\"]}\n"
+        },
+        {
+          "ok": false,
+          "seconds": 35.73977017402649,
+          "infra_skip": false,
+          "driver": "control_plane_capabilities",
+          "log_tail": "\u2713 ensure_ready phase=ready surface=springboard\n{\"cap\": \"maps\", \"ok\": false, \"surface\": \"transition\", \"labels\": []}\n"
+        }
+      ],
+      "vision": [
+        {
+          "ok": true,
+          "seconds": 51.917433977127075,
+          "input_tokens": 7228,
+          "output_tokens": 1512,
+          "steps": 2
+        },
+        {
+          "ok": true,
+          "seconds": 8.257024049758911,
+          "input_tokens": 2399,
+          "output_tokens": 248,
+          "steps": 0
+        },
+        {
+          "ok": true,
+          "seconds": 77.42873024940491,
+          "input_tokens": 14479,
+          "output_tokens": 3778,
+          "steps": 5
+        }
+      ],
+      "wda": []
+    }
+  ],
+  "arms": {
+    "ligh": true,
+    "vision": true,
+    "wda": false
+  },
+  "summary": {
+    "ligh": {
+      "pass": 8,
+      "total": 12,
+      "pass_rate": 0.6666666666666666,
+      "avg_seconds": 7.715661982695262
+    },
+    "vision": {
+      "pass": 6,
+      "total": 12,
+      "pass_rate": 0.5,
+      "avg_seconds": 93.45214748382568
+    },
+    "wda": {
+      "pass": 0,
+      "total": 0,
+      "pass_rate": null,
+      "avg_seconds": null
+    }
+  },
+  "ligh_wins_goals": 3,
+  "goals_compared": 4,
+  "frontier_bar": "LIGH pass_rate >= others on >=2/3 compared goals",
+  "frontier_pass": true
+}

@@ -1,6 +1,7 @@
 //! Core types and configuration for LIGH.
 
 pub mod config;
+pub mod control;
 pub mod device;
 pub mod error;
 pub mod observe;
@@ -9,6 +10,10 @@ pub mod rpc;
 pub mod state;
 
 pub use config::LighConfig;
+pub use control::{
+    eyes_unusable, overlay_from_snapshot, phase_from_snapshot, stamp_control_fields,
+    CapabilityResult, FaultClass, Overlay, SessionPhase,
+};
 pub use device::DevicePreset;
 pub use error::{LighError, Result};
 pub use observe::{

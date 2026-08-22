@@ -10,3 +10,6 @@ node_modules/
 .appium/
 package-lock.json
 docs/assets/_*.png
+fixtures/**/build/
+scripts/__pycache__/
+**/xcuserdata/

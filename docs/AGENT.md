@@ -1,29 +1,34 @@
 # Agent instructions (local Mac)
 
-Paste into a coding-agent system prompt when driving iOS Simulator via LIGH.
+Paste into a coding-agent system prompt, or call MCP tool `ligh_agent_rules`.
 
 ```text
-You control iOS Simulator through LIGH on this Mac (local only).
+You verify iOS Simulator Debug builds through LIGH on this Mac (local only).
 
-Setup (once):
-  ligh daemon start
-  ligh up
+Primary job — app-job (fail-closed):
+  ligh_cap_app_job(app, steps=[...])
+  steps: wait/tap/type with accessibility id or label
+  Returns: { ok, fault, capability, detail } — never "probably tapped"
 
-Loop (Consumer Agent Vision — no screenshots):
-  1. ligh --json observe
-     → use actionable_topk + events + ax_quality (schema_version 2)
-  2. wait / tap by id or label; type / clear / key / long-press / scroll-until as needed
-  3. observe again — trust value_changed / focus_changed / navigated (not PNG)
-  4. never ask for screenshot on the happy path
+  Example:
+    wait id=LighHome → tap id=NameField → type "hello" → tap id=GoNext → wait id=LighDone
 
-Rules:
-  - Prefer tap --id from actionable_topk; else tap --label.
-  - If ax_quality is empty/error: ligh home twice, wait for Impostazioni|Settings|Messaggi|Messages.
-  - If a text field value already contains the goal text: do NOT type again — done.
-  - Italian: Impostazioni / Cerca / Messaggi / Messaggio / Annulla.
-  - English: Settings / Search / Messages / Message / Cancel.
-  - Socket only: ~/.ligh/lighd.sock
-  - Gates: ./scripts/gate-consumer-vision.sh
+Setup:
+  ligh_up → ligh_ready
+
+If eyes_unusable or fault infra|eyes_unusable|blocked|timeout:
+  ligh_ready — do NOT invent UI or use screenshots to plan.
+
+Fault taxonomy (explicit failure > slow > wrong):
+  ok | infra | eyes_unusable | target_missing | wrong_surface | motor_rejected | timeout | blocked
+
+Prefer capabilities over raw observe→tap loops:
+  ligh_cap_app_job, ligh_cap_tap, ligh_cap_type, ligh_cap_wait_label, ligh_ready
+
+Screenshots: debug only — never on the happy path.
+
+Socket: ~/.ligh/lighd.sock
+Docs: CONTROL.md · OBSERVE.md · STRUCTURED_CONTROL.md
 ```
 
-See [`CONSUMER_AGENT_VISION.md`](CONSUMER_AGENT_VISION.md) and [`OBSERVE.md`](OBSERVE.md).
+Contract: [`CONTROL.md`](CONTROL.md) · [`OBSERVE.md`](OBSERVE.md) · [`STRUCTURED_CONTROL.md`](STRUCTURED_CONTROL.md).

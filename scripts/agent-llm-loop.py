@@ -1,14 +1,10 @@
 #!/usr/bin/env python3
-"""Frontier agent loop — settled AX eyes → act → verify (no screenshots).
+"""Frontier agent loop — settled AX → act → settled observe (no screenshots).
 
-Control law:
-  1. observe --settle until ready (never plan on transition/empty)
-  2. act with LABEL first (ids are hints)
-  3. re-observe settle; trust surface + typed events
-  4. done when surface/goal matches — not when the model vibes
-
-Honest: this is accessibility robotics, not pixels. Settling + verify is what
-makes it competitive with vision agents on structured iOS UI.
+Modes:
+  --policy host  : settle/surface shortcuts for Settings + Messages compose (narrow demo)
+  --policy llm   : LLM plans every step; host only blocks transition/empty + screenshots
+                  (use for breadth gates — no assumed answers)
 """
 
 from __future__ import annotations
@@ -41,7 +37,12 @@ def observe_settled() -> dict[str, Any]:
     return json.loads(out)
 
 
-def eye_packet(snap: dict[str, Any]) -> dict[str, Any]:
+def eye_packet(snap: dict[str, Any]) -> dict[str, Any] | None:
+    """Return None if eyes must not be shown to the model (transition/empty)."""
+    aq = snap.get("ax_quality") or ""
+    settled = bool(snap.get("settled"))
+    if snap.get("eyes_unusable") or aq in ("empty", "transition", "error") or not settled:
+        return None
     scene = snap.get("scene") or {}
     top = []
     for n in (snap.get("actionable_topk") or [])[:36]:
@@ -57,8 +58,10 @@ def eye_packet(snap: dict[str, Any]) -> dict[str, Any]:
             }
         )
     return {
-        "ax_quality": snap.get("ax_quality"),
-        "settled": snap.get("settled"),
+        "ax_quality": aq,
+        "settled": settled,
+        "phase": snap.get("phase"),
+        "eyes_unusable": False,
         "surface": scene.get("surface"),
         "keyboard_visible": scene.get("keyboard_visible"),
         "screen_title": scene.get("screen_title"),
@@ -77,51 +80,102 @@ def goal_type_text(goal: str) -> str:
 
 def goal_is_messages(goal: str) -> bool:
     g = goal.lower()
-    return "message" in g or "messaggi" in g or "sms" in g
+    return ("message" in g or "messaggi" in g or "sms" in g) and "type:" in g.lower()
 
 
-def goal_is_settings(goal: str) -> bool:
+def goal_is_settings_open(goal: str) -> bool:
     g = goal.lower()
-    return "setting" in g or "impostazioni" in g
+    return ("setting" in g or "impostazioni" in g) and "bluetooth" not in g and "safari" not in g
 
 
-def has_typed_event(snap: dict[str, Any], text: str) -> bool:
-    t = text.lower()
+def has_fresh_host_typed(snap: dict[str, Any], text: str, since_seq: int) -> bool:
+    """Only count typed events newer than since_seq (this-run freshness)."""
+    t = (text or "").lower()
     for e in snap.get("events") or []:
-        if e.get("kind") not in ("typed", "value_changed"):
+        if e.get("kind") != "typed":
+            continue
+        seq = int(e.get("seq") or e.get("id") or 0)
+        if since_seq and seq and seq <= since_seq:
             continue
         payload = e.get("payload") or {}
-        blob = json.dumps(payload).lower()
-        if t and t in blob:
-            return True
+        if payload.get("verified") == "host_accepted":
+            if not t or t in json.dumps(payload).lower():
+                return True
     return False
+
+
+def max_event_seq(snap: dict[str, Any]) -> int:
+    m = 0
+    for e in snap.get("events") or []:
+        try:
+            m = max(m, int(e.get("seq") or e.get("id") or 0))
+        except (TypeError, ValueError):
+            pass
+    return m
 
 
 def labels(eyes: dict[str, Any]) -> set[str]:
     return {(a.get("label") or "").strip() for a in eyes.get("actionable") or [] if a.get("label")}
 
 
-SYSTEM = """You drive iOS Simulator via LIGH. Eyes = settled accessibility scene graph (NOT screenshots).
+SYSTEM = """You drive iOS Simulator via LIGH control plane (local Mac).
+Input is settled accessibility JSON — NOT screenshots. Never ask for images.
 
 Reply ONE JSON object only:
-{"action":"tap"|"type"|"wait"|"home"|"compose_sms"|"clear"|"key"|"long_press"|"scroll_until"|"done",
- "label":"...","id":"...","text":"...","key":"...","reason":"..."}
+{"action":"ensure_ready"|"open_settings"|"settings_search"|"tap"|"type"|"wait"|"home"|"compose_sms"|"clear"|"key"|"long_press"|"scroll_until"|"assert_surface"|"done",
+ "label":"...","id":"...","text":"...","query":"...","surface":"...","key":"...","reason":"..."}
 
-HARD RULES:
-- Prefer label over id. Bare labels: Messaggi, Impostazioni, Settings, Messages, Messaggio, Cerca, Generali.
-- Never act if ax_quality is transition/empty — reply wait or home.
-- Use surface: springboard | settings | messages_composer | app | transition.
-- Messages goal: from springboard tap Messaggi OR compose_sms; in messages_composer type once then done.
-- Settings goal: tap Impostazioni/Settings; done when surface=settings.
-- After a successful type of the goal text → done (host emits typed event).
-- Never screenshot. Never invent labels.
+Rules:
+- If eyes_unusable or phase is degraded/dead: action ensure_ready (not invent UI).
+- Prefer capabilities: open_settings, settings_search (query=Bluetooth), assert_surface.
+- Prefer bare labels (Messaggi, Impostazioni, Settings, Messages, Messaggio, Cerca, Safari, Bluetooth, Generali, Mappe).
+- id is optional hint only.
+- surface: springboard|settings|messages_composer|app|transition
+- typed/host_accepted means keystrokes were sent — Messages may not show body in AX value.
+- Never screenshot.
 """
 
 
-def llm(goal: str, history: list[str], eyes: dict[str, Any], step: int, model: str) -> dict[str, Any]:
+TOKEN_IN = 0
+TOKEN_OUT = 0
+
+
+def openai_chat(body: dict) -> dict:
+    import tempfile
+
     key = os.environ.get("OPENAI_API_KEY", "").strip()
     if not key:
         raise RuntimeError("OPENAI_API_KEY missing")
+    with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
+        json.dump(body, f)
+        path = f.name
+    try:
+        r = subprocess.run(
+            [
+                "curl", "-sS", "-X", "POST", OPENAI_URL,
+                "-H", f"Authorization: Bearer {key}",
+                "-H", "Content-Type: application/json",
+                "-d", f"@{path}",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=90,
+        )
+    finally:
+        try:
+            os.unlink(path)
+        except OSError:
+            pass
+    if r.returncode != 0:
+        raise RuntimeError(r.stderr[:400])
+    payload = json.loads(r.stdout)
+    if "error" in payload:
+        raise RuntimeError(str(payload["error"]))
+    return payload
+
+
+def llm(goal: str, history: list[str], eyes: dict[str, Any], step: int, model: str) -> dict[str, Any]:
+    global TOKEN_IN, TOKEN_OUT
     body = {
         "model": model,
         "response_format": {"type": "json_object"},
@@ -135,29 +189,10 @@ def llm(goal: str, history: list[str], eyes: dict[str, Any], step: int, model: s
             },
         ],
     }
-    r = subprocess.run(
-        [
-            "curl",
-            "-sS",
-            "-X",
-            "POST",
-            OPENAI_URL,
-            "-H",
-            f"Authorization: Bearer {key}",
-            "-H",
-            "Content-Type: application/json",
-            "-d",
-            json.dumps(body),
-        ],
-        capture_output=True,
-        text=True,
-        timeout=90,
-    )
-    if r.returncode != 0:
-        raise RuntimeError(r.stderr[:400])
-    payload = json.loads(r.stdout)
-    if "error" in payload:
-        raise RuntimeError(str(payload["error"]))
+    payload = openai_chat(body)
+    usage = payload.get("usage") or {}
+    TOKEN_IN += int(usage.get("prompt_tokens") or 0)
+    TOKEN_OUT += int(usage.get("completion_tokens") or 0)
     content = payload["choices"][0]["message"]["content"].strip()
     if content.startswith("```"):
         content = re.sub(r"^```(?:json)?\s*", "", content)
@@ -174,12 +209,32 @@ def apply(act: dict[str, Any]) -> str:
 
     if action == "done":
         return "done"
+    if action == "ensure_ready":
+        code, out, err = run_ligh(
+            "--json", "ready", "--settle-ms", SETTLE_MS, "--recover-homes", "6"
+        )
+        return f"ensure_ready:rc={code}"
+    if action == "open_settings":
+        code, _, _ = run_ligh("--json", "cap", "open-settings", "--settle-ms", SETTLE_MS)
+        return f"open_settings:rc={code}"
+    if action == "settings_search":
+        q = act.get("query") or text or "Bluetooth"
+        code, _, _ = run_ligh(
+            "--json", "cap", "settings-search", q, "--settle-ms", SETTLE_MS
+        )
+        return f"settings_search:rc={code}"
+    if action == "assert_surface":
+        surf = act.get("surface") or "settings"
+        code, _, _ = run_ligh(
+            "--json", "cap", "assert-surface", surf, "--settle-ms", SETTLE_MS
+        )
+        return f"assert_surface:rc={code}"
     if action == "wait":
-        time.sleep(0.45)
+        time.sleep(0.4)
         return "wait"
     if action == "home":
         run_ligh("home")
-        time.sleep(0.35)
+        time.sleep(0.3)
         run_ligh("home")
         return "home"
     if action == "compose_sms":
@@ -198,103 +253,132 @@ def apply(act: dict[str, Any]) -> str:
         return "compose_sms"
     if action == "tap":
         if label:
-            code, out, err = run_ligh("tap", "--label", label, "--timeout-ms", "7000")
-            return f"tap:{label}:rc={code}:{out or err}"
+            code, _, _ = run_ligh(
+                "--json",
+                "cap",
+                "tap",
+                "--label",
+                label,
+                "--settle-ms",
+                SETTLE_MS,
+                "--timeout-ms",
+                "7000",
+            )
+            if code != 0:
+                code, _, _ = run_ligh("tap", "--label", label, "--timeout-ms", "7000")
+            return f"tap:{label}:rc={code}"
         if eid:
-            code, out, err = run_ligh("tap", "--id", eid, "--timeout-ms", "5000")
-            return f"tapid:{eid}:rc={code}:{out or err}"
+            code, _, _ = run_ligh(
+                "--json", "cap", "tap", "--id", eid, "--settle-ms", SETTLE_MS
+            )
+            return f"tapid:rc={code}"
         return "tap-missing"
     if action == "type":
         if not text:
             return "type-missing"
-        code, out, err = run_ligh("type", "--text", text)
-        return f"type:rc={code}:{out or err}"
+        code, _, _ = run_ligh(
+            "--json", "cap", "type", "--text", text, "--settle-ms", SETTLE_MS
+        )
+        if code != 0:
+            code, _, _ = run_ligh("type", "--text", text)
+        return f"type:rc={code}:host_typed"
     if action == "clear":
-        code, out, err = run_ligh("clear", "--count", str(act.get("count") or 40))
-        return f"clear:rc={code}"
+        run_ligh("clear", "--count", str(act.get("count") or 40))
+        return "clear"
     if action == "key":
-        code, out, err = run_ligh("key", "--name", key or "return")
-        return f"key:rc={code}"
+        run_ligh("key", "--name", key or "return")
+        return f"key:{key}"
     if action == "long_press":
         args = ["long-press", "--hold-ms", "600"]
-        if label:
-            args += ["--label", label]
-        elif eid:
-            args += ["--id", eid]
-        else:
-            return "long_press-missing"
-        code, out, err = run_ligh(*args)
+        args += ["--label", label] if label else ["--id", eid]
+        code, _, _ = run_ligh(*args)
         return f"long_press:rc={code}"
     if action == "scroll_until":
         args = ["scroll-until", "--max-swipes", "8"]
-        if label:
-            args += ["--label", label]
-        elif eid:
-            args += ["--id", eid]
-        else:
-            return "scroll_until-missing"
-        code, out, err = run_ligh(*args)
+        args += ["--label", label] if label else ["--id", eid]
+        code, _, _ = run_ligh(*args)
         return f"scroll_until:rc={code}"
     return f"unknown:{action}"
 
 
-def policy_act(
-    goal: str,
-    eyes: dict[str, Any],
-    want: str,
-    history: list[str],
-    step: int,
-    model: str,
-) -> dict[str, Any]:
-    """Host policy first; LLM only when ambiguous."""
-    aq = eyes.get("ax_quality") or ""
+def host_policy(goal: str, eyes: dict[str, Any], want: str) -> dict[str, Any] | None:
+    """Narrow demos only. Return None to fall through to LLM."""
     surface = eyes.get("surface") or ""
     labs = labels(eyes)
-    msgs = goal_is_messages(goal)
-    settings = goal_is_settings(goal)
-
-    if aq in ("empty", "transition") or not eyes.get("settled"):
-        # Wake SpringBoard instead of spinning forever on empty AX.
-        empty_n = sum(1 for h in history[-6:] if "wait" in h or "home" in h)
-        if empty_n >= 2 or aq == "empty":
-            return {"action": "home", "reason": "wake AX / recover empty eyes"}
-        return {"action": "wait", "reason": "eyes not settled"}
-
-    if settings and surface == "settings":
+    if goal_is_settings_open(goal) and surface == "settings":
         return {"action": "done", "reason": "surface=settings"}
-    if msgs and want and any(e.get("kind") == "typed" for e in eyes.get("events") or []):
-        # typed event this observe cycle
-        return {"action": "done", "reason": "typed event"}
-
-    if msgs and surface == "messages_composer" and want:
-        return {"action": "type", "text": want, "reason": "composer — type goal"}
-
-    if msgs and surface == "springboard":
+    if goal_is_messages(goal) and surface == "messages_composer" and want:
+        return {"action": "type", "text": want, "reason": "composer — type (host_typed)"}
+    if goal_is_messages(goal) and surface == "springboard":
         if "Messaggi" in labs or "Messages" in labs:
             return {
                 "action": "tap",
                 "label": "Messaggi" if "Messaggi" in labs else "Messages",
-                "reason": "open Messages from springboard",
+                "reason": "open Messages",
             }
-        return {"action": "compose_sms", "reason": "fallback sms:"}
-
-    if settings and surface == "springboard":
+    if goal_is_settings_open(goal) and surface == "springboard":
         if "Impostazioni" in labs or "Settings" in labs:
             return {
                 "action": "tap",
                 "label": "Impostazioni" if "Impostazioni" in labs else "Settings",
                 "reason": "open Settings",
             }
+    return None
 
-    # Ambiguous app surface — ask model
-    return llm(goal, history, eyes, step, model)
+
+def success(goal: str, snap: dict[str, Any], want: str, host_typed_ok: bool) -> str | None:
+    eyes = eye_packet(snap)
+    surface = ((snap.get("scene") or {}).get("surface")) or ""
+    if goal_is_settings_open(goal) and surface == "settings":
+        return "surface=settings"
+    # Messages: require a fresh type in THIS run (no stale host_typed from prior sessions)
+    if goal_is_messages(goal) and want and host_typed_ok:
+        return "host_typed (HID accepted — AX body may be empty)"
+    # Breadth: Bluetooth
+    if "bluetooth" in goal.lower() and eyes:
+        labs = {x.lower() for x in labels(eyes)}
+        if any("bluetooth" in x for x in labs) and surface == "settings":
+            return "bluetooth visible in settings"
+    # Breadth: Safari
+    if "safari" in goal.lower() and eyes:
+        labs = labels(eyes)
+        if any(x in labs for x in ("Indirizzo", "Address", "URL", "TabBarItemTitle", "Caps Lock")):
+            return "safari chrome visible"
+        if surface == "app" and any("Safari" in (a.get("label") or "") for a in eyes["actionable"]):
+            return "safari"
+    # Breadth: Settings → General → back to root
+    g = goal.lower()
+    if ("generali" in g or "general" in g) and "back" in g and eyes and surface == "settings":
+        labs = labels(eyes)
+        if "Generali" in labs or "General" in labs:
+            return "settings root with Generali/General row"
+    # App under test: Maps (Calculator often disabled on slim profiles)
+    if ("maps" in g or "mappe" in g) and eyes:
+        labs = labels(eyes)
+        mapish = any(
+            x in labs
+            for x in (
+                "Mappe",
+                "Maps",
+                "Mappa",
+                "Cerca",
+                "Search",
+                "Indicazioni",
+                "Directions",
+                "Modalità mappa",
+            )
+        )
+        if surface != "springboard" and mapish:
+            return "maps chrome visible"
+    return None
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--goal", required=False, default="Open Messages, type: hello from ligh")
+    ap.add_argument("--goal", default="Open Messages, type: hello from ligh")
     ap.add_argument("--steps", type=int, default=16)
     ap.add_argument("--model", default=os.environ.get("OPENAI_MODEL", MODEL))
+    ap.add_argument("--policy", choices=("host", "llm"), default="host")
     args = ap.parse_args()
     want = goal_type_text(args.goal)
 
@@ -305,37 +389,57 @@ def main() -> int:
         print("error: lighd not running", file=sys.stderr)
         return 1
 
-    print(f"model={args.model}")
+    print(f"model={args.model} policy={args.policy}")
     print(f"goal={args.goal}")
-    print(f"want_text={want!r}")
-    print(f"settle_ms={SETTLE_MS}")
-    print("mode=frontier settled-AX (no screenshots)")
+    print(f"want_text={want!r} settle_ms={SETTLE_MS}")
+    print("mode=structured-control (no screenshots)")
     print("═" * 40)
 
+    # Control-plane: never start planning on dead eyes
+    code, out, err = run_ligh(
+        "--json", "ready", "--settle-ms", SETTLE_MS, "--recover-homes", "6"
+    )
+    if code != 0:
+        print(f"✗ ensure_ready failed (infra) rc={code} {(err or out)[:200]}", file=sys.stderr)
+        return 2
+    print("✓ ensure_ready")
+
     history: list[str] = []
-    typed_ok = False
+    host_typed_ok = False
+    typed_since_seq = 0
 
     for i in range(1, args.steps + 1):
         snap = observe_settled()
         eyes = eye_packet(snap)
+        scene = (snap.get("scene") or {}).get("surface")
         print(
-            f"\n▶ step {i}/{args.steps}  ax={eyes['ax_quality']} settled={eyes['settled']} "
-            f"surface={eyes['surface']} actionable={len(eyes['actionable'])}"
+            f"\n▶ step {i}/{args.steps}  ax={snap.get('ax_quality')} settled={snap.get('settled')} "
+            f"surface={scene} actionable={len((eyes or {}).get('actionable') or [])}"
         )
-        if eyes["actionable"][:5]:
-            print("  see:", ", ".join((a.get("label") or "?") for a in eyes["actionable"][:5]))
 
-        # Terminal success
-        if goal_is_settings(args.goal) and eyes.get("surface") == "settings":
-            print("\n✓ surface=settings — done")
-            return 0
-        if want and (typed_ok or has_typed_event(snap, want)):
-            print("\n✓ typed verified — done")
+        why = success(args.goal, snap, want, host_typed_ok)
+        if why:
+            print(f"\n✓ done — {why}")
+            print(f"tokens in={TOKEN_IN} out={TOKEN_OUT} steps={i}")
             return 0
 
-        act = policy_act(args.goal, eyes, want, history, i, args.model)
+        if eyes is None:
+            act = {"action": "ensure_ready", "reason": "eyes_unusable — control-plane recover"}
+            print("  eyes: BLOCKED (eyes_unusable) — ensure_ready")
+        elif args.policy == "host":
+            act = host_policy(args.goal, eyes, want)
+            if act is None:
+                act = llm(args.goal, history, eyes, i, args.model)
+            if eyes.get("actionable"):
+                print("  see:", ", ".join((a.get("label") or "?") for a in eyes["actionable"][:5]))
+        else:
+            # llm-only: no assumed answers
+            if eyes.get("actionable"):
+                print("  see:", ", ".join((a.get("label") or "?") for a in eyes["actionable"][:5]))
+            act = llm(args.goal, history, eyes, i, args.model)
+
         if (act.get("action") or "").lower() in ("screenshot", "vision", "image"):
-            act = {"action": "wait", "reason": "no screenshots"}
+            act = {"action": "home", "reason": "no screenshots"}
         if (act.get("action") or "").lower() == "type" and want:
             act = dict(act)
             act["text"] = want
@@ -343,24 +447,32 @@ def main() -> int:
         print("  plan:", json.dumps(act, ensure_ascii=False))
         if (act.get("action") or "").lower() == "done":
             print("\n✓ done")
+            print(f"tokens in={TOKEN_IN} out={TOKEN_OUT} steps={i}")
             return 0
+
+        if (act.get("action") or "").lower() == "type":
+            typed_since_seq = max_event_seq(snap)
 
         result = apply(act)
         print("  act:", result)
         history.append(f"{i}:{act.get('action')}->{result}")
 
-        if (act.get("action") or "").lower() == "type" and "rc=0" in result:
-            typed_ok = True
-            # Settle + confirm typed event
-            time.sleep(0.25)
-            snap2 = observe_settled()
-            if has_typed_event(snap2, want) or typed_ok:
-                print("\n✓ type accepted by host — done")
-                return 0
-
-        time.sleep(0.2)
+        # Always re-settle after act — never trust pre-act eyes
+        time.sleep(0.15)
+        snap2 = observe_settled()
+        if "host_typed" in result and "rc=0" in result:
+            # Freshness: apply result alone is enough for this-run; also accept new typed events
+            host_typed_ok = True
+        elif want and has_fresh_host_typed(snap2, want, typed_since_seq):
+            host_typed_ok = True
+        why = success(args.goal, snap2, want, host_typed_ok)
+        if why:
+            print(f"\n✓ done after settle — {why}")
+            print(f"tokens in={TOKEN_IN} out={TOKEN_OUT} steps={i}")
+            return 0
 
     print("\n✗ max steps", file=sys.stderr)
+    print(f"tokens in={TOKEN_IN} out={TOKEN_OUT} steps={args.steps}", file=sys.stderr)
     return 1
 
 

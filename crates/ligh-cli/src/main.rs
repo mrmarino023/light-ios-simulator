@@ -200,6 +200,18 @@ enum Commands {
         #[arg(long)]
         no_settle: bool,
     },
+    /// Control-plane: recover until Ready (home+settle) or structured fault.
+    Ready {
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 6)]
+        recover_homes: u32,
+    },
+    /// Capability ops (act-with-settle contract).
+    Cap {
+        #[command(subcommand)]
+        command: CapCommands,
+    },
     /// Start / stop / status of the persistent agent host (`lighd`).
     Daemon {
         #[command(subcommand)]
@@ -222,6 +234,92 @@ enum Commands {
         steps: u32,
         #[arg(long)]
         no_wda: bool,
+    },
+}
+
+#[derive(Subcommand)]
+enum CapCommands {
+    /// Open Settings (IT/EN) and assert surface=settings.
+    #[command(name = "open-settings")]
+    OpenSettings {
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+    },
+    /// Settings search → type query → settle (Bluetooth etc.).
+    #[command(name = "settings-search")]
+    SettingsSearch {
+        query: String,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+    },
+    /// Assert scene.surface after settle.
+    #[command(name = "assert-surface")]
+    AssertSurface {
+        surface: String,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+    },
+    /// Settle → tap label/id → settle.
+    Tap {
+        #[arg(long)]
+        label: Option<String>,
+        #[arg(long)]
+        id: Option<String>,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 5000)]
+        timeout_ms: u64,
+    },
+    /// Settle → type → settle.
+    Type {
+        #[arg(long)]
+        text: String,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+    },
+    /// Install Debug `.app` → launch → settle → optional wait label (product path).
+    #[command(name = "run-app")]
+    RunApp {
+        app: String,
+        #[arg(long)]
+        bundle_id: Option<String>,
+        #[arg(long)]
+        wait_label: Option<String>,
+        #[arg(long)]
+        wait_id: Option<String>,
+        #[arg(long, default_value_t = 3500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 8000)]
+        timeout_ms: u64,
+        /// Skip simctl install (relaunch only).
+        #[arg(long, default_value_t = false)]
+        no_install: bool,
+    },
+    /// Settle → wait until AX label exists.
+    #[command(name = "wait-label")]
+    WaitLabel {
+        label: String,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 8000)]
+        timeout_ms: u64,
+    },
+    /// Install+launch then motor steps JSON (product job — one capability).
+    #[command(name = "app-job")]
+    AppJob {
+        app: String,
+        #[arg(long)]
+        bundle_id: Option<String>,
+        /// JSON array of steps: wait/tap/type with id|label|text.
+        #[arg(long)]
+        steps: String,
+        #[arg(long, default_value_t = 3500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 10000)]
+        timeout_ms: u64,
+        /// Skip simctl install (relaunch only).
+        #[arg(long, default_value_t = false)]
+        no_install: bool,
     },
 }
 
@@ -948,6 +1046,126 @@ fn main() -> anyhow::Result<()> {
             }
         }
 
+        Commands::Ready {
+            settle_ms,
+            recover_homes,
+        } => {
+            let client = hot_client()?;
+            match client.ensure_ready(Some(settle_ms), Some(recover_homes)) {
+                Ok(data) => {
+                    if use_json {
+                        println!("{}", serde_json::to_string_pretty(&data)?);
+                    } else {
+                        println!("✓ ready — {}", data.get("phase").and_then(|v| v.as_str()).unwrap_or("?"));
+                    }
+                }
+                Err(e) => {
+                    if use_json {
+                        println!("{}", serde_json::json!({ "ok": false, "error": e.to_string() }));
+                        std::process::exit(2);
+                    }
+                    anyhow::bail!("{e}");
+                }
+            }
+        }
+
+        Commands::Cap { command } => {
+            use ligh_core::DaemonRequest;
+            let client = hot_client()?;
+            let req = match command {
+                CapCommands::OpenSettings { settle_ms } => DaemonRequest::OpenSettings {
+                    settle_ms: Some(settle_ms),
+                },
+                CapCommands::SettingsSearch { query, settle_ms } => DaemonRequest::SettingsSearch {
+                    query,
+                    settle_ms: Some(settle_ms),
+                },
+                CapCommands::AssertSurface { surface, settle_ms } => DaemonRequest::AssertSurface {
+                    surface,
+                    settle_ms: Some(settle_ms),
+                },
+                CapCommands::Tap {
+                    label,
+                    id,
+                    settle_ms,
+                    timeout_ms,
+                } => DaemonRequest::ActTap {
+                    label,
+                    id,
+                    settle_ms: Some(settle_ms),
+                    timeout_ms: Some(timeout_ms),
+                },
+                CapCommands::Type { text, settle_ms } => DaemonRequest::ActType {
+                    text,
+                    settle_ms: Some(settle_ms),
+                },
+                CapCommands::RunApp {
+                    app,
+                    bundle_id,
+                    wait_label,
+                    wait_id,
+                    settle_ms,
+                    timeout_ms,
+                    no_install,
+                } => DaemonRequest::RunApp {
+                    app,
+                    bundle_id,
+                    wait_label,
+                    wait_id,
+                    settle_ms: Some(settle_ms),
+                    timeout_ms: Some(timeout_ms),
+                    install: Some(!no_install),
+                },
+                CapCommands::WaitLabel {
+                    label,
+                    settle_ms,
+                    timeout_ms,
+                } => DaemonRequest::WaitLabel {
+                    label,
+                    settle_ms: Some(settle_ms),
+                    timeout_ms: Some(timeout_ms),
+                },
+                CapCommands::AppJob {
+                    app,
+                    bundle_id,
+                    steps,
+                    settle_ms,
+                    timeout_ms,
+                    no_install,
+                } => {
+                    let parsed: Vec<serde_json::Value> = serde_json::from_str(&steps)
+                        .map_err(|e| anyhow::anyhow!("--steps JSON: {e}"))?;
+                    DaemonRequest::AppJob {
+                        app,
+                        bundle_id,
+                        steps: parsed,
+                        settle_ms: Some(settle_ms),
+                        timeout_ms: Some(timeout_ms),
+                        install: Some(!no_install),
+                    }
+                },
+            };
+            let resp = client.call(&req)?;
+            let data = resp.data.clone().unwrap_or(serde_json::json!({
+                "ok": resp.ok,
+                "error": resp.error,
+            }));
+            if use_json {
+                println!("{}", serde_json::to_string_pretty(&data)?);
+            } else {
+                let fault = data.get("fault").and_then(|v| v.as_str()).unwrap_or("?");
+                let cap = data.get("capability").and_then(|v| v.as_str()).unwrap_or("cap");
+                if resp.ok {
+                    println!("✓ {cap} fault={fault}");
+                } else {
+                    println!("✗ {cap} fault={fault} — {}", resp.error.unwrap_or_default());
+                }
+            }
+            if !resp.ok {
+                std::process::exit(2);
+            }
+        }
+
         Commands::Daemon { command } => match command {
             DaemonCommands::Start => {
                 let client = hot_client()?;
@@ -1113,6 +1331,9 @@ fn observe_direct(config: &LighConfig, include_ax: bool) -> anyhow::Result<Obser
         settled: false,
         observe_ms: Some(t0.elapsed().as_secs_f64() * 1000.0),
         path: Some("direct".into()),
+        phase: None,
+        eyes_unusable: false,
+        overlay: None,
     };
     snap.enrich_v2();
     Ok(snap)

@@ -1,0 +1,15 @@
+{
+  "ts": 1787331795.944011,
+  "model": "gpt-5-mini",
+  "policy": "llm",
+  "n_per_goal": 5,
+  "pass": 15,
+  "total": 15,
+  "pass_rate": 1.0,
+  "goals": [
+    "settings_search_bluetooth",
+    "safari_chrome",
+    "settings_general_back"
+  ],
+  "claim": "breadth_probe_not_narrow_40_40"
+}

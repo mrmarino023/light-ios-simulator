@@ -2,6 +2,9 @@
 //!
 //! Socket: `~/.ligh/lighd.sock`  (JSON-lines protocol, see ARCHITECTURE.md)
 
+mod capabilities;
+mod motor;
+
 use std::io::{BufRead, BufReader, Write};
 use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::PathBuf;
@@ -20,20 +23,20 @@ use tracing::{info, warn};
 
 // ─────────────────────────── Daemon state ────────────────────────────────────
 
-struct DaemonState {
-    compositor: Arc<HeadlessCompositor>,
+pub(crate) struct DaemonState {
+    pub(crate) compositor: Arc<HeadlessCompositor>,
     /// Width/height in points from last stream attach.
-    sim_width: f64,
-    sim_height: f64,
-    udid: Option<String>,
+    pub(crate) sim_width: f64,
+    pub(crate) sim_height: f64,
+    pub(crate) udid: Option<String>,
     /// Previous AX flat nodes for sensation diff.
-    last_ax_nodes: Option<Vec<serde_json::Value>>,
+    pub(crate) last_ax_nodes: Option<Vec<serde_json::Value>>,
     /// Recent sense events (ring, newest last).
-    sense_buf: Vec<SenseEvent>,
+    pub(crate) sense_buf: Vec<SenseEvent>,
 }
 
 impl DaemonState {
-    fn current_udid(&self) -> Result<String, String> {
+    pub(crate) fn current_udid(&self) -> Result<String, String> {
         let cfg = LighConfig::load().map_err(|e| e.to_string())?;
         if let Some(u) = &self.udid {
             return Ok(u.clone());
@@ -44,7 +47,7 @@ impl DaemonState {
             .ok_or_else(|| "no session — run `lighd` boot or `ligh up` first".into())
     }
 
-    fn push_action_result(&mut self, ok: bool, kind: &str, detail: serde_json::Value) {
+    pub(crate) fn push_action_result(&mut self, ok: bool, kind: &str, detail: serde_json::Value) {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map(|d| d.as_secs_f64())
@@ -62,6 +65,94 @@ impl DaemonState {
             let drop_n = self.sense_buf.len() - 64;
             self.sense_buf.drain(0..drop_n);
         }
+    }
+}
+
+fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> ObserveSnapshot {
+    HostSession::poll_stream();
+    let (udid, gpu) = {
+        let st = state.lock().unwrap();
+        let udid = st.udid.clone().unwrap_or_default();
+        let gpu = st.compositor.stats();
+        (udid, gpu)
+    };
+    let booted = !udid.is_empty();
+    let app_bundle_id = LighConfig::load()
+        .ok()
+        .and_then(|c| SessionState::load(&c.state_dir).ok().flatten())
+        .and_then(|s| s.app_bundle_id);
+    let frame = if gpu.imports_ok > 0 {
+        Some(FrameMeta {
+            width: gpu.last_width,
+            height: gpu.last_height,
+            id: gpu.imports_ok,
+            fps: gpu.fps,
+            imports_ok: true,
+        })
+    } else {
+        None
+    };
+    let ax = if include_ax && !udid.is_empty() {
+        match AxDump::dump(&udid) {
+            Ok(v) => AccessibilityTree::from_ax_dump(v),
+            Err(e) => AccessibilityTree::Error {
+                message: e.to_string(),
+            },
+        }
+    } else {
+        AccessibilityTree::Empty
+    };
+    let mut snap = ObserveSnapshot {
+        schema_version: ligh_core::OBSERVE_SCHEMA_VERSION,
+        udid,
+        booted,
+        simulator_app_running: false,
+        frame,
+        app_bundle_id,
+        accessibility_tree: ax,
+        scene: None,
+        actionable_topk: vec![],
+        events: vec![],
+        ax_quality: "empty".into(),
+        settled: false,
+        observe_ms: None,
+        path: Some("lighd".into()),
+        phase: None,
+        eyes_unusable: false,
+        overlay: None,
+    };
+    snap.enrich_v2();
+    snap
+}
+
+fn attach_sense(state: &Arc<Mutex<DaemonState>>, snap: &mut ObserveSnapshot, t0: Instant) {
+    let now = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs_f64())
+        .unwrap_or(0.0);
+    snap.observe_ms = Some(t0.elapsed().as_secs_f64() * 1000.0);
+    let mut st = state.lock().unwrap();
+    let curr = snap.accessibility_tree.nodes().to_vec();
+    let mut ev = diff_sense_events(st.last_ax_nodes.as_deref(), &curr, now);
+    ev.extend(st.sense_buf.iter().cloned());
+    st.sense_buf.clear();
+    st.last_ax_nodes = Some(curr);
+    snap.events = ev;
+}
+
+fn cap_response(mut r: ligh_core::CapabilityResult) -> DaemonResponse {
+    if let Some(ref mut obs) = r.observe {
+        // ensure control stamps present
+        let has = !obs.udid.is_empty();
+        ligh_core::stamp_control_fields(obs, has);
+    }
+    if r.ok {
+        DaemonResponse::ok(r)
+    } else {
+        DaemonResponse::fault(
+            format!("{}:{}", r.fault.as_str(), r.capability.as_deref().unwrap_or("cap")),
+            r,
+        )
     }
 }
 
@@ -655,61 +746,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 Some(Instant::now() + settle_budget)
             };
 
-            let build_once = |state: &Arc<Mutex<DaemonState>>, include_ax: bool| -> ObserveSnapshot {
-                HostSession::poll_stream();
-                let (udid, gpu) = {
-                    let st = state.lock().unwrap();
-                    let udid = st.udid.clone().unwrap_or_default();
-                    let gpu = st.compositor.stats();
-                    (udid, gpu)
-                };
-                let booted = !udid.is_empty();
-                let app_bundle_id = LighConfig::load()
-                    .ok()
-                    .and_then(|c| SessionState::load(&c.state_dir).ok().flatten())
-                    .and_then(|s| s.app_bundle_id);
-                let frame = if gpu.imports_ok > 0 {
-                    Some(FrameMeta {
-                        width: gpu.last_width,
-                        height: gpu.last_height,
-                        id: gpu.imports_ok,
-                        fps: gpu.fps,
-                        imports_ok: true,
-                    })
-                } else {
-                    None
-                };
-                let ax = if include_ax && !udid.is_empty() {
-                    match AxDump::dump(&udid) {
-                        Ok(v) => AccessibilityTree::from_ax_dump(v),
-                        Err(e) => AccessibilityTree::Error {
-                            message: e.to_string(),
-                        },
-                    }
-                } else {
-                    AccessibilityTree::Empty
-                };
-                let mut snap = ObserveSnapshot {
-                    schema_version: ligh_core::OBSERVE_SCHEMA_VERSION,
-                    udid,
-                    booted,
-                    simulator_app_running: false,
-                    frame,
-                    app_bundle_id,
-                    accessibility_tree: ax,
-                    scene: None,
-                    actionable_topk: vec![],
-                    events: vec![],
-                    ax_quality: "empty".into(),
-                    settled: false,
-                    observe_ms: None,
-                    path: Some("lighd".into()),
-                };
-                snap.enrich_v2();
-                snap
-            };
-
-            let mut snap = build_once(state, include_ax);
+            let mut snap = build_observe_once(state, include_ax);
             while let Some(dl) = deadline {
                 if snap.is_actionable_eyes() {
                     break;
@@ -718,24 +755,169 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                     break;
                 }
                 std::thread::sleep(Duration::from_millis(40));
-                snap = build_once(state, include_ax);
+                snap = build_observe_once(state, include_ax);
             }
-
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_secs_f64())
-                .unwrap_or(0.0);
-            snap.observe_ms = Some(t0.elapsed().as_secs_f64() * 1000.0);
-            {
-                let mut st = state.lock().unwrap();
-                let curr = snap.accessibility_tree.nodes().to_vec();
-                let mut ev = diff_sense_events(st.last_ax_nodes.as_deref(), &curr, now);
-                ev.extend(st.sense_buf.iter().cloned());
-                st.sense_buf.clear();
-                st.last_ax_nodes = Some(curr);
-                snap.events = ev;
-            }
+            attach_sense(state, &mut snap, t0);
             DaemonResponse::ok(snap)
+        }
+
+        DaemonRequest::EnsureReady {
+            settle_ms,
+            recover_homes,
+        } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let homes = recover_homes.unwrap_or(6);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::ensure_ready(&build, state, settle, homes);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::OpenSettings { settle_ms } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::open_settings(&build, state, settle);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::SettingsSearch { query, settle_ms } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::settings_search(&build, state, &query, settle);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::AssertSurface { surface, settle_ms } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::assert_surface(&build, &surface, settle);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::ActTap {
+            label,
+            id,
+            settle_ms,
+            timeout_ms,
+        } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let timeout = timeout_ms.unwrap_or(5000);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::act_tap(
+                &build,
+                state,
+                label.as_deref(),
+                id.as_deref(),
+                settle,
+                timeout,
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::ActType { text, settle_ms } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::act_type(&build, state, &text, settle);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::RunApp {
+            app,
+            bundle_id,
+            wait_label,
+            wait_id,
+            settle_ms,
+            timeout_ms,
+            install,
+        } => {
+            let settle = settle_ms.unwrap_or(3500);
+            let timeout = timeout_ms.unwrap_or(8000);
+            let do_install = install.unwrap_or(true);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::run_app(
+                &build,
+                state,
+                &app,
+                bundle_id.as_deref(),
+                wait_label.as_deref(),
+                wait_id.as_deref(),
+                settle,
+                timeout,
+                do_install,
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::WaitLabel {
+            label,
+            settle_ms,
+            timeout_ms,
+        } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let timeout = timeout_ms.unwrap_or(8000);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::wait_label(&build, state, &label, settle, timeout);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::AppJob {
+            app,
+            bundle_id,
+            steps,
+            settle_ms,
+            timeout_ms,
+            install,
+        } => {
+            let settle = settle_ms.unwrap_or(3500);
+            let timeout = timeout_ms.unwrap_or(10000);
+            let do_install = install.unwrap_or(true);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::app_job(
+                &build,
+                state,
+                &app,
+                bundle_id.as_deref(),
+                &steps,
+                settle,
+                timeout,
+                do_install,
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
         }
 
         DaemonRequest::StreamStats => {

@@ -83,6 +83,15 @@ pub struct ObserveSnapshot {
     /// How the client reached host state: `lighd` (hot) or `direct` (cold).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub path: Option<String>,
+    /// Control-plane session phase (`booting|ax_warming|ready|acting|settling|degraded|dead`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub phase: Option<String>,
+    /// True when agents must not plan from this snapshot (empty/transition/error/unsettle).
+    #[serde(default)]
+    pub eyes_unusable: bool,
+    /// Top occlusion layer: `none|keyboard|alert|sheet|transition`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub overlay: Option<String>,
 }
 
 fn observe_schema_default() -> u32 {
@@ -186,7 +195,7 @@ impl AccessibilityTree {
         }
     }
 
-    /// Center of element with exact `id`.
+    /// Center of element with exact accessibility `identifier` (or opaque tree `id`).
     pub fn find_id(&self, id: &str) -> Option<(f64, f64)> {
         match self {
             Self::Available {
@@ -216,11 +225,13 @@ impl ObserveSnapshot {
         self.settled = self.ax_quality == "ready";
         self.actionable_topk = build_actionable_topk(nodes, ACTIONABLE_TOPK);
         self.scene = Some(build_scene(nodes, self.app_bundle_id.clone()));
+        let has_udid = !self.udid.is_empty();
+        crate::control::stamp_control_fields(self, has_udid);
     }
 
     /// Whether an agent should act on this snapshot (not empty/transition).
     pub fn is_actionable_eyes(&self) -> bool {
-        self.ax_quality == "ready" && !self.actionable_topk.is_empty()
+        self.ax_quality == "ready" && !self.actionable_topk.is_empty() && !self.eyes_unusable
     }
 }
 
@@ -704,21 +715,32 @@ pub fn build_actionable_topk(nodes: &[serde_json::Value], k: usize) -> Vec<serde
         .collect()
 }
 
+/// Center of element with exact accessibility `identifier` (preferred) or opaque tree `id`.
 pub fn find_id_center(
     nodes: &[serde_json::Value],
     id: &str,
     point_size: Option<(f64, f64)>,
 ) -> Option<(f64, f64)> {
-    let el = nodes
-        .iter()
-        .find(|n| n.get("id").and_then(|v| v.as_str()) == Some(id))?;
+    // Developer apps expose stable accessibilityIdentifier as `identifier`.
+    // Opaque AX node ids (`n…`) are a fallback for internal tooling.
+    let el = nodes.iter().find(|n| {
+        n.get("identifier").and_then(|v| v.as_str()) == Some(id)
+            || n.get("id").and_then(|v| v.as_str()) == Some(id)
+    })?;
     node_center(el, point_size)
 }
 
 pub fn find_id_in_dump(dump: &serde_json::Value, id: &str) -> Option<(f64, f64)> {
-    let nodes = dump.get("elements").and_then(|e| e.as_array())?;
+    let nodes = dump
+        .get("elements")
+        .and_then(|e| e.as_array())
+        .or_else(|| dump.get("nodes").and_then(|e| e.as_array()))?;
     let point_size = dump.get("point_size").and_then(|ps| {
-        Some((ps.get("width")?.as_f64()?, ps.get("height")?.as_f64()?))
+        if let Some(arr) = ps.as_array() {
+            Some((arr.first()?.as_f64()?, arr.get(1)?.as_f64()?))
+        } else {
+            Some((ps.get("width")?.as_f64()?, ps.get("height")?.as_f64()?))
+        }
     });
     find_id_center(nodes, id, point_size)
 }
@@ -936,9 +958,16 @@ pub fn find_label_center(
 }
 
 pub fn find_label_in_dump(dump: &serde_json::Value, label: &str) -> Option<(f64, f64)> {
-    let nodes = dump.get("elements").and_then(|e| e.as_array())?;
+    let nodes = dump
+        .get("elements")
+        .and_then(|e| e.as_array())
+        .or_else(|| dump.get("nodes").and_then(|e| e.as_array()))?;
     let point_size = dump.get("point_size").and_then(|ps| {
-        Some((ps.get("width")?.as_f64()?, ps.get("height")?.as_f64()?))
+        if let Some(arr) = ps.as_array() {
+            Some((arr.first()?.as_f64()?, arr.get(1)?.as_f64()?))
+        } else {
+            Some((ps.get("width")?.as_f64()?, ps.get("height")?.as_f64()?))
+        }
     });
     find_label_center(nodes, label, point_size)
 }
@@ -1034,6 +1063,19 @@ mod tests {
         let (x, y) = find_label_center(&nodes, "Generali", Some((393.0, 852.0))).unwrap();
         assert!((y - (180.0 + 22.0) / 852.0).abs() < 0.01, "y={y}");
         assert!((x - (16.0 + 180.0) / 393.0).abs() < 0.01, "x={x}");
+    }
+
+    #[test]
+    fn find_id_prefers_accessibility_identifier() {
+        let nodes = vec![
+            json!({"id":"n4304014d","identifier":"NameField","role":"AXTextField","frame":{"x":16.0,"y":470.0,"width":361.0,"height":34.0}}),
+            json!({"id":"n8108c5bd","identifier":"GoNext","role":"AXButton","frame":{"x":156.0,"y":524.0,"width":81.0,"height":34.0}}),
+        ];
+        let (x, y) = find_id_center(&nodes, "GoNext", Some((393.0, 852.0))).unwrap();
+        assert!((x - (156.0 + 40.5) / 393.0).abs() < 0.01, "x={x}");
+        assert!((y - (524.0 + 17.0) / 852.0).abs() < 0.01, "y={y}");
+        // opaque tree id still works
+        assert!(find_id_center(&nodes, "n4304014d", Some((393.0, 852.0))).is_some());
     }
 
     #[test]

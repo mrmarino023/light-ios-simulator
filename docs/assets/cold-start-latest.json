@@ -1,0 +1,18 @@
+{
+  "gate": "cold_start",
+  "claim": "daemon bounce\u2192up\u2192AX ready\u2192app-job under 5 min",
+  "ms": 10614,
+  "budget_ms": 300000,
+  "claim_pass": true,
+  "app_job_ok": true,
+  "fault": "ok",
+  "detail": {
+    "detail": {
+      "motor": "ensure_path",
+      "target": "LighDone"
+    },
+    "motor": "ensure_path",
+    "steps": 5
+  },
+  "app": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighFixture/build/LighFixture.app"
+}

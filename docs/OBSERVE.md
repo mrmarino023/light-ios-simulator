@@ -29,7 +29,10 @@ Breaking vs the flat v1 dump: agents should read **`actionable_topk`** + **`even
 | `scene` | object? | Screen-level summary (title, keyboard, alerts) |
 | `actionable_topk` | array | Default LLM view: hittable/on-screen interesting nodes (capped) |
 | `events` | array | Sensation events since last observe (focus/value/alert/…) |
-| `ax_quality` | string | `ready` \| `empty` \| `stale` \| `error` |
+| `ax_quality` | string | `ready` \| `empty` \| `stale` \| `error` \| `transition` |
+| `settled` | bool | True when `ax_quality==ready` after settle |
+| `phase` | string? | Control plane: `booting` \| `ax_warming` \| `ready` \| `acting` \| `settling` \| `degraded` \| `dead` |
+| `eyes_unusable` | bool | If true, agents must `ligh ready` — do not invent UI |
 | `observe_ms` | number? | Server build time |
 | `path` | string? | `"lighd"` (hot) or `"direct"` (cold) |
 
@@ -110,11 +113,12 @@ home / swipe / screenshot  # screenshot = debug
 ```bash
 ligh daemon start
 ligh up
-ligh --json observe    # actionable_topk + events — no screenshot
+ligh --json observe --settle-ms 2500   # never act on transition/empty
 ligh wait --label Impostazioni
 ligh tap --label Impostazioni
-# or: ligh tap --id n1a2b3c4
-ligh --json observe    # check value_changed / navigated
+ligh --json observe --settle-ms 2500   # verify surface/events
 ```
 
-Design overview: [`CONSUMER_AGENT_VISION.md`](CONSUMER_AGENT_VISION.md).
+`typed` / `host_accepted` means HID accepted keystrokes — Messages body may still be missing from AX `value`.
+
+Design: [`STRUCTURED_CONTROL.md`](STRUCTURED_CONTROL.md).

@@ -1,0 +1,34 @@
+{
+  "gate": "app_bakeoff",
+  "claim": "same Debug.app job: LIGH app-job vs Maestro",
+  "profile": "xcuitestdemo",
+  "app_label": "XCUITestDemo (OSS third-party)",
+  "bundle_id": "com.himali.XCUITestDemo",
+  "n": 10,
+  "app": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app",
+  "job": "login: user+pass \u2192 homeTitle",
+  "ligh": {
+    "pass": 10,
+    "total": 10,
+    "pass_rate": 1.0,
+    "latency": {
+      "p50_ms": 2385,
+      "p95_ms": 2598,
+      "mean_ms": 3073
+    }
+  },
+  "maestro": {
+    "skip": false,
+    "pass": 10,
+    "total": 10,
+    "pass_rate": 1.0,
+    "latency": {
+      "p50_ms": 21713,
+      "p95_ms": 24987,
+      "mean_ms": 22440
+    }
+  },
+  "ligh_wins_reliability": true,
+  "ligh_wins_latency_p50": true,
+  "maestro_wins_reliability": false
+}

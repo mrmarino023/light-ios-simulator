@@ -1,0 +1,15 @@
+appId: com.himali.XCUITestDemo
+---
+- launchApp
+- assertVisible:
+    id: usernameTextField
+- tapOn:
+    id: usernameTextField
+- inputText: "alice"
+- tapOn:
+    id: passwordSecureField
+- inputText: "secret"
+- tapOn:
+    id: loginButton
+- assertVisible:
+    id: homeTitle

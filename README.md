@@ -5,21 +5,25 @@
 <h1 align="center">LIGH</h1>
 
 <p align="center">
-  <strong>Low-latency iOS execution for AI agents</strong><br/>
+  <strong>Local Simulator control plane for coding agents</strong><br/>
   <strong>Open source · MIT</strong>
 </p>
 
 <p align="center">
   Persistent Rust host around Apple’s real CoreSimulator.<br/>
-  Optimized for <code>observe → act → verify</code> — <strong>local Mac only</strong>, not cloud, not another MCP wrapper.
+  Drive <strong>your Debug .app</strong> — settle-honest <code>app-job</code> + MCP · Mac only
 </p>
 
 <p align="center">
-  <em>Real app · observe → act → verify · Messages compose via <code>lighd</code></em>
+  <em>install → launch → ensure_path → act → assert · no PNG by default</em>
 </p>
 
 <p align="center">
-  <strong>~4× faster than WDA/Appium</strong> · 44-step workflow · <strong>0/44 failures</strong>
+  <strong>Product claim:</strong> coding agent verifies Debug <code>.app</code> via
+  <code>app-job</code> — <strong>verified or explicit fault</strong>, never “probably tapped”<br/>
+  <a href="docs/assets/app-reliability-latest.json">fixture N=50</a> ·
+  <a href="docs/assets/third-party-bakeoff-latest.json">third-party vs Maestro</a> ·
+  <a href="docs/assets/cold-start-latest.json">cold start</a>
 </p>
 
 <p align="center">
@@ -27,7 +31,7 @@
   <a href="#demo"><strong>Demo</strong></a> ·
   <a href="#benchmark"><strong>Benchmark</strong></a> ·
   <a href="docs/OBSERVE.md"><strong>Observe contract</strong></a> ·
-  <a href="docs/CONSUMER_AGENT_VISION.md"><strong>Consumer Agent Vision</strong></a> ·
+  <a href="docs/STRUCTURED_CONTROL.md"><strong>Structured control</strong></a> ·
   <a href="docs/AGENT.md"><strong>Agent prompt</strong></a> ·
   <a href="ROADMAP.md"><strong>Roadmap</strong></a> ·
   <a href="LICENSE"><strong>MIT License</strong></a>
@@ -98,33 +102,135 @@ Stuck? Open an [issue](https://github.com/mrmarino023/light-ios-simulator/issues
 
 ```bash
 ./scripts/time-to-first-loop.sh
-./scripts/agent-reliability.sh 10 both     # Settings + Messages smokes
-# Publish bar: ./scripts/agent-reliability.sh 50 both
+./scripts/gate-cold-start.sh              # daemon bounce → first app-job (< 5 min bar)
 ```
 
-**Published sample (2026-08-21):** `50×` Settings + `50×` Messages = **100/100 · 0% fail** · p50 ≈ 5.1 s · p95 ≈ 7.3 s.  
-Raw: [`docs/assets/agent-reliability-latest.json`](docs/assets/agent-reliability-latest.json).
+Workloads: `scripts/workloads/`. Contract: [`docs/OBSERVE.md`](docs/OBSERVE.md) · [`docs/CONTROL.md`](docs/CONTROL.md). Plan: [`ROADMAP.md`](ROADMAP.md).
 
-Workloads: `scripts/workloads/`. Contract: [`docs/OBSERVE.md`](docs/OBSERVE.md). Plan: [`ROADMAP.md`](ROADMAP.md).
+---
 
-**Consumer Agent Vision (frontier):** settled AX scene graph (`surface`, chrome filter, semantic ids) + motor — **not** pixel CV. Screenshots are debug-only.
+## Product claim (what we sell)
+
+> A coding agent drives **your Simulator Debug `.app`** through one capability — `ligh cap app-job` / MCP `ligh_cap_app_job` — and gets a **fail-closed** outcome: `{ ok, fault, detail }`. Not a screenshot. Not “I think I tapped Login.”
+
+```text
+Cursor → build .app → app-job → install/launch → ensure_path → act → settle → verify
+                                                              ↓
+                                                    verified | fault (explicit)
+```
+
+**We do not claim:** “faster than Maestro” or “more reliable than Maestro in general.”  
+**We do claim:** structured agent control + reproducible gates you can falsify.
+
+### Reproduce the gates
 
 ```bash
-./scripts/gate-consumer-vision.sh
-# LLM: OPENAI_API_KEY=… LIGH_LLM_GATE=1 OPENAI_MODEL=gpt-5-mini ./scripts/gate-consumer-vision.sh
+unset CARGO_TARGET_DIR && cargo build --release   # workspace binaries (see ROADMAP)
+
+# Motor proof (fixture)
+./scripts/build-fixture.sh
+LIGH_APP_N=50 ./scripts/gate-app-reliability.sh
+./scripts/gate-app-bakeoff.sh                   # LighFixture vs Maestro
+
+# Third-party proof (OSS app, not designed for LIGH)
+./scripts/gate-xcuitestdemo-bakeoff.sh
+
+# Your app
+# LIGH_APP_PATH=…/MyApp.app LIGH_APP_BUNDLE_ID=… \
+#   LIGH_APP_HOME_ID=… LIGH_APP_FIELD_ID=… LIGH_APP_GO_ID=… LIGH_APP_DONE_ID=… \
+#   ./scripts/gate-app-reliability.sh
+ligh cap app-job /path/to/MyApp.app --bundle-id com.you.app --steps '[...]'
 ```
 
-**Published gate (2026-08-21):** substrate motor OK · **LLM 40/40** (20× Settings + 20× Messages, **no PNGs**, `gpt-5-mini`) · claim `llm_20x20_no_png_pass`.  
-Raw: [`docs/assets/consumer-vision-gate-latest.json`](docs/assets/consumer-vision-gate-latest.json). Design: [`docs/CONSUMER_AGENT_VISION.md`](docs/CONSUMER_AGENT_VISION.md).  
-**Caveat:** loop is settle → surface policy → act → verify (LLM when ambiguous) — not generic computer-use on unlabeled UIs. Vision-only baseline still not run.
+### Published evidence (2026-08-22)
 
-Requires a **booted** session (`ligh up`). Scripts wait for SpringBoard AX (IT/EN) — they do not assume English `Safari`/`Settings`.
+All raw JSON is the source of truth. Summaries below.
 
-**One local gate:**
+**Fixture — LighFixture** (`dev.ligh.Fixture`, job: Home → type → GoNext → Done)
+
+| Gate | Result | JSON |
+|------|--------|------|
+| Reliability N=50 (multidimensional `claim_pass`) | **50/50** · warm p50 **1.9s** · p95 **4.6s** | [`app-reliability-latest.json`](docs/assets/app-reliability-latest.json) |
+| vs Maestro N=10 (same job) | reliability **10/10 = 10/10** · p50 **1.8s vs 20.0s** | [`app-bakeoff-latest.json`](docs/assets/app-bakeoff-latest.json) |
+| Cold start (daemon bounce → app-job) | **10.6s** (budget 5 min) | [`cold-start-latest.json`](docs/assets/cold-start-latest.json) |
+
+**Third-party — [XCUITestDemo](fixtures/third-party/XCUITestDemo)** (`com.himali.XCUITestDemo`, OSS login sample; job: user+pass → `homeTitle`)
+
+| Gate | LIGH | Maestro | JSON |
+|------|------|---------|------|
+| Bakeoff N=10 (clean sim) | **10/10** · p50 **2.4s** | **10/10** · p50 **21.7s** | [`third-party-bakeoff-latest.json`](docs/assets/third-party-bakeoff-latest.json) |
+
+**How to read the Maestro comparison**
+
+| Dimension | Fixture | Third-party (XCUITestDemo) |
+|-----------|---------|----------------------------|
+| Reliability | Tie 10/10 | Tie 10/10 |
+| Latency p50 | LIGH ~11× faster | LIGH ~9× faster |
+| Product wedge | Fail-closed `app-job` + MCP for agents | Same |
+
+Reliability ties on these two jobs do **not** generalize to all apps. Latency wins are **bakeoff datapoints**, not the headline claim.
+
+**Agent loop (MCP):** settled AX + HID — not computer vision. Screenshots = debug only.
+
+```bash
+./scripts/agent-first-loop.sh
+./scripts/print-cursor-mcp.sh
+python3 scripts/ligh_mcp.py
+```
+
+### Research only (not the product claim)
+
+Legacy SpringBoard / Settings / vision gates — useful for host settle experiments, **not** marketing:
+
+```bash
+./scripts/agent-reliability.sh 10 both     # Settings + Messages smokes
+# ./scripts/gate-breadth.sh
+# ./scripts/gate-frontier.sh
+```
+
+- Settings+Messages **100/100** (2026-08-21) · [`agent-reliability-latest.json`](docs/assets/agent-reliability-latest.json)
+- LLM breadth **15/15** · [`breadth-gate-latest.json`](docs/assets/breadth-gate-latest.json)
+- Vision / frontier harnesses · [`vision-compare-latest.json`](docs/assets/vision-compare-latest.json) · [`frontier-gate-latest.json`](docs/assets/frontier-gate-latest.json)
+
+Design: [`docs/STRUCTURED_CONTROL.md`](docs/STRUCTURED_CONTROL.md).  
+**Caveat:** AX automation is not novel — the product is the **agent contract**, MCP bridge, and **fair falsifiers** (app-job gates + Maestro bakeoff).
+
+### Cursor MCP
+
+```bash
+./scripts/print-cursor-mcp.sh   # paste into Cursor → Settings → MCP
+```
+
+Or manually:
+
+```json
+{
+  "mcpServers": {
+    "ligh": {
+      "command": "python3",
+      "args": ["/absolute/path/to/light-simulatior-ios/scripts/ligh_mcp.py"],
+      "env": {
+        "LIGH_BIN": "/absolute/path/to/light-simulatior-ios/target/release/ligh"
+      }
+    }
+  }
+}
+```
+
+**App under test (your Debug build):**
+
+```bash
+./scripts/app-under-test.sh /path/to/Debug-iphonesimulator/MyApp.app
+```
+
+Third-party dogfood: [`docs/THIRD_PARTY_APP.md`](docs/THIRD_PARTY_APP.md).
+
+Requires a **booted** session (`ligh up`). Gates run `agent-first-loop.sh` (SpringBoard AX, IT/EN).
+
+**One local gate (legacy harness):**
 
 ```bash
 ./scripts/agent-harness.sh
-# optional: LIGH_HARNESS_REL_N=10 ./scripts/agent-harness.sh
 ```
 
 Agent paste-prompt: [`docs/AGENT.md`](docs/AGENT.md). Xcode pin: [`docs/XCODE.md`](docs/XCODE.md).
@@ -133,15 +239,16 @@ Agent paste-prompt: [`docs/AGENT.md`](docs/AGENT.md). Xcode pin: [`docs/XCODE.md
 
 ## Demo
 
-Agent loop on a real system app (Messages): home → Messaggi → new message → type.
+**Product path:** fixture app-job (see [Product claim](#product-claim-what-we-sell)).
+
+**Research demos** (SpringBoard / system apps — not the wedge):
 
 ```bash
 ligh daemon start
 ligh up
-./scripts/demo-type-agent.sh
+./scripts/demo-type-agent.sh    # Messages loop
+./scripts/demo-agent.sh         # Settings search
 ```
-
-Settings loop (search field): `./scripts/demo-agent.sh`
 
 Clip: [`docs/assets/ligh-messages-demo.mp4`](docs/assets/ligh-messages-demo.mp4) · cover gif above.
 
@@ -150,30 +257,30 @@ Clip: [`docs/assets/ligh-messages-demo.mp4`](docs/assets/ligh-messages-demo.mp4)
 ## What this is
 
 ```text
-coding agent
+coding agent (Cursor + MCP)
     ↓
-   LIGH          ← execution layer (persistent daemon)
+   LIGH app-job     ← fail-closed capability: verified | fault
     ↓
-CoreSimulator    ← Apple’s guest, untouched
+   lighd            ← persistent host (motor, ensure_path, AX)
+    ↓
+CoreSimulator      ← Apple’s guest, untouched
 ```
 
 Not a new iOS runtime. Not a thin MCP over `simctl`.  
-A **coherent host** for agents that must see and operate a real app: IOSurface + HID + AX + wait semantics + one RPC socket.
+A **coherent host** for agents that must **verify a Debug `.app` build** with structured outcomes — not PNG cosplay.
 
 ---
 
-## Benchmark
+## Benchmark (research footnote)
+
+Microbench vs WDA/Appium on a **44-step SpringBoard script** — host latency lab, **not** the product claim. See [app-job gates](#published-evidence-2026-08-22) for the wedge metric.
 
 | Driver | Time | Failures |
 |--------|------|----------|
 | **LIGHd** | **10.6–13.2 s** | **0/44** |
 | **WDA / Appium XCUITest** | **~50–53 s** | **0/44** |
 
-**~4× vs WDA/Appium** on the same 44-step script (0 failures).
-
 ```bash
-# Appium in a normal Terminal (CoreSimulator access):
-#   APPIUM_HOME=$PWD/.appium ./node_modules/.bin/appium --address 127.0.0.1 --port 4723
 ligh daemon start
 ligh bench agent --steps 40
 ```
@@ -184,26 +291,33 @@ Raw: [`docs/assets/agent-bench-latest.json`](docs/assets/agent-bench-latest.json
 
 ## Why LIGH
 
-**A packaged fast path** agents can call — not a pile of scripts:
+**Packaged agent path for Debug `.app` verification** — not a pile of scripts:
 
 | You assemble | LIGH ships |
 |--------------|------------|
-| simctl lifecycle | `ligh up` / `lighd` |
-| AX dump + polling | `wait` / `exists` / `tap --label` |
+| simctl install/launch | `ligh cap app-job` / `ligh run` |
+| AX dump + polling | motor `ensure_path` + `wait` / `tap --id` |
 | IndigoHID | `tap` / `type` / `swipe` / `home` |
-| IOSurface / screenshots | `observe` / `screenshot` |
-| spawn per tool call | persistent daemon RPC |
+| ad-hoc fault handling | `FaultClass` + `{ ok, fault, detail }` |
+| spawn per tool call | persistent `lighd` RPC + MCP |
 
-DIY wins a lab night. LIGH is **fast + deterministic + observable** for an agent loop.
+DIY wins a lab night. LIGH is **deterministic, falsifiable, and agent-native** for app-job loops.
 
 ---
 
 ## Agent loop
 
+**Preferred (product):**
+
 ```text
-observe()  →  framebuffer + a11y tree + elements + app state
-tap(label=…) / wait(for=…) / type(…)
-observe()  again
+ligh_cap_app_job(app, steps=[wait/tap/type…])  →  { ok, fault, detail }
+```
+
+**Lower level (escape hatch):**
+
+```text
+observe()  →  if eyes_unusable → ensure_ready
+tap --id / --label  →  observe again
 ```
 
 ```bash
@@ -254,10 +368,11 @@ MCP wrappers belong **on top of** `lighd`, not instead of it. Contributions welc
 | 1 | Low-latency display (IOSurface → Metal) | ✅ |
 | 2 | Persistent host (`lighd`) | ✅ |
 | 3 | Structured observe (frame + AX) | ✅ |
-| 4 | Input (tap / swipe / home / type / `--label`) | 🟡 |
-| 5 | Streaming (poll + stats; binary stream next) | 🟡 |
-| 6 | Deterministic CLI (`--json`, exit codes) | ✅ |
-| 7 | Agent workload bench (30–50 steps) | ✅ |
+| 4 | Input (tap / swipe / home / type / `--label` / `--id`) | 🟡 |
+| 5 | **`app-job` capability + MCP** | ✅ |
+| 6 | Streaming (poll + stats; binary stream next) | 🟡 |
+| 7 | Deterministic CLI (`--json`, exit codes) | ✅ |
+| 8 | App-job reliability gates + Maestro bakeoff | ✅ |
 
 🟡 = SpringBoard + Settings loops work; AX can be empty mid-transition (use `wait`); tap hold ~32 ms. Not “excellent input.”
 
@@ -271,7 +386,8 @@ MCP wrappers belong **on top of** `lighd`, not instead of it. Contributions welc
 | `ligh up` / `down` / `status` | Lifecycle |
 | `ligh daemon start\|status\|stop` | Persistent host |
 | `ligh gui` / `gui --verify` | Metal window |
-| `ligh run` / `relaunch` | Install / launch `.app` |
+| `ligh cap app-job` | **Product:** install → motor steps → verify |
+| `ligh cap run-app` / `ligh run` | Install / launch `.app` |
 | `ligh wait --label` / `exists --label` | AX barriers |
 | `ligh tap --label` / `--x --y` | Tap (label waits) |
 | `ligh type --text` | Keyboard HID |
@@ -291,8 +407,10 @@ Global: `--json`, `--direct` (cold path / benches only).
 |-------|---------|
 | “Lightweight iOS Simulator” | Same CoreSimulator guest |
 | “Nicer Rust simctl / MCP” | Commodity alone — we won’t compete there |
+| “Faster than Maestro” (headline) | Sometimes true on latency; **ties on reliability** on published jobs — see bakeoff JSON |
+| “~4× vs WDA” (headline) | Research microbench only |
 | Guest RAM crusher | Apple owns the guest |
-| Screenshot ms is the win | Thesis is the agent workload |
+| Screenshot ms is the win | Thesis is **app-job + fail-closed outcomes** |
 
 ---
 
@@ -333,7 +451,7 @@ flowchart TB
 | `ligh-sim` | simctl helpers, bench |
 | `ligh-core` | Session, presets, RPC types |
 
-More: [ARCHITECTURE.md](ARCHITECTURE.md) · [docs/OBSERVE.md](docs/OBSERVE.md) · [docs/CONSUMER_AGENT_VISION.md](docs/CONSUMER_AGENT_VISION.md) · [docs/AGENT.md](docs/AGENT.md) · [docs/XCODE.md](docs/XCODE.md) · [ROADMAP.md](ROADMAP.md) · [CONTRIBUTING.md](CONTRIBUTING.md)
+More: [ARCHITECTURE.md](ARCHITECTURE.md) · [docs/OBSERVE.md](docs/OBSERVE.md) · [docs/STRUCTURED_CONTROL.md](docs/STRUCTURED_CONTROL.md) · [docs/AGENT.md](docs/AGENT.md) · [docs/XCODE.md](docs/XCODE.md) · [ROADMAP.md](ROADMAP.md) · [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 
