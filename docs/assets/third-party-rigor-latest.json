@@ -1,6 +1,6 @@
 {
   "gate": "third_party_rigor",
-  "claim": "XCUITestDemo OSS \u2014 isolated arms on clean sim, N=20 each",
+  "claim": "XCUITestDemo OSS \u2014 isolated arms on clean sim, N=50 each",
   "protocol": [
     "clean reboot",
     "LIGH app-job \u00d7 N",
@@ -11,25 +11,25 @@
   "bundle_id": "com.himali.XCUITestDemo",
   "app": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app",
   "job": "login: alice/secret \u2192 homeTitle",
-  "n_per_arm": 20,
-  "total_ms": 640576,
+  "n_per_arm": 50,
+  "total_ms": 2077680,
   "ligh": {
     "tool": "ligh",
-    "pass": 20,
-    "total": 20,
+    "pass": 50,
+    "total": 50,
     "pass_rate": 1.0,
     "latency": {
-      "min_ms": 2179,
-      "max_ms": 8826,
-      "p50_ms": 2218,
-      "p95_ms": 3312,
-      "mean_ms": 2640
+      "min_ms": 2182,
+      "max_ms": 8546,
+      "p50_ms": 2248,
+      "p95_ms": 2662,
+      "mean_ms": 2413
     },
     "fault_taxonomy": {},
     "results": [
       {
         "i": 1,
-        "ms": 8826,
+        "ms": 8546,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -51,94 +51,6 @@
       },
       {
         "i": 2,
-        "ms": 2235,
-        "tool": "ligh",
-        "ok": true,
-        "fault": "ok",
-        "step": null,
-        "op": null,
-        "ax_empty": false,
-        "ax_quality": "ready",
-        "recovered": false,
-        "timeout": false,
-        "postcondition": "homeTitle",
-        "detail": {
-          "detail": {
-            "motor": "ensure_path",
-            "target": "homeTitle"
-          },
-          "motor": "ensure_path",
-          "steps": 7
-        }
-      },
-      {
-        "i": 3,
-        "ms": 2212,
-        "tool": "ligh",
-        "ok": true,
-        "fault": "ok",
-        "step": null,
-        "op": null,
-        "ax_empty": false,
-        "ax_quality": "ready",
-        "recovered": false,
-        "timeout": false,
-        "postcondition": "homeTitle",
-        "detail": {
-          "detail": {
-            "motor": "ensure_path",
-            "target": "homeTitle"
-          },
-          "motor": "ensure_path",
-          "steps": 7
-        }
-      },
-      {
-        "i": 4,
-        "ms": 2179,
-        "tool": "ligh",
-        "ok": true,
-        "fault": "ok",
-        "step": null,
-        "op": null,
-        "ax_empty": false,
-        "ax_quality": "ready",
-        "recovered": false,
-        "timeout": false,
-        "postcondition": "homeTitle",
-        "detail": {
-          "detail": {
-            "motor": "ensure_path",
-            "target": "homeTitle"
-          },
-          "motor": "ensure_path",
-          "steps": 7
-        }
-      },
-      {
-        "i": 5,
-        "ms": 2192,
-        "tool": "ligh",
-        "ok": true,
-        "fault": "ok",
-        "step": null,
-        "op": null,
-        "ax_empty": false,
-        "ax_quality": "ready",
-        "recovered": false,
-        "timeout": false,
-        "postcondition": "homeTitle",
-        "detail": {
-          "detail": {
-            "motor": "ensure_path",
-            "target": "homeTitle"
-          },
-          "motor": "ensure_path",
-          "steps": 7
-        }
-      },
-      {
-        "i": 6,
         "ms": 2248,
         "tool": "ligh",
         "ok": true,
@@ -160,29 +72,7 @@
         }
       },
       {
-        "i": 7,
-        "ms": 2253,
-        "tool": "ligh",
-        "ok": true,
-        "fault": "ok",
-        "step": null,
-        "op": null,
-        "ax_empty": false,
-        "ax_quality": "ready",
-        "recovered": false,
-        "timeout": false,
-        "postcondition": "homeTitle",
-        "detail": {
-          "detail": {
-            "motor": "ensure_path",
-            "target": "homeTitle"
-          },
-          "motor": "ensure_path",
-          "steps": 7
-        }
-      },
-      {
-        "i": 8,
+        "i": 3,
         "ms": 2210,
         "tool": "ligh",
         "ok": true,
@@ -204,8 +94,118 @@
         }
       },
       {
+        "i": 4,
+        "ms": 2210,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 5,
+        "ms": 2194,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 6,
+        "ms": 2220,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 7,
+        "ms": 2222,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 8,
+        "ms": 2288,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
         "i": 9,
-        "ms": 2186,
+        "ms": 2382,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -227,7 +227,7 @@
       },
       {
         "i": 10,
-        "ms": 2191,
+        "ms": 2204,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -249,7 +249,7 @@
       },
       {
         "i": 11,
-        "ms": 2216,
+        "ms": 2199,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -271,7 +271,7 @@
       },
       {
         "i": 12,
-        "ms": 2217,
+        "ms": 2216,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -293,28 +293,6 @@
       },
       {
         "i": 13,
-        "ms": 2197,
-        "tool": "ligh",
-        "ok": true,
-        "fault": "ok",
-        "step": null,
-        "op": null,
-        "ax_empty": false,
-        "ax_quality": "ready",
-        "recovered": false,
-        "timeout": false,
-        "postcondition": "homeTitle",
-        "detail": {
-          "detail": {
-            "motor": "ensure_path",
-            "target": "homeTitle"
-          },
-          "motor": "ensure_path",
-          "steps": 7
-        }
-      },
-      {
-        "i": 14,
         "ms": 2223,
         "tool": "ligh",
         "ok": true,
@@ -336,8 +314,30 @@
         }
       },
       {
+        "i": 14,
+        "ms": 2292,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
         "i": 15,
-        "ms": 2766,
+        "ms": 2182,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -359,7 +359,7 @@
       },
       {
         "i": 16,
-        "ms": 3312,
+        "ms": 2195,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -381,7 +381,7 @@
       },
       {
         "i": 17,
-        "ms": 2310,
+        "ms": 2244,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -403,7 +403,7 @@
       },
       {
         "i": 18,
-        "ms": 2349,
+        "ms": 2224,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -425,7 +425,7 @@
       },
       {
         "i": 19,
-        "ms": 2272,
+        "ms": 2234,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -447,7 +447,667 @@
       },
       {
         "i": 20,
-        "ms": 2218,
+        "ms": 2224,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 21,
+        "ms": 2202,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 22,
+        "ms": 2206,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 23,
+        "ms": 2235,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 24,
+        "ms": 2289,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 25,
+        "ms": 2221,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 26,
+        "ms": 2230,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 27,
+        "ms": 2321,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 28,
+        "ms": 2292,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 29,
+        "ms": 2247,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 30,
+        "ms": 2205,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 31,
+        "ms": 2214,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 32,
+        "ms": 2358,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 33,
+        "ms": 2271,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 34,
+        "ms": 2298,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 35,
+        "ms": 2328,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 36,
+        "ms": 2356,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 37,
+        "ms": 2389,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 38,
+        "ms": 2299,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 39,
+        "ms": 2409,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 40,
+        "ms": 2319,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 41,
+        "ms": 2248,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 42,
+        "ms": 2255,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 43,
+        "ms": 2262,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 44,
+        "ms": 2255,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 45,
+        "ms": 2278,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 46,
+        "ms": 2259,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 47,
+        "ms": 2346,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 48,
+        "ms": 2842,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 49,
+        "ms": 2662,
+        "tool": "ligh",
+        "ok": true,
+        "fault": "ok",
+        "step": null,
+        "op": null,
+        "ax_empty": false,
+        "ax_quality": "ready",
+        "recovered": false,
+        "timeout": false,
+        "postcondition": "homeTitle",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "i": 50,
+        "ms": 2606,
         "tool": "ligh",
         "ok": true,
         "fault": "ok",
@@ -475,21 +1135,24 @@
   },
   "maestro": {
     "tool": "maestro",
-    "pass": 20,
-    "total": 20,
-    "pass_rate": 1.0,
+    "pass": 30,
+    "total": 50,
+    "pass_rate": 0.6,
     "latency": {
-      "min_ms": 19882,
-      "max_ms": 36949,
-      "p50_ms": 23782,
-      "p95_ms": 33012,
-      "mean_ms": 25190
+      "min_ms": 2639,
+      "max_ms": 149150,
+      "p50_ms": 27515,
+      "p95_ms": 127400,
+      "mean_ms": 37385
     },
-    "fault_taxonomy": {},
+    "fault_taxonomy": {
+      "timeout": 4,
+      "fail": 16
+    },
     "results": [
       {
         "i": 1,
-        "ms": 33012,
+        "ms": 22641,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -497,7 +1160,7 @@
       },
       {
         "i": 2,
-        "ms": 23616,
+        "ms": 21731,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -505,7 +1168,7 @@
       },
       {
         "i": 3,
-        "ms": 21430,
+        "ms": 22115,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -513,7 +1176,7 @@
       },
       {
         "i": 4,
-        "ms": 23782,
+        "ms": 24424,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -521,7 +1184,7 @@
       },
       {
         "i": 5,
-        "ms": 21849,
+        "ms": 20113,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -529,7 +1192,7 @@
       },
       {
         "i": 6,
-        "ms": 24778,
+        "ms": 24146,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -537,7 +1200,7 @@
       },
       {
         "i": 7,
-        "ms": 25505,
+        "ms": 25986,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -545,7 +1208,7 @@
       },
       {
         "i": 8,
-        "ms": 31637,
+        "ms": 29909,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -553,7 +1216,7 @@
       },
       {
         "i": 9,
-        "ms": 29626,
+        "ms": 25322,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -561,7 +1224,7 @@
       },
       {
         "i": 10,
-        "ms": 36949,
+        "ms": 20557,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -569,7 +1232,7 @@
       },
       {
         "i": 11,
-        "ms": 21654,
+        "ms": 24087,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -577,7 +1240,7 @@
       },
       {
         "i": 12,
-        "ms": 28375,
+        "ms": 21272,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -585,7 +1248,7 @@
       },
       {
         "i": 13,
-        "ms": 24437,
+        "ms": 27515,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -593,7 +1256,7 @@
       },
       {
         "i": 14,
-        "ms": 22837,
+        "ms": 31625,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -601,7 +1264,7 @@
       },
       {
         "i": 15,
-        "ms": 24077,
+        "ms": 36177,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -609,7 +1272,7 @@
       },
       {
         "i": 16,
-        "ms": 22910,
+        "ms": 48424,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -617,15 +1280,15 @@
       },
       {
         "i": 17,
-        "ms": 21235,
+        "ms": 127400,
         "tool": "maestro",
-        "ok": true,
-        "fault": "ok",
-        "timeout": false
+        "ok": false,
+        "fault": "timeout",
+        "timeout": true
       },
       {
         "i": 18,
-        "ms": 19882,
+        "ms": 38842,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -633,7 +1296,7 @@
       },
       {
         "i": 19,
-        "ms": 25101,
+        "ms": 40931,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -641,7 +1304,247 @@
       },
       {
         "i": 20,
-        "ms": 21119,
+        "ms": 22158,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 21,
+        "ms": 26229,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 22,
+        "ms": 26978,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 23,
+        "ms": 47446,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 24,
+        "ms": 129598,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "timeout",
+        "timeout": true
+      },
+      {
+        "i": 25,
+        "ms": 126377,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "timeout",
+        "timeout": true
+      },
+      {
+        "i": 26,
+        "ms": 3338,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 27,
+        "ms": 2656,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 28,
+        "ms": 2639,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 29,
+        "ms": 45695,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 30,
+        "ms": 40552,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 31,
+        "ms": 4083,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 32,
+        "ms": 29857,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 33,
+        "ms": 38727,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 34,
+        "ms": 41128,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 35,
+        "ms": 43581,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 36,
+        "ms": 30484,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 37,
+        "ms": 39976,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 38,
+        "ms": 29188,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 39,
+        "ms": 40633,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 40,
+        "ms": 38456,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 41,
+        "ms": 52415,
+        "tool": "maestro",
+        "ok": true,
+        "fault": "ok",
+        "timeout": false
+      },
+      {
+        "i": 42,
+        "ms": 127021,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 43,
+        "ms": 149150,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "timeout",
+        "timeout": true
+      },
+      {
+        "i": 44,
+        "ms": 3276,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 45,
+        "ms": 3128,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 46,
+        "ms": 5230,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 47,
+        "ms": 5043,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 48,
+        "ms": 5529,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 49,
+        "ms": 4773,
+        "tool": "maestro",
+        "ok": false,
+        "fault": "fail",
+        "timeout": false
+      },
+      {
+        "i": 50,
+        "ms": 70710,
         "tool": "maestro",
         "ok": true,
         "fault": "ok",
@@ -651,6 +1554,6 @@
   },
   "comparison": {
     "reliability_ligh_wins": true,
-    "latency_p50_ratio": 10.72
+    "latency_p50_ratio": 12.24
   }
 }

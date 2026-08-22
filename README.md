@@ -24,7 +24,7 @@
   <a href="docs/assets/app-reliability-latest.json">fixture N=50</a> ·
   <a href="docs/assets/fail-closed-latest.json">fail-closed 5/5</a> ·
   <a href="docs/assets/dirty-state-latest.json">dirty 50/50</a> ·
-  <a href="docs/assets/third-party-rigor-latest.json">rigor N=20</a> ·
+  <a href="docs/assets/third-party-rigor-latest.json">rigor N=50</a> ·
   <a href="docs/assets/mcp-loop-latest.json">agent loop (mechanism)</a> ·
   <a href="docs/assets/cold-start-latest.json">cold start</a>
 </p>
@@ -35,6 +35,7 @@
   <a href="#benchmark"><strong>Benchmark</strong></a> ·
   <a href="docs/OBSERVE.md"><strong>Observe contract</strong></a> ·
   <a href="docs/STRUCTURED_CONTROL.md"><strong>Structured control</strong></a> ·
+  <a href="docs/DEVELOPER_TRIAL.md"><strong>Developer trial</strong></a> ·
   <a href="docs/AGENT.md"><strong>Agent prompt</strong></a> ·
   <a href="ROADMAP.md"><strong>Roadmap</strong></a> ·
   <a href="LICENSE"><strong>MIT License</strong></a>
@@ -70,11 +71,11 @@ cd light-ios-simulator
 Puts `ligh` and `lighd` on your PATH (`~/.cargo/bin`). Then:
 
 ```bash
-ligh doctor                 # env check
-ligh daemon start
-ligh up                     # boot a sim session
-./scripts/demo-type-agent.sh
+./scripts/developer-trial.sh   # recommended — smoke + Cursor MCP snippet
+ligh doctor
 ```
+
+Full guide: [`docs/DEVELOPER_TRIAL.md`](docs/DEVELOPER_TRIAL.md) · agent prompt: [`docs/CURSOR_PROMPT.md`](docs/CURSOR_PROMPT.md)
 
 ### Homebrew (optional)
 
@@ -130,8 +131,8 @@ Cursor → build .app → app-job → install/launch → ensure_path → act →
 
 | Status | What |
 |--------|------|
-| **Demonstrated** | Third-party OSS app · fail-closed · dirty 50/50 · ~10× p50 vs Maestro · MCP mechanism · **LLM autonomous (1×)** gpt-5-mini: fault → Swift fix → ok |
-| **Not yet** | Autonomous at scale / harder bugs · rigor N=50 · cross-tool dirty · more apps |
+| **Demonstrated** | Third-party OSS app · fail-closed · dirty 50/50 · **rigor N=50** (LIGH 50/50, Maestro 30/50) · ~12× p50 vs Maestro · MCP mechanism · **LLM autonomous (1×)** gpt-5-mini: fault → Swift fix → ok |
+| **Not yet** | Autonomous at scale / harder bugs · cross-tool dirty · more apps |
 | **Not claimed** | Developer demand · general Maestro superiority · business / moat |
 
 The MCP gate is a **proof-of-mechanism** — the harness scripts the “agent fix.” It shows the primitive is consumable; it is **not** a reliability statistic like 50/50.
@@ -150,8 +151,10 @@ LIGH_APP_N=50 ./scripts/gate-app-reliability.sh
 ./scripts/gate-xcuitestdemo-bakeoff.sh
 ./scripts/gate-fail-closed.sh                      # injected faults → explicit fault, never soft-success
 LIGH_DIRTY_N=50 ./scripts/gate-dirty-state.sh      # 50× back-to-back, no sim reboot
-LIGH_APP_N=20 ./scripts/gate-third-party-rigor.sh  # isolated clean arms: LIGH vs Maestro
-./scripts/gate-mcp-loop.sh                       # proof-of-mechanism: scripted fault → fix → ok (not LLM)
+LIGH_APP_N=50 ./scripts/gate-third-party-rigor.sh  # isolated clean arms: LIGH vs Maestro
+./scripts/gate-mcp-loop.sh                       # proof-of-mechanism: scripted fault → fix → ok
+LIGH_ENV_FILE=/path/.env ./scripts/gate-autonomous-agent.sh   # 1 hidden bug, LLM
+LIGH_ENV_FILE=/path/.env LIGH_MATRIX_N=5 ./scripts/gate-autonomous-matrix.sh  # 5 bugs × N
 
 # Your app
 # LIGH_APP_PATH=…/MyApp.app LIGH_APP_BUNDLE_ID=… \
@@ -179,21 +182,27 @@ All raw JSON is the source of truth. Summaries below.
 | Bakeoff N=10 (clean sim) | **10/10** · p50 **2.4s** | **10/10** · p50 **21.7s** | [`third-party-bakeoff-latest.json`](docs/assets/third-party-bakeoff-latest.json) |
 | **Fail-closed matrix** | **5/5** injected faults | — | [`fail-closed-latest.json`](docs/assets/fail-closed-latest.json) |
 | **Dirty-state N=50** (no reboot between iters) | **50/50** · warm p50 **2.7s** · p95 **5.5s** · 0 AX-empty | — | [`dirty-state-latest.json`](docs/assets/dirty-state-latest.json) |
-| **Rigor N=20** (isolated clean arms) | **20/20** · p50 **2.2s** | **20/20** · p50 **23.8s** | [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json) |
+| **Rigor N=50** (isolated clean arms: reboot → LIGH×50 → reboot → Maestro×50) | **50/50** · p50 **2.2s** · p95 **2.7s** | **30/50** · p50 **27.5s** · p95 **127s** | [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json) |
 | **Agent control loop** | Mechanism demonstrated (4 scripted scenarios) | — | [`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json) |
-| **Autonomous agent (LLM)** | **1/1** — gpt-5-mini, 8 steps, fault→read→fix→build→ok | — | [`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json) |
+| **Autonomous agent (LLM)** | **1/1** proof — gpt-5-mini, vague prompt, structured fault → source fix (not a reliability stat) | — | [`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json) |
 
-**Agent control loop (mechanism, not reliability):** structured failures (`fault`, `step`) can be consumed and followed by a corrective action/retry that reaches `ok`. The gate scripts the fix — it does **not** prove Cursor/Claude can autonomously debug from “login broken, find and fix it.”
+**Maestro rigor variance (N=50):** 20 failures on one job — 4 timeouts (~127–149s), 16 fast/mid fails (~2.6–45s). Failures cluster after the first timeout (iter #17), not i.i.d.; consistent with sim-state degradation under Maestro load on back-to-back runs. Raw per-iter data: [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json).
+
+**Thesis (not speed):** LIGH gives coding agents a **fast, structured, verifiable** interface to a running Debug `.app`. ~12× p50 vs Maestro on this login job is a footnote.
+
+**Autonomous debugging:** one hidden-bug LLM pass (build error + recovery in trace). Next: `./scripts/gate-autonomous-matrix.sh` — 5 bugs × N runs, vague prompt. **Not** sold as general autonomous debugging.
+
+**Agent control loop (mechanism):** scripted MCP gate shows structured failures can be consumed and retried — [`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json).
 
 **How to read the Maestro comparison**
 
 | Dimension | Fixture | Third-party (XCUITestDemo) |
 |-----------|---------|----------------------------|
-| Reliability | Tie 10/10 (N=10 bakeoff); **20/20 rigor** | Tie **20/20** rigor |
-| Latency p50 | LIGH ~11× faster | LIGH ~**10.7×** faster (rigor N=20) |
+| Reliability | Tie 10/10 (N=10 bakeoff) | **50/50** LIGH vs **30/50** Maestro (rigor N=50) |
+| Latency p50 | LIGH ~11× faster | LIGH ~**12×** faster (rigor N=50) |
 | Product wedge | Fail-closed `app-job` + MCP for agents | Same |
 
-Reliability ties on these two jobs do **not** generalize to all apps. Latency wins are **bakeoff datapoints**, not the headline claim.
+These numbers are **one OSS app, one login job** — they do **not** generalize. Latency wins are **bakeoff datapoints**, not the headline claim.
 
 **The product primitive (what matters beyond speed):**
 
