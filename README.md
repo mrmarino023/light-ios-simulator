@@ -130,8 +130,8 @@ Cursor → build .app → app-job → install/launch → ensure_path → act →
 
 | Status | What |
 |--------|------|
-| **Demonstrated** | Third-party OSS app (XCUITestDemo) · fail-closed faults · dirty 50/50 (LIGH-only) · ~10× p50 on this login job vs Maestro · MCP **mechanism** · **one autonomous fix** (a11y typo from LIGH fault → Swift edit → verify) |
-| **Not yet** | LLM-only autonomous gate (needs `OPENAI_API_KEY`) · rigor N=50 · cross-tool dirty · harder workflows / more apps |
+| **Demonstrated** | Third-party OSS app · fail-closed · dirty 50/50 · ~10× p50 vs Maestro · MCP mechanism · **LLM autonomous (1×)** gpt-5-mini: fault → Swift fix → ok |
+| **Not yet** | Autonomous at scale / harder bugs · rigor N=50 · cross-tool dirty · more apps |
 | **Not claimed** | Developer demand · general Maestro superiority · business / moat |
 
 The MCP gate is a **proof-of-mechanism** — the harness scripts the “agent fix.” It shows the primitive is consumable; it is **not** a reliability statistic like 50/50.
