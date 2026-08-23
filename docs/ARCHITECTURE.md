@@ -95,7 +95,6 @@ Rules:
 
 ## Next experiments (priority order)
 
-1. **Customer discovery** — [`CUSTOMER_DISCOVERY.md`](CUSTOMER_DISCOVERY.md)
-2. **Agentic baseline A/B** — LIGH vs simctl+vision on same agent/task — [`AGENTIC_BASELINE.md`](AGENTIC_BASELINE.md)
+1. Developer trials on real apps — [`DEVELOPER_TRIAL.md`](DEVELOPER_TRIAL.md)
+2. LIGH vs simctl+vision on the same agent/task (same prompt, two arms)
 3. Add external apps to `fixtures/external-apps/manifest.json` — **no source edits**
-4. 5 builders (coding agents / AI dev tools) — repo + 30s demo

@@ -5,30 +5,71 @@
 <h1 align="center">LIGH</h1>
 
 <p align="center">
-  <strong>Agent, test the app for me.</strong><br/>
-  Local iOS Simulator · open source (MIT) · macOS + Xcode · experimental
+  <strong>Make coding agents actually use the iOS apps they build.</strong><br/>
+  Local iOS Simulator · open source (MIT) · macOS + Xcode
 </p>
 
 <p align="center">
   <a href="#try-it"><strong>Try it</strong></a> ·
   <a href="#how-it-works"><strong>How it works</strong></a> ·
-  <a href="docs/DEVELOPER_TRIAL.md"><strong>Your app</strong></a> ·
-  <a href="docs/HONEST.md"><strong>Honest status</strong></a>
+  <a href="docs/DEVELOPER_TRIAL.md"><strong>Your app</strong></a>
 </p>
 
 ---
 
-## What you wanted
+## The problem
 
-You have a coding agent that edits your Swift. You want it to **open the app, try the flow, and tell you if it worked** — without screenshot roulette and without the model faking success.
+AI coding agents can write Swift. **Getting them to actually run and verify what they built on the Simulator is still painfully slow.**
+
+The goal is not another iOS simulator. It is to make Apple's existing Simulator a **much better execution environment for coding agents**:
+
+```text
+write → build → run → interact → verify → fix
+```
 
 Tell Cursor:
 
 > *"Add validation to the signup form and verify it works in the Simulator."*
 
-LIGH gives the agent a local way to do that: launch your Debug `.app`, read the **accessibility tree** as JSON, tap/type, and return **verified or a clear failure**.
+LIGH gives the agent a local control plane: persistent `lighd` on CoreSimulator, accessibility JSON for observe/act, and structured pass/fail results.
 
-**Works best** if your views have `accessibilityIdentifier`. **Requires** a Mac with Xcode Simulator. **Not proven yet** that developers prefer this over XCUITest or vision — we're looking for people to try it.
+**Requires** a Mac with Xcode Simulator. **Works best** with `accessibilityIdentifier` on your views.
+
+---
+
+## What we measured
+
+Same 44-step semantic workflow (Settings → search → assert → screenshot, ×4 cycles):
+
+| | LIGH (`lighd`) | WDA / Appium |
+|--|----------------|--------------|
+| Wall time | **~10.6 s** | **~50 s** |
+| Steps | 44 / 44 | 44 / 44 |
+| Failures | 0 | 0 |
+
+~**4.7× faster** than WDA/Appium on the same workflow. Evidence: [`docs/assets/agent-bench-latest.json`](docs/assets/agent-bench-latest.json).
+
+Reproduce: `ligh agent-bench` (WDA baseline needs Appium listening).
+
+That is the **execution layer**. The open question is whether it helps a coding agent **modify, rebuild, and verify** a real app end-to-end — try it on yours.
+
+---
+
+## How it works
+
+```text
+Coding agent (Cursor MCP)
+        ↓
+LIGH — persistent host + perceive/attempt
+        ↓
+Apple CoreSimulator
+        ↓
+Your Debug .app
+```
+
+Agents use **`ligh_perceive`** (accessibility tree as JSON) and **`ligh_attempt`** (act + check).
+
+More: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/QA_LAYER.md`](docs/QA_LAYER.md) · [`docs/STRUCTURED_CONTROL.md`](docs/STRUCTURED_CONTROL.md)
 
 ---
 
@@ -42,39 +83,9 @@ unset CARGO_TARGET_DIR && cargo build --release -p ligh-cli -p ligh-daemon
 ./scripts/developer-trial.sh
 ```
 
-Paste MCP config from `./scripts/print-cursor-mcp.sh` into **Cursor → Settings → MCP**. Then ask your agent to build and verify your app.
+Paste MCP config from `./scripts/print-cursor-mcp.sh` into **Cursor → Settings → MCP**.
 
 Full guide: [`docs/DEVELOPER_TRIAL.md`](docs/DEVELOPER_TRIAL.md)
-
----
-
-## How it works
-
-```text
-Agent edits Swift → builds .app → LIGH launches Simulator
-→ agent reads UI (accessibility JSON, not pixels)
-→ agent taps/types → LIGH checks the result → fix or fail
-```
-
-Persistent local daemon (`lighd`) on top of Apple's CoreSimulator. Agents mainly use **`ligh_perceive`** (what's on screen) and **`ligh_attempt`** (act + verify). MCP: [`scripts/ligh_mcp.py`](scripts/ligh_mcp.py).
-
-**How does LIGH read the screen?** Accessibility tree, primarily — structured JSON from the Simulator. Screenshots are optional debug, not the core loop.
-
-More: [`docs/QA_LAYER.md`](docs/QA_LAYER.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
-
----
-
-## What we know (short)
-
-| | |
-|---|---|
-| Agent can test a fixture app with verification | Yes — [evidence](docs/assets/autonomous-ux-latest.json) |
-| Works on one OSS app we didn't build | One login flow — [evidence](docs/assets/third-party-rigor-latest.json) |
-| External developers want this | **Don't know** — [we need you to try](docs/DEVELOPER_TRIAL.md) |
-
-Benchmarks, gates, Maestro comparisons, dirty-state N=50 → [`docs/HONEST.md`](docs/HONEST.md) (engineering validation, not the pitch).
-
-Experimental: compiled zero-LLM replay, UX graph — [`docs/UX_GRAPH.md`](docs/UX_GRAPH.md). Graph-as-LLM-memory was **disproven**; we don't sell it.
 
 ---
 

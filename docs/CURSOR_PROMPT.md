@@ -29,4 +29,4 @@ If LIGH returns `eyes_unusable`, call `ligh_ready` and retry once.
 
 **Optional A/B (if Maestro MCP is also configured):** run the same workflow with `maestro_run_flow` — QA footnote only.
 
-**Primary comparison:** run the same task with **simctl + screenshot + vision** (no LIGH) and compare recovery, tool calls, and time to green. See [`AGENTIC_BASELINE.md`](AGENTIC_BASELINE.md).
+**Primary comparison:** run the same task with **simctl + screenshot + vision** (no LIGH) and compare recovery, tool calls, and time to green.

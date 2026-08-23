@@ -13,3 +13,17 @@ docs/assets/_*.png
 fixtures/**/build/
 .ligh/
 **/xcuserdata/
+
+# Local-only — strategy, internal status, experiments (do not commit)
+/PITCH.md
+/ROADMAP.md
+/docs/HONEST.md
+/docs/KILLER_LOOP.md
+/docs/CUSTOMER_DISCOVERY.md
+/docs/AGENTIC_BASELINE.md
+/docs/assets/killer-loop-*.json
+/fixtures/frozen/
+/scripts/gate-killer-loop*.sh
+/scripts/autonomous-killer-loop-agent.py
+/scripts/killer_loop_*.py
+/scripts/build-frozen-onboardingdemo.sh

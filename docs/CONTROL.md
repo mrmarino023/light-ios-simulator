@@ -50,5 +50,3 @@ LIGH_APP_N=20 ./scripts/gate-app-reliability.sh
 ## Competitors
 
 Maestro bakeoff (same semantic job): `./scripts/gate-app-bakeoff.sh`
-
-Sequence / kill rules: [`../ROADMAP.md`](../ROADMAP.md).

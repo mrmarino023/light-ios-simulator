@@ -32,7 +32,7 @@ That loop **exists** when AX is settled and the app has reachable labels/ids.
 | Autonomous LLM + fix | `autonomous-login-agent.py` | ✅ | XCUITestDemo bug inject |
 | Unified agent loop | `agent-unified-loop.py` | ✅ scripted + optional LLM |
 | Human motor (probe, settle) | `ligh_cap_explore`, cognition | ✅ P1 — probe planner in host |
-| Agentic baseline gate | — | ❌ not wired | [`AGENTIC_BASELINE.md`](AGENTIC_BASELINE.md) |
+| Agentic baseline gate | — | ❌ not wired | compare vs simctl+vision manually |
 | Legacy demo caps | `open_settings`, `settings_search` | ⚠️ still in MCP | **Do not use** — use app_goal |
 
 ## Install → Cursor (5 min)

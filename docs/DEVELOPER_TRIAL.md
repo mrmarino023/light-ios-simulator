@@ -21,7 +21,7 @@ Paste output from `./scripts/print-cursor-mcp.sh` into **Cursor → Settings →
 
 Or run `./scripts/print-comparison-mcp.sh` for optional **LIGH vs Maestro** (QA footnote).
 
-Primary A/B: **LIGH vs your agentic baseline** — see [`AGENTIC_BASELINE.md`](AGENTIC_BASELINE.md).
+Primary comparison: **LIGH MCP vs your usual agent stack** (simctl, screenshot + vision, other MCP).
 
 ## 3. Agent prompt (copy into Cursor chat)
 
@@ -51,14 +51,14 @@ ligh cap app-job /path/to/YourApp.app \
   --steps '[{"op":"wait","id":"..."}]'
 ```
 
-## 5. Agentic baseline A/B (the test that matters)
+## 5. Compare with your baseline
 
 Same agent, same task, same app:
 
 1. **Arm A** — LIGH MCP + [`CURSOR_PROMPT.md`](CURSOR_PROMPT.md)
 2. **Arm B** — your usual stack (simctl + screenshot + vision, ios-mcp, etc.)
 
-Record metrics in [`assets/agentic-baseline-TEMPLATE.json`](assets/agentic-baseline-TEMPLATE.json). Protocol: [`AGENTIC_BASELINE.md`](AGENTIC_BASELINE.md).
+Record what worked, what failed, and whether you'd keep LIGH installed.
 
 ## 6. Optional — Maestro A/B
 
@@ -87,9 +87,3 @@ Or edit and send `docs/assets/developer-feedback-TEMPLATE.json`.
 - Compare latency charts
 - Run N=50 gates
 - Use our XCUITestDemo unless you have no app handy
-
-## Kill criterion (internal)
-
-If builders can't say why LIGH beats **simctl + vision** (or their MCP) on **their** agent loop, we stop the product thesis. Your honest “meh” is valuable.
-
-See also: [`CUSTOMER_DISCOVERY.md`](CUSTOMER_DISCOVERY.md).
