@@ -28,6 +28,7 @@ from killer_loop_verify import establish_initial_state, run_steps, strict_verify
 from ligh_mcp import call_tool, ligh_result_path  # noqa: E402
 
 ARM = os.environ.get("LIGH_KILLER_ARM", "ligh").lower()
+HONEST = os.environ.get("LIGH_KILLER_HONEST", "0") == "1"
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-5-mini")
 OPENAI_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1/chat/completions")
 MAX_STEPS = int(os.environ.get("LIGH_KILLER_MAX_STEPS", "28"))
@@ -44,35 +45,55 @@ def system_prompt() -> str:
     if ARM == "baseline":
         ui = """UI control: screenshot + vision coordinates ONLY (no accessibility tree for planning).
 Actions: screenshot, vision_tap, vision_type, dismiss (keyboard)."""
-    elif ARM == "hybrid":
+    elif ARM == "hybrid" and not HONEST:
         ui = """UI control: AX-first routed perceive (+ Feel IR). Vision only on escalation.
 Actions: perceive, exercise_app, attempt, find, dismiss, vision_tap, vision_type (vision only when channel=vision).
-perceive returns feel (place/salience/block) + channel ax|vision|none.
-Prefer exercise_app after bootstrap — host runs the flow; do not micro-tap with attempt unless debugging."""
+Prefer exercise_app after bootstrap when available."""
+    elif ARM == "hybrid":
+        ui = """UI control: AX-first routed perceive (+ Feel IR). Vision only on escalation.
+Actions: perceive, attempt, find, dismiss, vision_tap, vision_type (vision only when channel=vision).
+You must drive the UI yourself — no host exercise shortcut."""
+    elif HONEST:
+        ui = """UI control: perceive (+ Feel IR) and attempt/find/dismiss.
+Actions: perceive, attempt, find, dismiss.
+You must drive the UI yourself with attempt (type/tap) — no host exercise shortcut. No screenshots."""
     else:
         ui = """UI control: perceive (returns Feel IR) + exercise_app (+ attempt/find/dismiss if needed).
 Prefer feel.salience / feel.suggest over raw affordance dumps. No screenshots for planning.
 After bootstrap_app: call exercise_app (host-owned taps) then verify — do not hand-drive every tap."""
 
-    return f"""You fix and verify a real iOS app on a Mac.
+    code_actions = "read_file, write_file, build_app, bootstrap_app, verify, done"
+    if not HONEST:
+        code_actions = "read_file, write_file, build_app, bootstrap_app, exercise_app, verify, done"
 
-Each turn reply with ONE JSON object.
-
-Code actions (both arms):
-  read_file, write_file, build_app, bootstrap_app, exercise_app, verify, done
-
-{ui}
-
-Swift sources (under frozen upstream tree):
-{sources}
-
-Rules:
+    if HONEST:
+        rules = """Rules:
+- Fix the Swift bug with a minimal change; rebuild; bootstrap; exercise the UI yourself; then verify.
+- Call verify before done. done re-runs the strict harness (setup → exercise → postconditions).
+- Do not invent success — only verify/done after the harness would pass.
+Never ask the user questions."""
+    else:
+        rules = """Rules:
 - Prefer a SURGICAL fix. Do not rewrite whole files, move enums, add typealiases, or redesign onboarding pages.
 - Look for the finish/dismiss path of onboarding (what should hide the overlay after the last step).
 - After build_app succeeds: bootstrap_app → exercise_app → verify.
 - Call verify before done. done triggers the same strict harness (setup → exercise → postconditions).
 - Seeing "Hello, world!" alone is NOT success if the onboarding overlay is still visible.
 Never ask the user questions."""
+
+    return f"""You fix and verify a real iOS app on a Mac.
+
+Each turn reply with ONE JSON object.
+
+Code actions (both arms):
+  {code_actions}
+
+{ui}
+
+Swift sources:
+{sources}
+
+{rules}"""
 
 
 def openai_chat(messages: list[dict[str, Any]], vision_image_b64: str | None = None) -> dict[str, Any]:
@@ -153,18 +174,30 @@ def harness_verify() -> dict[str, Any]:
 
 def bootstrap_app() -> dict[str, Any]:
     call_tool("ligh_ready", {"settle_ms": 2500, "recover_homes": 4})
-    boot = call_tool(
-        "ligh_cap_run_app",
-        {"app": APP, "bundle_id": BUNDLE_ID, "settle_ms": 3500, "timeout_ms": 15000},
-    )
+    wait_label = TASK.get("bootstrap_wait_label")
+    payload: dict[str, Any] = {
+        "app": APP,
+        "bundle_id": BUNDLE_ID,
+        "settle_ms": 3500,
+        "timeout_ms": 15000,
+    }
+    if wait_label:
+        payload["wait_label"] = wait_label
+    boot = call_tool("ligh_cap_run_app", payload)
     app_label = os.path.basename(APP).replace(".app", "")
+    ready_markers = set((TASK.get("verification") or {}).get("preconditions", {}).get("must_see_labels") or [])
+    ready_markers |= {"Show Onboarding", "Get Started", "Hello, world!", "Welcome", "Login", "homeTitle"}
     for attempt in range(1, 6):
         p = call_tool("ligh_perceive", {"settle_ms": 2500})
         perceive = p.get("perceive") or {}
         keys = affordance_keys(perceive)
-        if any(x in keys for x in ["Show Onboarding", "Get Started", "Hello, world!"]):
+        if keys & ready_markers:
             return {**boot, "foreground_ok": True, "attempt": attempt}
-        if any(a.get("identifier") == app_label or a.get("label") == app_label for a in (perceive.get("affordances") or []) if isinstance(a, dict)):
+        if any(
+            a.get("identifier") == app_label or a.get("label") == app_label
+            for a in (perceive.get("affordances") or [])
+            if isinstance(a, dict)
+        ):
             call_tool("ligh_launch", {"bundle_id": BUNDLE_ID})
             time.sleep(1.0)
             call_tool("ligh_attempt", {"intent": "tap", "label": app_label, "settle_ms": 2000, "timeout_ms": 8000})
@@ -226,10 +259,17 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
             return bootstrap_app()
 
         if action == "exercise_app":
-            # Host-owned exercise (Feel IR path): task verification steps, zero LLM taps.
+            if HONEST:
+                return {
+                    "ok": False,
+                    "error": "exercise_app disabled in honest protocol — drive UI with attempt/vision yourself",
+                    "host_owned": False,
+                    "protocol": "honest",
+                }
+            # Host-owned exercise (product path): task verification steps, zero LLM taps.
             ver = TASK.get("verification") or {}
             setup = run_steps(ver.get("initial_setup") or [], "setup")
-            if not all(s.get("ok") for s in setup):
+            if setup and not all(s.get("ok") for s in setup):
                 return {"ok": False, "phase": "setup", "setup_trace": setup, "host_owned": True}
             exercise = run_steps(ver.get("exercise") or [], "exercise")
             ok = all(s.get("ok") for s in exercise) if exercise else False
@@ -449,6 +489,7 @@ def main() -> int:
     summary = summarize_trace(trace)
     doc = {
         "gate": "killer_loop",
+        "protocol": "honest" if HONEST else "product",
         "protocol_version": PROTOCOL_VERSION,
         "arm": ARM,
         "task": TASK["id"],
@@ -505,6 +546,7 @@ def _result_doc(
     summary = summarize_trace(trace)
     return {
         "gate": "killer_loop",
+        "protocol": "honest" if HONEST else "product",
         "protocol_version": PROTOCOL_VERSION,
         "arm": ARM,
         "task": TASK["id"],

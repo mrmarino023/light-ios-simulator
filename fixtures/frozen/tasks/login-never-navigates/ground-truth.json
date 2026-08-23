@@ -1,0 +1,9 @@
+{
+  "_human_only": "Never pass this file to the agent or include in agent prompts.",
+  "task_id": "login-never-navigates",
+  "bug_id": "login_never_navigates",
+  "ground_truth": "LoginViewModel.login() clears loginError but leaves isLoggedIn = false after valid credentials, so navigation never switches to HomeView.",
+  "expected_fix": "Set isLoggedIn = true on the success path in LoginViewModel.login().",
+  "patch_file": "fixtures/third-party/XCUITestDemo/scenarios/login-never-navigates.patch",
+  "protocol_note": "Honest A/B task — agent must drive UI via perceive/attempt or vision; no host exercise_app."
+}

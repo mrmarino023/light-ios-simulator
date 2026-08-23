@@ -1,0 +1,63 @@
+{
+  "gate": "killer_loop_ab_honest",
+  "protocol": "honest",
+  "protocol_version": 2,
+  "task": "login-never-navigates",
+  "task_file": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/login-never-navigates/task.json",
+  "honest_rules": {
+    "exercise_app_disabled": true,
+    "shared_minimal_prompt": true,
+    "agent_must_drive_ui": true
+  },
+  "runs": {
+    "ligh": {
+      "pass": false,
+      "verified": false,
+      "claim_pass": false,
+      "false_success": false,
+      "legacy_weak_pass": false,
+      "verification_reason": "postcondition_not_satisfied",
+      "final_state": "failed",
+      "build_attempts": 3,
+      "verification_attempts": 5,
+      "perception_channels": {
+        "ax": 0,
+        "vision": 0,
+        "none": 0,
+        "vision_escalations": 0
+      },
+      "used_exercise_app": false,
+      "faults": 5,
+      "llm_tokens": 445409,
+      "wall_time_ms": 369381,
+      "human_interventions": 0,
+      "protocol": "honest",
+      "artifact": "/Users/mattiamarino/Desktop/light-simulatior-ios/docs/assets/killer-loop-honest-ligh-latest.json"
+    },
+    "baseline": {
+      "pass": false,
+      "verified": false,
+      "claim_pass": false,
+      "false_success": false,
+      "legacy_weak_pass": false,
+      "verification_reason": "postcondition_not_satisfied",
+      "final_state": "failed",
+      "build_attempts": 4,
+      "verification_attempts": 5,
+      "perception_channels": {
+        "ax": 0,
+        "vision": 0,
+        "none": 0,
+        "vision_escalations": 0
+      },
+      "used_exercise_app": false,
+      "faults": 0,
+      "llm_tokens": 306208,
+      "wall_time_ms": 333030,
+      "human_interventions": 0,
+      "protocol": "honest",
+      "artifact": "/Users/mattiamarino/Desktop/light-simulatior-ios/docs/assets/killer-loop-honest-baseline-latest.json"
+    }
+  },
+  "interpretation": "Honest A/B: same task/prompt; only AX vs vision modality differs. Publish even if both fail."
+}

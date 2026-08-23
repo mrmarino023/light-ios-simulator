@@ -8,9 +8,14 @@
 #   LIGH_KILLER_ARM=baseline ./scripts/gate-killer-loop.sh
 #   LIGH_KILLER_ARM=hybrid ./scripts/gate-killer-loop.sh
 #   LIGH_KILLER_AB_HYBRID=1 ./scripts/gate-killer-loop-ab.sh   # A + B + hybrid
+#   LIGH_KILLER_HONEST=1 ./scripts/gate-killer-loop-ab.sh      # XCUITestDemo login, no exercise_app
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-TASK="${LIGH_KILLER_TASK:-$ROOT/fixtures/frozen/tasks/onboarding-home-broken/task.json}"
+if [[ "${LIGH_KILLER_HONEST:-0}" == "1" ]]; then
+  TASK="${LIGH_KILLER_TASK:-$ROOT/fixtures/frozen/tasks/login-never-navigates/task.json}"
+else
+  TASK="${LIGH_KILLER_TASK:-$ROOT/fixtures/frozen/tasks/onboarding-home-broken/task.json}"
+fi
 LIGH="${LIGH_BIN:-$ROOT/target/release/ligh}"
 ARM="${LIGH_KILLER_ARM:-ligh}"
 OUT="${LIGH_KILLER_OUT:-$ROOT/docs/assets/killer-loop-${ARM}-latest.json}"
@@ -63,10 +68,11 @@ sim_clean_reboot "$LIGH"
 export LIGH_KILLER_TASK="$TASK"
 export LIGH_KILLER_ARM="$ARM"
 export LIGH_KILLER_OUT="$OUT"
+export LIGH_KILLER_HONEST="${LIGH_KILLER_HONEST:-0}"
 export LIGH_APP_PATH="$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['app_path']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")"
 export LIGH_APP_BUNDLE_ID="$(python3 -c "import json; print(json.load(open('$TASK'))['bundle_id'])")"
 
-echo "  ▶ protocol v2: verify deterministic initial state (preconditions)"
+echo "  ▶ protocol $([ "${LIGH_KILLER_HONEST}" = 1 ] && echo honest || echo product) v2: verify deterministic initial state (preconditions)"
 python3 "$ROOT/scripts/killer_loop_verify.py" --task "$TASK" --phase setup \
   >/tmp/killer-loop-initial-state.log 2>&1 || fail "initial state setup failed — see /tmp/killer-loop-initial-state.log"
 

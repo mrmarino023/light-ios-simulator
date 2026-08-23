@@ -107,21 +107,27 @@ def bootstrap_app(app: str, bundle_id: str, *, wait_label: str | None = None) ->
     return {**boot, "foreground_ok": False, "trust_fault": "app_not_foreground"}
 
 
-def run_tap(label: str, settle_ms: int = 2500) -> dict[str, Any]:
+def run_tap(
+    label: str | None = None,
+    settle_ms: int = 2500,
+    *,
+    id: str | None = None,
+) -> dict[str, Any]:
     pre = perceive(settle_ms)
-    result = call_tool(
-        "ligh_attempt",
-        {
-            "intent": "tap",
-            "label": label,
-            "settle_ms": settle_ms,
-            "timeout_ms": 12000,
-        },
-    )
+    payload: dict[str, Any] = {
+        "intent": "tap",
+        "settle_ms": settle_ms,
+        "timeout_ms": 12000,
+    }
+    if label:
+        payload["label"] = label
+    if id:
+        payload["id"] = id
+    result = call_tool("ligh_attempt", payload)
     fault = result.get("fault") or ""
-    # Exercise records that we reached and fired on the control. POST verifies outcome
-    # (broken app: Finish fires but overlay stays — motor_no_effect is expected).
-    target_seen = label in pre["keys"]
+    # Exercise records that we reached and fired on the control. POST verifies outcome.
+    target = label or id or ""
+    target_seen = target in pre["keys"] if target else False
     ok = bool(result.get("ok")) or (
         target_seen and fault in ("motor_no_effect", "motor_failed", "model")
     )
@@ -131,6 +137,32 @@ def run_tap(label: str, settle_ms: int = 2500) -> dict[str, Any]:
         "fault": fault or None,
         "target_seen": target_seen,
     }
+
+
+def run_type(
+    text: str,
+    settle_ms: int = 2500,
+    *,
+    id: str | None = None,
+    label: str | None = None,
+) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "intent": "type",
+        "text": text,
+        "settle_ms": settle_ms,
+        "timeout_ms": 12000,
+    }
+    if id:
+        payload["id"] = id
+    if label:
+        payload["label"] = label
+    result = call_tool("ligh_attempt", payload)
+    fault = result.get("fault") or ""
+    ok = bool(result.get("ok")) or fault in ("ok", None, "")
+    # Typing often reports intent_met via fingerprint/value change; accept motor ok.
+    if result.get("intent_met") is True:
+        ok = True
+    return {**result, "ok": ok, "fault": fault or None}
 
 
 def eval_spec(spec: dict[str, Any], keys: set[str]) -> dict[str, Any]:
@@ -151,25 +183,45 @@ def run_steps(steps: list[dict[str, Any]], phase: str) -> list[dict[str, Any]]:
     trace: list[dict[str, Any]] = []
     for i, step in enumerate(steps, start=1):
         action = (step.get("action") or "tap").lower()
-        if action != "tap":
-            trace.append({"phase": phase, "step": i, "ok": False, "error": f"unsupported action {action}"})
-            continue
-        label = str(step.get("label") or "")
         settle = int(step.get("settle_ms") or 2500)
-        result = run_tap(label, settle)
-        fault = result.get("fault") or ""
-        trace.append(
-            {
-                "phase": phase,
-                "step": i,
-                "action": "tap",
-                "label": label,
-                "ok": bool(result.get("ok")),
-                "fault": fault or None,
-            }
-        )
-        if not result.get("ok"):
-            break
+        label = str(step.get("label") or "") or None
+        sid = str(step.get("id") or "") or None
+        if action == "tap":
+            result = run_tap(label, settle, id=sid)
+            trace.append(
+                {
+                    "phase": phase,
+                    "step": i,
+                    "action": "tap",
+                    "label": label,
+                    "id": sid,
+                    "ok": bool(result.get("ok")),
+                    "fault": result.get("fault"),
+                }
+            )
+            if not result.get("ok"):
+                break
+            continue
+        if action == "type":
+            text = str(step.get("text") or "")
+            result = run_type(text, settle, id=sid, label=label)
+            trace.append(
+                {
+                    "phase": phase,
+                    "step": i,
+                    "action": "type",
+                    "id": sid,
+                    "label": label,
+                    "text_len": len(text),
+                    "ok": bool(result.get("ok")),
+                    "fault": result.get("fault"),
+                }
+            )
+            if not result.get("ok"):
+                break
+            continue
+        trace.append({"phase": phase, "step": i, "ok": False, "error": f"unsupported action {action}"})
+        break
     return trace
 
 
@@ -183,13 +235,18 @@ def overlay_visible(task: dict[str, Any], keys: set[str]) -> bool:
     return any(l in keys for l in overlay)
 
 
+def goal_visible(keys: set[str]) -> bool:
+    return bool(keys & {"Hello, world!", "homeTitle", "Home", "homeMessage"})
+
+
 def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None, bundle_id: str | None = None) -> dict[str, Any]:
     task = task or load_task()
     app = app or os.environ.get("LIGH_APP_PATH") or task["app_path"]
     bundle_id = bundle_id or task["bundle_id"]
     ver = task.get("verification") or {}
+    wait_label = task.get("bootstrap_wait_label") or "Show Onboarding"
 
-    boot = bootstrap_app(app, bundle_id)
+    boot = bootstrap_app(app, bundle_id, wait_label=wait_label)
     if not boot.get("foreground_ok"):
         return {
             "verified": False,
@@ -210,7 +267,7 @@ def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None,
     if not pre["ok"] and ({"Enable Location", "Skip for Now", "Temperature Preference"} & pre_keys):
         call_tool("ligh_launch", {"bundle_id": bundle_id})
         time.sleep(1.5)
-        boot2 = bootstrap_app(app, bundle_id, wait_label="Show Onboarding")
+        boot2 = bootstrap_app(app, bundle_id, wait_label=wait_label)
         if boot2.get("foreground_ok"):
             boot = boot2
             setup_trace = run_steps(ver.get("initial_setup") or [], "setup")
@@ -233,7 +290,7 @@ def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None,
     post = eval_spec(ver.get("postconditions") or {}, post_keys)
     weak = legacy_weak_pass(task, post_keys)
     overlay = overlay_visible(task, post_keys)
-    home = "Hello, world!" in post_keys
+    home = goal_visible(post_keys)
 
     false_success = weak and (overlay or not post["ok"])
     verified = post["ok"] and not overlay
@@ -266,8 +323,9 @@ def establish_initial_state(task: dict[str, Any] | None = None, *, app: str | No
     app = app or os.environ.get("LIGH_APP_PATH") or task["app_path"]
     bundle_id = bundle_id or task["bundle_id"]
     ver = task.get("verification") or {}
+    wait_label = task.get("bootstrap_wait_label") or "Show Onboarding"
 
-    boot = bootstrap_app(app, bundle_id, wait_label="Show Onboarding")
+    boot = bootstrap_app(app, bundle_id, wait_label=wait_label)
     if not boot.get("foreground_ok"):
         return {
             "ok": False,

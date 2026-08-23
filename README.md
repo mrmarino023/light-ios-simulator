@@ -54,19 +54,28 @@ Same 44-step semantic workflow (Settings → search → assert → screenshot, �
 
 Reproduce: `ligh agent-bench` (WDA baseline needs Appium listening).
 
-### Coding-agent loop — fix → build → exercise → verify
+### Coding-agent loop — two protocols
 
-Frozen onboarding bug (same task, same prompt; agent never sees `ground-truth.json`). Arms: AX (`ligh`) vs vision-only (`baseline`) vs AX-first hybrid:
+**Product path** (host `exercise_app`): OnboardingDemo. Agent fixes Swift; host runs known taps. This measures *edit + host exercise*, not AX-vs-vision.
 
 | Arm | Pass | Wall | LLM tokens |
 |-----|------|------|------------|
-| **LIGH (AX + Feel IR / host exercise)** | yes | **~86 s** | **~27k** |
+| **LIGH (AX + host exercise)** | yes | **~86 s** | **~27k** |
 | Vision baseline | yes | ~204 s | ~73k |
 | Hybrid (AX→vision) | no | ~334 s | ~402k |
 
-Latest LIGH run: surgical fix → `exercise_app` (host-owned) → verify in **6 steps**. Feel IR + host exercise cut wall time ~2× and tokens ~2.4× vs the prior LIGH arm (~177 s / ~64k). Hybrid thrash-failed on the Swift fix (not a motor regression). Evidence: [`docs/assets/killer-loop-ab-latest.json`](docs/assets/killer-loop-ab-latest.json) · [`killer-loop-ligh-latest.json`](docs/assets/killer-loop-ligh-latest.json).
+Evidence: [`docs/assets/killer-loop-ab-latest.json`](docs/assets/killer-loop-ab-latest.json). Reproduce: `./scripts/gate-killer-loop.sh`.
 
-Reproduce: `./scripts/gate-killer-loop.sh` · `LIGH_KILLER_AB_HYBRID=1 ./scripts/gate-killer-loop-ab.sh` (needs `OPENAI_API_KEY`).
+**Honest A/B** (no host exercise): XCUITestDemo `login-never-navigates` — same prompt, agent must type/tap via AX **or** vision. `exercise_app` disabled. Both arms **failed** this run (postcondition not met); neither modality won.
+
+| Arm | Pass | Wall | LLM tokens | Used exercise_app |
+|-----|------|------|------------|-------------------|
+| LIGH (AX) | no | ~369 s | ~445k | no |
+| Vision baseline | no | ~333 s | ~306k | no |
+
+Evidence: [`docs/assets/killer-loop-ab-honest-latest.json`](docs/assets/killer-loop-ab-honest-latest.json). Reproduce: `LIGH_KILLER_HONEST=1 ./scripts/gate-killer-loop-ab.sh` (needs `OPENAI_API_KEY`).
+
+The product path is a real feature. The honest path is the fair AX-vs-vision test — and it currently shows the full coding loop is still hard.
 
 ---
 
