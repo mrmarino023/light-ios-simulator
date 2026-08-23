@@ -12,6 +12,7 @@
 <p align="center">
   <a href="#try-it"><strong>Try it</strong></a> ·
   <a href="#how-it-works"><strong>How it works</strong></a> ·
+  <a href="#what-we-measured"><strong>Evidence</strong></a> ·
   <a href="docs/DEVELOPER_TRIAL.md"><strong>Your app</strong></a>
 </p>
 
@@ -74,16 +75,79 @@ Reproduce: `./scripts/gate-killer-loop.sh` · `LIGH_KILLER_AB_HYBRID=1 ./scripts
 ```text
 Coding agent (Cursor MCP)
         ↓
-LIGH — persistent host + perceive/attempt
+LIGH host — Feel IR + perceive / attempt / exercise
         ↓
 Apple CoreSimulator
         ↓
 Your Debug .app
 ```
 
-Agents use **`ligh_perceive`** (accessibility tree as JSON) and **`ligh_attempt`** (act + check).
+### Three representations (only one is the product wedge)
 
-More: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/QA_LAYER.md`](docs/QA_LAYER.md) · [`docs/STRUCTURED_CONTROL.md`](docs/STRUCTURED_CONTROL.md)
+| | What it is | Who uses it | Role |
+|--|------------|-------------|------|
+| **Screenshot** | Pixels | Vision LLMs | Fallback when AX is unusable |
+| **AX tree** | Raw accessibility dump | Debug / motor | Too big and noisy for planning |
+| **Feel IR** | Live interaction frame | Host + thin agent | Default world model |
+
+**Feel IR** is not a screenshot and not a dump of the tree. After every settle, Rust builds a small JSON frame:
+
+```text
+place     → where you are (fingerprint, surface, title)
+salience  → what weighs (ranked CTAs / fields, top-N)
+block     → what blocks (keyboard, alert, sheet)
+delta     → what just changed (fp changed? events?)
+feel      → phase: settled | transition | blocked | eyes_unusable
+suggest   → optional next host act (tap label/id or dismiss)
+```
+
+Example shape (agent sees this from `ligh_perceive`):
+
+```json
+{
+  "place": { "fingerprint": "fp_ab08…", "surface": "app", "title": "Welcome" },
+  "salience": [
+    { "rank": 1, "kind": "primary_button", "label": "Get Started" },
+    { "rank": 2, "kind": "button", "label": "Skip" }
+  ],
+  "block": null,
+  "feel": { "phase": "settled", "keyboard": false, "ready": true },
+  "suggest": { "intent": "tap", "label": "Get Started" }
+}
+```
+
+### Who decides what
+
+```text
+LLM (slow, expensive)     →  read/edit Swift, decide *what* to fix
+Rust host (fast, cheap)   →  bootstrap, exercise known steps, verify
+Feel IR                   →  the shared “now” of the UI (~ms update)
+```
+
+Canonical coding-agent loop on LIGH:
+
+```text
+read_file → write_file → build_app → bootstrap_app → exercise_app → verify
+```
+
+- **`exercise_app`** runs the task’s setup/exercise taps **on the host** (zero LLM micro-taps).
+- **`verify`** re-runs the same harness (setup → exercise → postconditions) and fail-closes on false greens.
+- Screenshots are **debug / escalation only** (`ligh_perceive_routed`: AX → ready retry → vision if still `eyes_unusable`).
+
+### What we tried and rejected
+
+A persistent **UX graph** (screens + transitions as LLM memory) was measured and **did not help** agents navigate — they ignored it or used more tokens ([`docs/UX_GRAPH.md`](docs/UX_GRAPH.md)). Feel IR is the opposite design: a **live frame for the computer**, not a history document for the model. The graph remains useful as telemetry / compile-to-replay input (`llm_tokens = 0`), not as agent memory.
+
+### Agent tools (MCP)
+
+| Tool | Job |
+|------|-----|
+| `ligh_perceive` | Settled world model + **Feel IR** |
+| `ligh_attempt` | Act + host verdict (`intent_met`, evidence) |
+| `ligh_perceive_routed` | AX-first; vision only on escalation |
+| `ligh_cap_app_job` | Known multi-step job (CI / fixtures) |
+
+More detail: [`docs/QA_LAYER.md`](docs/QA_LAYER.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/STRUCTURED_CONTROL.md`](docs/STRUCTURED_CONTROL.md)
 
 ---
 
