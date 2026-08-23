@@ -39,6 +39,8 @@ LIGH gives the agent a local control plane: persistent `lighd` on CoreSimulator,
 
 ## What we measured
 
+### Execution layer — observe → act → verify
+
 Same 44-step semantic workflow (Settings → search → assert → screenshot, ×4 cycles):
 
 | | LIGH (`lighd`) | WDA / Appium |
@@ -51,7 +53,19 @@ Same 44-step semantic workflow (Settings → search → assert → screenshot, �
 
 Reproduce: `ligh agent-bench` (WDA baseline needs Appium listening).
 
-That is the **execution layer**. The open question is whether it helps a coding agent **modify, rebuild, and verify** a real app end-to-end — try it on yours.
+### Coding-agent loop — fix → build → exercise → verify
+
+Frozen onboarding bug (same task, same prompt; agent never sees `ground-truth.json`). Arms: AX (`ligh`) vs vision-only (`baseline`) vs AX-first hybrid:
+
+| Arm | Pass | Wall | LLM tokens |
+|-----|------|------|------------|
+| **LIGH (AX)** | yes | **~177 s** | **~64k** |
+| Vision baseline | yes | ~204 s | ~73k |
+| Hybrid (AX→vision) | no | ~334 s | ~402k |
+
+On this run LIGH beat vision on wall time and tokens. Hybrid thrash-failed on the Swift fix (not a motor regression). Evidence: [`docs/assets/killer-loop-ab-latest.json`](docs/assets/killer-loop-ab-latest.json).
+
+Reproduce: `./scripts/gate-killer-loop.sh` · `LIGH_KILLER_AB_HYBRID=1 ./scripts/gate-killer-loop-ab.sh` (needs `OPENAI_API_KEY`).
 
 ---
 
