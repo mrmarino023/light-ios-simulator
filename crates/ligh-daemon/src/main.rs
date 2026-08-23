@@ -1155,6 +1155,40 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             cap_response(ux_cap::cap_ux_hint(ws, &fingerprint, &source_path))
         }
 
+        DaemonRequest::UxCompileFlow { goal_id, workspace } => {
+            let ws = workspace.as_deref().map(std::path::Path::new);
+            cap_response(ux_cap::cap_ux_compile_flow(ws, &goal_id))
+        }
+
+        DaemonRequest::UxExecuteCompiled {
+            goal_id,
+            app,
+            bundle_id,
+            workspace,
+            settle_ms,
+            timeout_ms,
+        } => {
+            let settle = settle_ms.unwrap_or(3500);
+            let timeout = timeout_ms.unwrap_or(20000);
+            let ws = workspace.as_deref().map(std::path::Path::new);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = ux_cap::cap_ux_execute_compiled(
+                ws,
+                &goal_id,
+                &app,
+                bundle_id.as_deref(),
+                &build,
+                state,
+                settle,
+                timeout,
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
         DaemonRequest::AppGoal {
             app,
             bundle_id,

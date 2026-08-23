@@ -1,157 +1,61 @@
-# LIGH — strategy & pitch
+# LIGH — pitch (2026-08-23)
 
-## Falsifiable thesis (locked)
-
-> **LIGH exists only if the agent loop is faster, more structured, and headless than alternatives.**
-
-The product is **not** “screenshot in 17 ms.”  
-The product is a structured agent loop:
-
-```text
-observe()  →  framebuffer + a11y + elements + app state
-tap(label=…) / wait(for=…) / type(…)
-observe()  again   # verify
-```
-
-**Market:** replace **MCP + simctl + photos** for coding agents and headless CI.  
-**Not:** TestFlight · Appium-as-QA-platform · XCTest-as-test-framework.
-
-**Status (2026-08-20):** ~**4× vs WDA/Appium** on a 44-step script (0% fail).
-
-**Falsify further:** 50×40 reliability, AX-empty rate, per-action observe→act→verify latency.
+**Read [`README.md`](README.md) first.** This file is the short strategy summary.
 
 ---
 
-## Positioning
+## Falsifiable thesis
 
-**LIGH — open-source programmable host for the real iOS Simulator.**
+> A coding agent on macOS gets **better outcomes** verifying a Debug `.app` when it uses structured `perceive` / `attempt` + harness verify instead of screenshot + vision — and can **replay known flows with zero LLM tokens**.
 
-One-liner:
-
-> Agents control a real CoreSimulator guest through a persistent host (`lighd`): IOSurface frames, IndigoHID input, headless AX — **without Simulator.app**.
-
-Not:
-
-> lightweight iOS · nicer Rust simctl · “Playwright for iOS” MCP wrapper · QA platform
+**Not the thesis:** “4× faster than WDA on SpringBoard” · “UX graph is agent memory” · “beats Maestro everywhere”
 
 ---
 
-## Killer demo (the loop)
+## Who it’s for
 
-**Messages (real app, screen-record ready):**
+- **You** ship an iOS app with accessibility identifiers  
+- **Your agent** (Cursor, custom MCP) needs to verify flows after Swift edits  
+- **You** want fail-closed `{ ok, fault, detail }`, not PNG cosplay  
 
-```bash
-ligh daemon start && ligh up
-./scripts/demo-type-agent.sh
-# → Messaggi → Nuovo messaggio → type pitch line
-```
-
-**Settings (search field):**
-
-```bash
-ligh daemon start
-ligh up
-ligh wait --label Impostazioni   # or Settings
-ligh tap --label Impostazioni
-ligh wait --label Generali       # destination, not hope
-ligh tap --label Cerca           # prefers AXSearchField / top-most
-ligh type --text Bluetooth
-ligh wait --label Bluetooth
-ligh observe --json              # frame + AX tree
-ligh screenshot -o /tmp/out.png
-```
-
-Prefer `ligh gui` or Simulator.app in frame for recording.  
-`tap --x/--y` alone is not the demo.
+**Not for:** human QA authoring (Maestro), apps without AX ids, Linux CI without a Mac host.
 
 ---
 
-## Measured comparison (from `ligh bench agent`)
+## Three use cases (in order of proof strength)
 
-Last checked sample (iPhone 15 Pro / iOS 18.1, Italian locale, 2026-08-20):
-
-| Driver | Time | Failures |
-|--------|------|----------|
-| **LIGHd** | **10.6–13.2 s** | **0/44** |
-| **WDA / Appium XCUITest** | **~50–53 s** | **0/44** |
-
-**~4× vs WDA/Appium** on the same 44-step script.
-
-```bash
-ligh daemon start
-ligh bench agent --steps 40
-```
-
-JSON: `docs/assets/agent-bench-latest.json`. Start Appium in a normal Terminal first for the WDA cell.
-
-**Headline metrics:**
-
-- **total wall-clock** for the 30–50 step script
-- **failure rate** / pass-fail per step
-- per-op class **p50 / p95**
-- optional observe JSON size (bytes)
-
-Screenshot vs `simctl io` is a **supporting** micro-metric. It must not lead the pitch.
-
-If `workload` is `FAIL`, do not pitch LIGH as agent-ready.
+1. **`app-job`** — known steps, CI acceptance, fail-closed  
+2. **Autonomous UX** — LLM discovers flow once; harness checks success id ([`autonomous-ux-latest.json`](docs/assets/autonomous-ux-latest.json))  
+3. **Compiled replay** — same flow, 0 LLM on reruns ([`compiled-replay-latest.json`](docs/assets/compiled-replay-latest.json))
 
 ---
 
-## Why not “just MCP”
+## Competitive frame
 
-The market already has SimPilot, ios-mcp, simulator-mcp, Appium/WDA, idb, and raw `simctl`.
+| Alternative | When LIGH might win | When it doesn’t |
+|-------------|---------------------|-----------------|
+| simctl + screenshot MCP | Agent needs ids + verdicts, not pixels | You already have reliable vision |
+| Maestro | Agent-native structured loop + headless host | Human-written YAML tests |
+| Appium/WDA | Persistent host, lower latency on our script | Mature ecosystem, real devices |
 
-**MCP tools = commodity.**  
-**Persistent host** (framebuffer + HID + AX + daemon) = only differentiation that can survive.
-
-MCP belongs **on top of** `lighd`, not instead of it.
-
-```text
-Agent / IDE / CI / viewer / MCP
-            │
-            ▼
-          LIGH (lighd)
-   observe · wait · tap · type · verify
-            │
-      CoreSimulator → iOS
-```
-
----
-
-## Why LIGH vs WDA
-
-WDA/Appium can drive the Simulator. LIGH wins on the **same 30–50 step workload** with lower wall-clock, structured `observe` (frame + AX + app state), and a headless host without Simulator.app.
-
-Measured: **~4× vs WDA/Appium**, 0/44 failures (see table above).
-
----
-
-## Open source (this repo)
-
-MIT host substrate:
-
-- headless CoreSimulator boot (no Simulator.app)
-- IOSurface → Metal
-- IndigoHID: tap · swipe · home · type
-- headless AX: `observe` / `ax` / `wait` / `exists` / `tap --label`
-- persistent `lighd` JSON-lines RPC (`~/.ligh/lighd.sock`)
-
----
-
-## What we will not claim
-
-- Guest RAM / “30% lighter iOS”
-- Perfect home widgets on slim boots (`--requires nowidgets` blanks WidgetKit on purpose)
-- Screenshot latency as the reason LIGH exists
+Maestro/WDA numbers in repo = **one login job footnotes** — see [`docs/HONEST.md`](docs/HONEST.md).
 
 ---
 
 ## Kill criteria
 
-After the checked-in agent workload suite:
+1. Agentic baseline A/B on 3 OSS apps: LIGH doesn’t win turns or success → stop product thesis  
+2. No external developer says “I’d use this on my repo” → stop product thesis  
+3. Keep `lighd` motor as OSS either way  
 
-1. Loop time ≈ existing WDA/idb/`simctl`+vision tooling → **no thesis**
-2. Flake rate worse than WDA on the same machine → **not a substrate**
-3. Private API breaks every Xcode train with no gate → **unmaintainable**
+---
 
-Compete only where numbers win.
+## Demo order (honest)
+
+```bash
+./scripts/gate-compiled-replay.sh     # no API key — shows zero-LLM replay
+./scripts/gate-autonomous-ux.sh       # needs OPENAI_API_KEY — shows agent loop
+ligh cap app-job …                    # shows CI primitive
+```
+
+Skip leading with Messages/Settings demos — research only.

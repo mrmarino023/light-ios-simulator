@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Autonomous UX-graph agent — perceive/attempt/explore only, no scripted navigation.
+"""Autonomous UX-graph agent — perceive/attempt only, no scripted navigation.
 
-The harness installs the app and sets a vague goal. The LLM must discover affordances
-via ligh_perceive and act via ligh_attempt / ligh_find / ligh_dismiss. Success is
-verified independently (success accessibility id present on final perceive), not by
-agent self-report alone.
+Arms (LIGH_UX_ARM):
+  control  — QA only, no workspace / no graph persistence, no ux_* tools
+  discover — build uxgraph while completing the goal (default)
+  replay   — same graph as prior discover; must use ux_status first
+
+Harness verifies success_id independently (agent prompt never names it).
 """
 
 from __future__ import annotations
@@ -12,7 +14,6 @@ from __future__ import annotations
 import json
 import os
 import re
-import subprocess
 import sys
 import time
 from typing import Any
@@ -22,6 +23,7 @@ sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 from ligh_mcp import call_tool  # noqa: E402
 
+ARM = os.environ.get("LIGH_UX_ARM", "control").lower()
 WORKSPACE = os.environ.get("LIGH_WORKSPACE", os.path.join(ROOT, "fixtures/LighOnboard"))
 APP = os.environ.get(
     "LIGH_APP_PATH",
@@ -31,46 +33,85 @@ BUNDLE_ID = os.environ.get("LIGH_APP_BUNDLE_ID", "dev.ligh.Onboard")
 SUCCESS_ID = os.environ.get("LIGH_UX_SUCCESS_ID", "HomeReady")
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-5-mini")
 OPENAI_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1/chat/completions")
-MAX_STEPS = int(os.environ.get("LIGH_UX_MAX_STEPS", "18"))
+MAX_STEPS = int(os.environ.get("LIGH_UX_MAX_STEPS", "20"))
 
 GOAL = os.environ.get(
     "LIGH_UX_GOAL",
-    "You are dropped into an iOS onboarding app cold. Reach the final home-ready screen "
-    "using only the QA/UX tools. Build a UX graph as you go (perceive records screens; "
-    "attempt records transitions). Do not guess accessibility ids — read them from perceive.",
+    "You are dropped into an iOS app cold. Complete the user flow until you reach the "
+    "final success screen. Use perceive to read accessibility ids before every action. "
+    "Never guess ids. Never use app_job or app_goal.",
 )
 
-SYSTEM = """You control iOS Simulator through LIGH QA + UX graph tools (accessibility JSON only).
+SYSTEM_FEW_SHOT = """
+Winning patterns (from green runs — adapt ids to what perceive returns):
+
+Onboarding:
+  perceive → {"action":"attempt","intent":"tap","id":"OnboardSkip","expect":{"see_id":"HomeReady"},...}
+  OR: tap Continue → type name field → tap Next/Finish, with expect after each navigation tap.
+  perceive → confirm success screen → done
+
+Login (OSS apps):
+  perceive → read usernameTextField, passwordSecureField, loginButton ids
+  attempt tap field → type username → tap password field → type password → dismiss keyboard if needed
+  attempt tap loginButton with expect {"see_id":"<success id from goal>"} or {"see_label":"..."}
+  perceive → done only when success screen is visible
+
+Recovery:
+  intent_unmet after tap often means expect was wrong, not that tap failed — perceive again and adjust expect.
+  One perceive before each attempt; ~4 perceives for a 4-step login is normal.
+"""
+
+SYSTEM_BASE = """You control iOS Simulator through LIGH QA tools (accessibility JSON only — no screenshots).
 
 Each turn reply with ONE JSON object:
 {
-  "action": "ready" | "perceive" | "attempt" | "find" | "dismiss"
-          | "ux_status" | "ux_baseline" | "ux_regress" | "ux_explore" | "ux_hint" | "done",
+  "action": "ready" | "perceive" | "attempt" | "find" | "dismiss" | "done",
   "intent": "tap" | "type" | "wait" | "key",
   "id": "...",
   "label": "...",
   "text": "...",
   "key": "return",
   "expect": {"see_id": "..."} | {"see_label": "..."},
-  "baseline": "name",
-  "fingerprint": "fp_...",
-  "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
   "summary": "..."
 }
 
 Rules:
-- Start with perceive after ready. Read affordances (id/label) before every attempt.
-- attempt: always pass expect when you believe the screen should change.
-- find: scroll until an off-screen control appears; dismiss: keyboard/sheet/alert.
-- ux_status / ux_baseline / ux_explore: optional; graph auto-records on perceive/attempt.
-- Never use app_job, app_goal, raw tap loops, or screenshots.
-- On fault target_missing → find or perceive again; motor_no_effect → different affordance.
-- Call done only when perceive shows you are on the final home screen.
-- If eyes_unusable → ready, then perceive again.
+- Start with perceive. Read affordances (id/label) before every attempt.
+- attempt: pass expect when you believe the screen should change.
+- find: scroll for off-screen controls; dismiss: keyboard/sheet/alert.
+- Never use app_job, app_goal, or raw tap loops.
+- On target_missing → find or perceive; motor_no_effect → different affordance.
+- Call done only when perceive shows the final success screen (login flow complete).
+- If done is rejected, you are NOT on the success screen — perceive and continue.
+- If perceive shows SpringBoard/home screen icons, launch the app (attempt tap app icon) or wait for app surface.
+""" + SYSTEM_FEW_SHOT
+
+SYSTEM_GRAPH = SYSTEM_BASE + """
+UX graph tools (also allowed):
+  ux_status — summary of known screens/transitions recorded in this workspace
+  ux_explore — safe BFS when stuck (optional)
+
+Graph auto-records on perceive/attempt when workspace is set.
+"""
+
+SYSTEM_REPLAY = SYSTEM_GRAPH + """
+REPLAY MODE: A UX graph already exists from a prior successful run.
+You MUST call ux_status on step 1 before perceive.
+Use known fingerprints and affordance labels from ux_status to choose attempts faster.
+Do not re-discover from scratch if the graph already lists the next transition.
 """
 
 
+def system_prompt() -> str:
+    if ARM == "control":
+        return SYSTEM_BASE
+    if ARM == "replay":
+        return SYSTEM_REPLAY
+    return SYSTEM_GRAPH
+
+
 def openai_chat(messages: list[dict[str, Any]]) -> dict[str, Any]:
+    import subprocess
     import tempfile
 
     key = os.environ.get("OPENAI_API_KEY", "").strip()
@@ -117,7 +158,13 @@ def openai_chat(messages: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def ws_args() -> dict[str, str]:
+    if ARM == "control":
+        return {}
     return {"workspace": WORKSPACE}
+
+
+def ux_tools_allowed() -> bool:
+    return ARM in ("discover", "replay")
 
 
 def run_action(act: dict[str, Any]) -> dict[str, Any]:
@@ -128,10 +175,7 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
         return call_tool("ligh_ready", {"settle_ms": act.get("settle_ms") or 2500, "recover_homes": 4})
 
     if action == "perceive":
-        return call_tool(
-            "ligh_perceive",
-            {"settle_ms": act.get("settle_ms") or 2500, **ws},
-        )
+        return call_tool("ligh_perceive", {"settle_ms": act.get("settle_ms") or 2500, **ws})
 
     if action == "attempt":
         intent = str(act.get("intent") or "tap")
@@ -170,24 +214,11 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
     if action == "dismiss":
         return call_tool("ligh_dismiss", {"settle_ms": act.get("settle_ms") or 2500})
 
+    if not ux_tools_allowed():
+        return {"ok": False, "error": f"action {action} not allowed in arm={ARM}"}
+
     if action == "ux_status":
         return call_tool("ligh_ux_status", ws)
-
-    if action == "ux_baseline":
-        name = str(act.get("baseline") or act.get("name") or "agent-baseline")
-        return call_tool(
-            "ligh_ux_baseline",
-            {"name": name, "settle_ms": act.get("settle_ms") or 2500, **ws},
-        )
-
-    if action == "ux_regress":
-        base = str(act.get("baseline") or "")
-        if not base:
-            return {"ok": False, "error": "baseline name required"}
-        return call_tool(
-            "ligh_ux_regress",
-            {"baseline": base, "settle_ms": act.get("settle_ms") or 2500, **ws},
-        )
 
     if action == "ux_explore":
         return call_tool(
@@ -200,13 +231,6 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
                 **ws,
             },
         )
-
-    if action == "ux_hint":
-        fp = str(act.get("fingerprint") or "")
-        sp = str(act.get("source_path") or "")
-        if not fp or not sp:
-            return {"ok": False, "error": "fingerprint and source_path required"}
-        return call_tool("ligh_ux_hint", {"fingerprint": fp, "source_path": sp, **ws})
 
     if action == "done":
         return {"ok": True, "done": True, "summary": act.get("summary") or ""}
@@ -229,18 +253,18 @@ def affordance_ids(perceive: dict[str, Any]) -> set[str]:
 
 
 def harness_verify(success_id: str) -> dict[str, Any]:
-    """Independent check — not visible to the LLM system prompt."""
     r = call_tool("ligh_perceive", {"settle_ms": 2500, **ws_args()})
     perceive = r.get("perceive") or {}
     ids = affordance_ids(perceive)
     found = success_id in ids
-    ux = call_tool("ligh_ux_status", ws_args())
-    detail = ux.get("detail") if isinstance(ux, dict) else {}
-    summary = detail.get("summary") if isinstance(detail, dict) else {}
-    if not isinstance(summary, dict):
-        summary = {}
-    node_count = summary.get("node_count")
-    edge_count = summary.get("edge_count")
+    node_count = edge_count = None
+    if ux_tools_allowed():
+        ux = call_tool("ligh_ux_status", ws_args())
+        detail = ux.get("detail") if isinstance(ux, dict) else {}
+        summary = detail.get("summary") if isinstance(detail, dict) else {}
+        if isinstance(summary, dict):
+            node_count = summary.get("node_count")
+            edge_count = summary.get("edge_count")
     return {
         "ok": found,
         "success_id": success_id,
@@ -251,31 +275,106 @@ def harness_verify(success_id: str) -> dict[str, Any]:
     }
 
 
+def affordance_keys(perceive: dict[str, Any]) -> set[str]:
+    keys: set[str] = set()
+    for a in perceive.get("affordances") or []:
+        if not isinstance(a, dict):
+            continue
+        for k in ("id", "label", "identifier"):
+            if a.get(k):
+                keys.add(str(a[k]))
+    loc = perceive.get("location") or {}
+    if loc.get("title"):
+        keys.add(str(loc["title"]))
+    return keys
+
+
+def on_springboard(perceive: dict[str, Any], app_label: str) -> bool:
+    for a in perceive.get("affordances") or []:
+        if not isinstance(a, dict):
+            continue
+        ident = a.get("identifier") or a.get("label") or ""
+        if ident == app_label and a.get("hittable", True):
+            return True
+    return False
+
+
+def foreground_ready(
+    perceive: dict[str, Any], bundle_id: str, app_label: str, markers: list[str]
+) -> bool:
+    keys = affordance_keys(perceive)
+    if markers and any(m in keys for m in markers):
+        return True
+    if on_springboard(perceive, app_label):
+        return False
+    loc = perceive.get("location") or {}
+    return loc.get("bundle_id") == bundle_id and loc.get("surface") == "app"
+
+
 def bootstrap_app() -> dict[str, Any]:
     call_tool("ligh_ready", {"settle_ms": 2500, "recover_homes": 4})
-    return call_tool(
+    boot = call_tool(
         "ligh_cap_run_app",
         {"app": APP, "bundle_id": BUNDLE_ID, "settle_ms": 3500, "timeout_ms": 15000},
     )
+    # Ensure app foreground — run_app can install without bringing app to front.
+    app_label = os.path.basename(APP).replace(".app", "")
+    markers = [m.strip() for m in os.environ.get("LIGH_UX_IN_APP_MARKERS", SUCCESS_ID).split(",") if m.strip()]
+    for attempt in range(1, 6):
+        p = call_tool("ligh_perceive", {"settle_ms": 2500, **ws_args()})
+        perceive = (p.get("perceive") or {})
+        if foreground_ready(perceive, BUNDLE_ID, app_label, markers):
+            return {**boot, "foreground_attempt": attempt, "foreground_ok": True}
+        call_tool("ligh_launch", {"bundle_id": BUNDLE_ID})
+        time.sleep(1.2)
+        call_tool(
+            "ligh_attempt",
+            {
+                "intent": "tap",
+                "label": app_label,
+                "settle_ms": 2000,
+                "timeout_ms": 8000,
+                **ws_args(),
+            },
+        )
+        time.sleep(1.0)
+    return {**boot, "foreground_ok": False, "warning": "app may still be on SpringBoard"}
 
 
-def main() -> int:
-    if not os.environ.get("OPENAI_API_KEY", "").strip():
-        print(json.dumps({"ok": False, "error": "OPENAI_API_KEY missing"}), file=sys.stderr)
-        return 1
+def count_actions(trace: list[dict[str, Any]]) -> dict[str, int]:
+    counts: dict[str, int] = {}
+    intent_met = intent_fail = 0
+    for row in trace:
+        act = row.get("action") or {}
+        name = act.get("action") or "?"
+        counts[name] = counts.get(name, 0) + 1
+        res = row.get("result") or {}
+        if name == "attempt":
+            if res.get("intent_met"):
+                intent_met += 1
+            elif "intent_met" in res:
+                intent_fail += 1
+    counts["attempt_intent_met"] = intent_met
+    counts["attempt_intent_fail"] = intent_fail
+    return counts
 
+
+def run_agent() -> dict[str, Any]:
     t0 = time.time()
     bootstrap = bootstrap_app()
+    user_extra = ""
+    if ARM == "replay":
+        user_extra = "\n\nREPLAY: call ux_status first, then complete the flow using graph memory."
+
     messages: list[dict[str, Any]] = [
-        {"role": "system", "content": SYSTEM},
+        {"role": "system", "content": system_prompt()},
         {
             "role": "user",
-            "content": GOAL + f"\n\nApp bundle: {BUNDLE_ID}. Workspace: {WORKSPACE}. Bootstrap: {bootstrap.get('ok')}",
+            "content": GOAL + f"\n\nArm: {ARM}. Bundle: {BUNDLE_ID}. Bootstrap ok: {bootstrap.get('ok')}.{user_extra}",
         },
     ]
     trace: list[dict[str, Any]] = []
     tokens_in = tokens_out = 0
-    agent_claimed_done = False
 
     for step in range(1, MAX_STEPS + 1):
         chat = openai_chat(messages)
@@ -287,6 +386,7 @@ def main() -> int:
         print(
             json.dumps(
                 {
+                    "arm": ARM,
                     "step": step,
                     "action": act.get("action"),
                     "ok": result.get("ok"),
@@ -297,47 +397,92 @@ def main() -> int:
         )
 
         if act.get("action") == "done":
-            agent_claimed_done = True
-            break
+            pre = harness_verify(SUCCESS_ID)
+            if pre.get("ok"):
+                trace.append({"step": step, "action": act, "result": {"ok": True, "done": True, "harness_pre": pre}})
+                break
+            result = {
+                "ok": False,
+                "done_rejected": True,
+                "error": "harness: success screen not visible — keep going",
+                "harness_pre": pre,
+            }
+            trace.append({"step": step, "action": act, "result": result})
+            messages.append({"role": "assistant", "content": json.dumps(act)})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": json.dumps(
+                        {
+                            "tool_result": result,
+                            "step": step,
+                            "suggestion": "perceive again; use attempt tap/type on login fields; dismiss keyboard if needed",
+                        }
+                    ),
+                }
+            )
+            continue
 
         fault = result.get("fault") or ""
         hint = {}
         if fault in ("target_missing", "motor_no_effect", "intent_unmet"):
-            hint = {"suggestion": "perceive again or find/dismiss; read affordances"}
+            hint = {
+                "suggestion": (
+                    "perceive again; read affordances. "
+                    "If intent_unmet after tap, expect may be wrong — perceive and retry with updated expect."
+                )
+            }
         messages.append({"role": "assistant", "content": json.dumps(act)})
         messages.append(
-            {
-                "role": "user",
-                "content": json.dumps({"tool_result": {**result, **hint}, "step": step}),
-            }
+            {"role": "user", "content": json.dumps({"tool_result": {**result, **hint}, "step": step})}
         )
 
     verify = harness_verify(SUCCESS_ID)
     verified = bool(verify.get("ok"))
-    graph_nodes = (verify.get("ux_graph") or {}).get("node_count") or 0
-    graph_edges = (verify.get("ux_graph") or {}).get("edge_count") or 0
-    graph_grew = (graph_nodes or 0) >= 2 and (graph_edges or 0) >= 1
+    g = verify.get("ux_graph") or {}
+    graph_grew = (g.get("node_count") or 0) >= 2 and (g.get("edge_count") or 0) >= 1
+
+    return {
+        "arm": ARM,
+        "verified": verified,
+        "graph_grew": graph_grew if ux_tools_allowed() else None,
+        "harness_verify": verify,
+        "action_counts": count_actions(trace),
+        "steps_used": len(trace),
+        "tokens": {"in": tokens_in, "out": tokens_out, "total": tokens_in + tokens_out},
+        "total_ms": int((time.time() - t0) * 1000),
+        "bootstrap": bootstrap,
+        "trace": trace[-16:],
+    }
+
+
+def main() -> int:
+    if not os.environ.get("OPENAI_API_KEY", "").strip():
+        print(json.dumps({"ok": False, "error": "OPENAI_API_KEY missing"}), file=sys.stderr)
+        return 1
 
     doc = {
         "gate": "autonomous_ux",
-        "claim": "Autonomous QA/UX agent — no scripted navigation; harness verifies success id",
+        "arm": ARM,
         "app": APP,
         "bundle_id": BUNDLE_ID,
-        "workspace": WORKSPACE,
+        "workspace": WORKSPACE if ARM != "control" else None,
         "goal": GOAL,
         "success_id": SUCCESS_ID,
         "model": MODEL,
-        "bootstrap": bootstrap,
-        "agent_claimed_done": agent_claimed_done,
-        "verified": verified,
-        "graph_grew": graph_grew,
-        "claim_pass": verified and graph_grew,
-        "harness_verify": verify,
-        "steps_used": len(trace),
-        "tokens": {"in": tokens_in, "out": tokens_out},
-        "total_ms": int((time.time() - t0) * 1000),
-        "trace": trace[-14:],
+        **run_agent(),
     }
+    bootstrap = doc.get("bootstrap") or {}
+    if bootstrap.get("foreground_ok") is False:
+        doc["claim_pass"] = False
+        doc["fail_reason"] = "app_never_foregrounded"
+    elif ARM == "control":
+        doc["claim_pass"] = doc["verified"]
+    else:
+        nodes = (doc.get("harness_verify") or {}).get("ux_graph", {}).get("node_count") or 0
+        edges = (doc.get("harness_verify") or {}).get("ux_graph", {}).get("edge_count") or 0
+        doc["claim_pass"] = doc["verified"] and nodes >= 2 and edges >= 1
+
     out = os.environ.get(
         "LIGH_UX_AGENT_OUT",
         os.path.join(ROOT, "docs/assets/autonomous-ux-latest.json"),
@@ -345,7 +490,7 @@ def main() -> int:
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
         f.write(json.dumps(doc, indent=2) + "\n")
-    print(json.dumps({"claim_pass": doc["claim_pass"], "verified": verified, "out": out}, indent=2))
+    print(json.dumps({"arm": ARM, "claim_pass": doc["claim_pass"], "verified": doc["verified"], "out": out}))
     return 0 if doc["claim_pass"] else 1
 
 

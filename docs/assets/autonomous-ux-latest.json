@@ -451,18 +451,18 @@
               "from": null,
               "to": "Onboard"
             },
-            "t": 1787448300.545404
+            "t": 1787492952.307024
           }
         ],
         "eyes_unusable": false,
         "frame": {
-          "fps": 53.76379063605645,
+          "fps": 47.548053308163546,
           "h": 2556,
-          "id": 522,
+          "id": 584,
           "imports_ok": true,
           "w": 1179
         },
-        "observe_ms": 0.000625,
+        "observe_ms": 0.001417,
         "overlay": "none",
         "path": "lighd",
         "phase": "ready",
@@ -483,30 +483,36 @@
       "surface": "app"
     }
   },
-  "agent_claimed_done": false,
-  "verified": false,
-  "graph_grew": false,
-  "claim_pass": false,
+  "agent_claimed_done": true,
+  "verified": true,
+  "graph_grew": true,
+  "claim_pass": true,
   "harness_verify": {
-    "ok": false,
+    "ok": true,
     "success_id": "HomeReady",
-    "seen_ids": [],
-    "fingerprint": null,
+    "seen_ids": [
+      "HomeReady",
+      "HomeUserName",
+      "Mattia Marino",
+      "Onboard",
+      "nb5a02070"
+    ],
+    "fingerprint": "fp_2b03c8b62402be70",
     "ux_graph": {
-      "node_count": null,
-      "edge_count": null
+      "node_count": 4,
+      "edge_count": 4
     },
-    "perceive_ok": false
+    "perceive_ok": true
   },
-  "steps_used": 18,
+  "steps_used": 8,
   "tokens": {
-    "in": 29404,
-    "out": 13355
+    "in": 31135,
+    "out": 11144
   },
-  "total_ms": 81309,
+  "total_ms": 84485,
   "trace": [
     {
-      "step": 5,
+      "step": 1,
       "action": {
         "action": "perceive",
         "intent": "wait",
@@ -514,20 +520,870 @@
         "label": "",
         "text": "",
         "key": "",
-        "expect": {},
+        "expect": null,
         "baseline": "",
         "fingerprint": "",
         "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry after sustained faults; read available affordances (ids/labels) before deciding next tap."
+        "summary": "Perceive initial onboarding screen to read available affordances."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.5004240882103477,
+                  "y": 0.6034820031298905
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "OnboardContinue",
+                "kind": "primary_button",
+                "label": "Continue"
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.659037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "OnboardSkip",
+                "kind": "button",
+                "label": "Skip"
+              },
+              {
+                "center_norm": {
+                  "x": 0.21670907548770135,
+                  "y": 0.1428012519561815
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "nb5a02070",
+                "kind": "other",
+                "label": "Onboard"
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000000000001,
+                  "y": 0.48865414710485133
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "OnboardWelcome",
+                "kind": "static_text",
+                "label": "Welcome"
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.547926447574335
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "nf3cd4aa4",
+                "kind": "static_text",
+                "label": "Get started with the app"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "dev.ligh.Onboard",
+              "fingerprint": "fp_ab0895f8ab1dcb92",
+              "surface": "app",
+              "title": "Onboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "OnboardContinue",
+              "label": "Continue",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "OnboardSkip",
+              "label": "Skip",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "nb5a02070",
+              "label": "Onboard",
+              "role": "AXHeading",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "OnboardWelcome",
+              "label": "Welcome",
+              "role": "AXStaticText",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "nf3cd4aa4",
+              "label": "Get started with the app",
+              "role": "AXStaticText",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5004240882103477,
+                "y": 0.6034820031298905
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardContinue",
+              "kind": "primary_button",
+              "label": "Continue"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.659037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardSkip",
+              "kind": "button",
+              "label": "Skip"
+            },
+            {
+              "center_norm": {
+                "x": 0.21670907548770135,
+                "y": 0.1428012519561815
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "nb5a02070",
+              "kind": "other",
+              "label": "Onboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.48865414710485133
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardWelcome",
+              "kind": "static_text",
+              "label": "Welcome"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.547926447574335
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "nf3cd4aa4",
+              "kind": "static_text",
+              "label": "Get started with the app"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "dev.ligh.Onboard",
+            "fingerprint": "fp_ab0895f8ab1dcb92",
+            "surface": "app",
+            "title": "Onboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 2,
+      "action": {
+        "action": "attempt",
+        "intent": "tap",
+        "id": "OnboardContinue",
+        "label": "Continue",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_id": "OnboardSkip"
+        },
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Tap Continue to advance onboarding to the next screen; expect the Skip affordance on the following screen."
       },
       "result": {
         "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
+        "fault": "intent_unmet",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "method": "hid_tap",
+            "motor": "ensure_path",
+            "target": "OnboardContinue",
+            "verified": true
+          },
+          "motor_fault": "ok",
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": true,
+              "hypotheses": [
+                {
+                  "confidence": 0.75,
+                  "detail": "expected OnboardSkip, saw similar: OnboardNameField, OnboardNameTitle, OnboardNext",
+                  "kind": "a11y_id_mismatch"
+                }
+              ],
+              "missing": [
+                "see_id:OnboardSkip"
+              ],
+              "post_fingerprint": "fp_6773b114c7c21f15",
+              "pre_fingerprint": "fp_ab0895f8ab1dcb92"
+            },
+            "fault": "intent_unmet",
+            "intent": "tap",
+            "intent_met": false,
+            "motor_ok": true,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5633802816901409
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "OnboardNameField",
+                  "kind": "text_field",
+                  "value": "Name"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.626564945226917
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "OnboardNext",
+                  "kind": "primary_button",
+                  "label": "Next"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.21670907548770135,
+                    "y": 0.1428012519561815
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "nb5a02070",
+                  "kind": "other",
+                  "label": "Onboard"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5043035993740219
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "OnboardNameTitle",
+                  "kind": "static_text",
+                  "label": "Your name"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "dev.ligh.Onboard",
+                "fingerprint": "fp_6773b114c7c21f15",
+                "surface": "app",
+                "title": "Onboard"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": true,
+          "hypotheses": [
+            {
+              "confidence": 0.75,
+              "detail": "expected OnboardSkip, saw similar: OnboardNameField, OnboardNameTitle, OnboardNext",
+              "kind": "a11y_id_mismatch"
+            }
+          ],
+          "missing": [
+            "see_id:OnboardSkip"
+          ],
+          "post_fingerprint": "fp_6773b114c7c21f15",
+          "pre_fingerprint": "fp_ab0895f8ab1dcb92"
+        },
+        "intent_met": false,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5633802816901409
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardNameField",
+              "kind": "text_field",
+              "value": "Name"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.626564945226917
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardNext",
+              "kind": "primary_button",
+              "label": "Next"
+            },
+            {
+              "center_norm": {
+                "x": 0.21670907548770135,
+                "y": 0.1428012519561815
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "nb5a02070",
+              "kind": "other",
+              "label": "Onboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5043035993740219
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardNameTitle",
+              "kind": "static_text",
+              "label": "Your name"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "dev.ligh.Onboard",
+            "fingerprint": "fp_6773b114c7c21f15",
+            "surface": "app",
+            "title": "Onboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 3,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perceive current onboarding screen after failed Continue tap; read available affordances (OnboardNameField, OnboardNext)."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5633802816901409
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "OnboardNameField",
+                "kind": "text_field",
+                "value": "Name"
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.626564945226917
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "OnboardNext",
+                "kind": "primary_button",
+                "label": "Next"
+              },
+              {
+                "center_norm": {
+                  "x": 0.21670907548770135,
+                  "y": 0.1428012519561815
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "nb5a02070",
+                "kind": "other",
+                "label": "Onboard"
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5043035993740219
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "OnboardNameTitle",
+                "kind": "static_text",
+                "label": "Your name"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "dev.ligh.Onboard",
+              "fingerprint": "fp_6773b114c7c21f15",
+              "surface": "app",
+              "title": "Onboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "OnboardNameField",
+              "label": null,
+              "role": "AXTextField",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "OnboardNext",
+              "label": "Next",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "nb5a02070",
+              "label": "Onboard",
+              "role": "AXHeading",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "OnboardNameTitle",
+              "label": "Your name",
+              "role": "AXStaticText",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5633802816901409
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardNameField",
+              "kind": "text_field",
+              "value": "Name"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.626564945226917
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardNext",
+              "kind": "primary_button",
+              "label": "Next"
+            },
+            {
+              "center_norm": {
+                "x": 0.21670907548770135,
+                "y": 0.1428012519561815
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "nb5a02070",
+              "kind": "other",
+              "label": "Onboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5043035993740219
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardNameTitle",
+              "kind": "static_text",
+              "label": "Your name"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "dev.ligh.Onboard",
+            "fingerprint": "fp_6773b114c7c21f15",
+            "surface": "app",
+            "title": "Onboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 4,
+      "action": {
+        "action": "attempt",
+        "intent": "type",
+        "id": "OnboardNameField",
+        "label": "Name",
+        "text": "Mattia Marino",
+        "key": "",
+        "expect": null,
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Type the user's name into the OnboardNameField; then next step will likely be tapping Next."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "attempt": 0,
+            "motor": "focus_type",
+            "text": "Mattia Marino",
+            "verified": "field_value"
+          },
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": false,
+              "post_fingerprint": "fp_6773b114c7c21f15",
+              "pre_fingerprint": "fp_6773b114c7c21f15"
+            },
+            "intent": "type",
+            "intent_met": true,
+            "motor_ok": true,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5633802816901409
+                  },
+                  "focused": true,
+                  "hittable": true,
+                  "id": "OnboardNameField",
+                  "kind": "text_field",
+                  "value": "Mattia Marino"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.626564945226917
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "OnboardNext",
+                  "kind": "primary_button",
+                  "label": "Next"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.21670907548770135,
+                    "y": 0.1428012519561815
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "nb5a02070",
+                  "kind": "other",
+                  "label": "Onboard"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5043035993740219
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "OnboardNameTitle",
+                  "kind": "static_text",
+                  "label": "Your name"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "dev.ligh.Onboard",
+                "fingerprint": "fp_6773b114c7c21f15",
+                "surface": "app",
+                "title": "Onboard"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": false,
+          "post_fingerprint": "fp_6773b114c7c21f15",
+          "pre_fingerprint": "fp_6773b114c7c21f15"
+        },
+        "intent_met": true,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5633802816901409
+              },
+              "focused": true,
+              "hittable": true,
+              "id": "OnboardNameField",
+              "kind": "text_field",
+              "value": "Mattia Marino"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.626564945226917
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardNext",
+              "kind": "primary_button",
+              "label": "Next"
+            },
+            {
+              "center_norm": {
+                "x": 0.21670907548770135,
+                "y": 0.1428012519561815
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "nb5a02070",
+              "kind": "other",
+              "label": "Onboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5043035993740219
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardNameTitle",
+              "kind": "static_text",
+              "label": "Your name"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "dev.ligh.Onboard",
+            "fingerprint": "fp_6773b114c7c21f15",
+            "surface": "app",
+            "title": "Onboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 5,
+      "action": {
+        "action": "attempt",
+        "intent": "tap",
+        "id": "OnboardNext",
+        "label": "Next",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_id": "OnboardNext"
+        },
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Tap Next to proceed from the Name entry screen to the next onboarding step; expect the next screen's primary action to be available."
+      },
+      "result": {
+        "ok": false,
+        "fault": "intent_unmet",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "method": "hid_tap",
+            "motor": "ensure_path",
+            "target": "OnboardNext",
+            "verified": true
+          },
+          "motor_fault": "ok",
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": true,
+              "hypotheses": [
+                {
+                  "confidence": 0.75,
+                  "detail": "expected OnboardNext, saw similar: OnboardAlmostDone, OnboardFinish",
+                  "kind": "a11y_id_mismatch"
+                }
+              ],
+              "missing": [
+                "see_id:OnboardNext"
+              ],
+              "post_fingerprint": "fp_4cf50893082415a3",
+              "pre_fingerprint": "fp_6773b114c7c21f15"
+            },
+            "fault": "intent_unmet",
+            "intent": "tap",
+            "intent_met": false,
+            "motor_ok": true,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.5004240882103477,
+                    "y": 0.5915492957746479
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "OnboardFinish",
+                  "kind": "button",
+                  "label": "Finish"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.21670907548770135,
+                    "y": 0.1428012519561815
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "nb5a02070",
+                  "kind": "other",
+                  "label": "Onboard"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5359937402190923
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "OnboardAlmostDone",
+                  "kind": "static_text",
+                  "label": "Almost done"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "dev.ligh.Onboard",
+                "fingerprint": "fp_4cf50893082415a3",
+                "surface": "app",
+                "title": "Onboard"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": true,
+          "hypotheses": [
+            {
+              "confidence": 0.75,
+              "detail": "expected OnboardNext, saw similar: OnboardAlmostDone, OnboardFinish",
+              "kind": "a11y_id_mismatch"
+            }
+          ],
+          "missing": [
+            "see_id:OnboardNext"
+          ],
+          "post_fingerprint": "fp_4cf50893082415a3",
+          "pre_fingerprint": "fp_6773b114c7c21f15"
+        },
+        "intent_met": false,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5004240882103477,
+                "y": 0.5915492957746479
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardFinish",
+              "kind": "button",
+              "label": "Finish"
+            },
+            {
+              "center_norm": {
+                "x": 0.21670907548770135,
+                "y": 0.1428012519561815
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "nb5a02070",
+              "kind": "other",
+              "label": "Onboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5359937402190923
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardAlmostDone",
+              "kind": "static_text",
+              "label": "Almost done"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "dev.ligh.Onboard",
+            "fingerprint": "fp_4cf50893082415a3",
+            "surface": "app",
+            "title": "Onboard"
+          },
+          "ready": true
+        }
       }
     },
     {
@@ -539,320 +1395,319 @@
         "label": "",
         "text": "",
         "key": "",
-        "expect": {},
+        "expect": null,
         "baseline": "",
         "fingerprint": "",
         "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry after fault; read available affordances (ids/labels) before deciding next tap."
+        "summary": "Perceive current onboarding screen to read available affordances; identify OnboardFinish as the next tap target to complete onboarding."
       },
       "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.5004240882103477,
+                  "y": 0.5915492957746479
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "OnboardFinish",
+                "kind": "button",
+                "label": "Finish"
+              },
+              {
+                "center_norm": {
+                  "x": 0.21670907548770135,
+                  "y": 0.1428012519561815
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "nb5a02070",
+                "kind": "other",
+                "label": "Onboard"
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5359937402190923
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "OnboardAlmostDone",
+                "kind": "static_text",
+                "label": "Almost done"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "dev.ligh.Onboard",
+              "fingerprint": "fp_4cf50893082415a3",
+              "surface": "app",
+              "title": "Onboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "OnboardFinish",
+              "label": "Finish",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "nb5a02070",
+              "label": "Onboard",
+              "role": "AXHeading",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "OnboardAlmostDone",
+              "label": "Almost done",
+              "role": "AXStaticText",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5004240882103477,
+                "y": 0.5915492957746479
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardFinish",
+              "kind": "button",
+              "label": "Finish"
+            },
+            {
+              "center_norm": {
+                "x": 0.21670907548770135,
+                "y": 0.1428012519561815
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "nb5a02070",
+              "kind": "other",
+              "label": "Onboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5359937402190923
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "OnboardAlmostDone",
+              "kind": "static_text",
+              "label": "Almost done"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "dev.ligh.Onboard",
+            "fingerprint": "fp_4cf50893082415a3",
+            "surface": "app",
+            "title": "Onboard"
+          },
+          "ready": true
+        }
       }
     },
     {
       "step": 7,
       "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
+        "action": "attempt",
+        "intent": "tap",
+        "id": "OnboardFinish",
+        "label": "Finish",
         "text": "",
         "key": "",
-        "expect": {},
+        "expect": {
+          "see_id": "Home"
+        },
         "baseline": "",
         "fingerprint": "",
         "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry after fault; read available affordances (ids/labels) before deciding next tap."
+        "summary": "Tap Finish to complete onboarding; expect the home-ready screen to appear."
       },
       "result": {
         "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
+        "fault": "intent_unmet",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "method": "hid_tap",
+            "motor": "ensure_path",
+            "target": "OnboardFinish",
+            "verified": true
+          },
+          "motor_fault": "ok",
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": true,
+              "hypotheses": [
+                {
+                  "confidence": 0.75,
+                  "detail": "expected Home, saw similar: HomeReady, HomeUserName",
+                  "kind": "a11y_id_mismatch"
+                }
+              ],
+              "missing": [
+                "see_id:Home"
+              ],
+              "post_fingerprint": "fp_2b03c8b62402be70",
+              "pre_fingerprint": "fp_4cf50893082415a3"
+            },
+            "fault": "intent_unmet",
+            "intent": "tap",
+            "intent_met": false,
+            "motor_ok": true,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.21670907548770135,
+                    "y": 0.1428012519561815
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "nb5a02070",
+                  "kind": "other",
+                  "label": "Onboard"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5465571205007825
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "HomeReady",
+                  "kind": "static_text",
+                  "label": "HomeReady"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6011345852895149
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "HomeUserName",
+                  "kind": "static_text",
+                  "label": "Mattia Marino"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "dev.ligh.Onboard",
+                "fingerprint": "fp_2b03c8b62402be70",
+                "surface": "app",
+                "title": "Onboard"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": true,
+          "hypotheses": [
+            {
+              "confidence": 0.75,
+              "detail": "expected Home, saw similar: HomeReady, HomeUserName",
+              "kind": "a11y_id_mismatch"
+            }
+          ],
+          "missing": [
+            "see_id:Home"
+          ],
+          "post_fingerprint": "fp_2b03c8b62402be70",
+          "pre_fingerprint": "fp_4cf50893082415a3"
+        },
+        "intent_met": false,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.21670907548770135,
+                "y": 0.1428012519561815
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "nb5a02070",
+              "kind": "other",
+              "label": "Onboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5465571205007825
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "HomeReady",
+              "kind": "static_text",
+              "label": "HomeReady"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6011345852895149
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "HomeUserName",
+              "kind": "static_text",
+              "label": "Mattia Marino"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "dev.ligh.Onboard",
+            "fingerprint": "fp_2b03c8b62402be70",
+            "surface": "app",
+            "title": "Onboard"
+          },
+          "ready": true
+        }
       }
     },
     {
       "step": 8,
       "action": {
-        "action": "perceive",
+        "action": "done",
         "intent": "wait",
         "id": "",
         "label": "",
         "text": "",
         "key": "",
-        "expect": {},
+        "expect": null,
         "baseline": "",
         "fingerprint": "",
         "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry (step 7) after fault; read available affordances (ids/labels) before deciding next tap."
+        "summary": "Onboarding completed; home-ready screen detected with HomeReady and HomeUserName visible."
       },
       "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 9,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry after fault at step 8; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 10,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry at step 9 after fault; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 11,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry at step 10 after repeated faults; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 12,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry at step 11 after fault; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 13,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry at step 12 after fault; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 14,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry at step 13 after fault; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 15,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry at step 14 after fault; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 16,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry at step 15 after persistent fault; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 17,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry at step 16 after fault; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
-      }
-    },
-    {
-      "step": 18,
-      "action": {
-        "action": "perceive",
-        "intent": "wait",
-        "id": "",
-        "label": "",
-        "text": "",
-        "key": "",
-        "expect": {},
-        "baseline": "",
-        "fingerprint": "",
-        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
-        "summary": "Perception retry at step 17 after fault; read available affordances (ids/labels) before deciding next tap."
-      },
-      "result": {
-        "ok": false,
-        "fault": "fail",
-        "capability": null,
-        "phase": null,
-        "overlay": null,
-        "surface": null,
-        "detail": null
+        "ok": true,
+        "done": true,
+        "summary": "Onboarding completed; home-ready screen detected with HomeReady and HomeUserName visible."
       }
     }
   ],

@@ -74,6 +74,9 @@ pub struct UxTransitionEdge {
     pub target_label: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub target_id: Option<String>,
+    /// Typed text when intent is `type`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub text: Option<String>,
     pub intent_met: bool,
     pub count: u32,
     pub last_ms: f64,
@@ -229,6 +232,7 @@ impl UxGraph {
         verdict: &AttemptVerdict,
         target_label: Option<&str>,
         target_id: Option<&str>,
+        text: Option<&str>,
     ) {
         self.stats.total_attempts += 1;
         if verdict.intent_met {
@@ -238,7 +242,7 @@ impl UxGraph {
         }
         self.upsert_screen(pre, None);
         self.upsert_screen(&verdict.perceive_after, None);
-        self.record_edge(pre, verdict, target_label, target_id);
+        self.record_edge(pre, verdict, target_label, target_id, text);
     }
 
     fn upsert_screen(&mut self, view: &PerceiveView, extra_hints: Option<&[SourceHint]>) {
@@ -288,6 +292,7 @@ impl UxGraph {
         verdict: &AttemptVerdict,
         target_label: Option<&str>,
         target_id: Option<&str>,
+        text: Option<&str>,
     ) {
         let from_fp = pre.location.fingerprint.clone();
         let to_fp = verdict.perceive_after.location.fingerprint.clone();
@@ -299,6 +304,7 @@ impl UxGraph {
             .collect();
         let target_label = target_label.map(|s| s.to_string());
         let target_id = target_id.map(|s| s.to_string());
+        let text = text.map(|s| s.to_string());
 
         if let Some(edge) = self.edges.iter_mut().find(|e| {
             e.from_fp == from_fp
@@ -306,12 +312,16 @@ impl UxGraph {
                 && e.intent == verdict.intent
                 && e.target_label == target_label
                 && e.target_id == target_id
+                && e.text == text
         }) {
             edge.count += 1;
             edge.last_ms = now_secs();
             edge.intent_met = verdict.intent_met;
             edge.last_fault = verdict.fault.clone();
             edge.hypothesis_kinds = hyps;
+            if text.is_some() {
+                edge.text = text;
+            }
         } else {
             self.edges.push(UxTransitionEdge {
                 from_fp,
@@ -319,6 +329,7 @@ impl UxGraph {
                 intent: verdict.intent.clone(),
                 target_label,
                 target_id,
+                text,
                 intent_met: verdict.intent_met,
                 count: 1,
                 last_ms: now_secs(),
@@ -478,6 +489,147 @@ impl UxGraph {
     pub fn count_new_screens_after(&self, before_count: usize) -> u32 {
         (self.nodes.len().saturating_sub(before_count)) as u32
     }
+
+    /// Compile a motor step list from intent_met edges leading to a goal screen.
+    pub fn compile_flow(&self, goal_id: &str) -> Result<CompiledFlow, String> {
+        let goal_fp = self
+            .nodes
+            .iter()
+            .find(|(_, n)| n.affordance_labels.iter().any(|l| l == goal_id))
+            .map(|(fp, _)| fp.clone())
+            .ok_or_else(|| format!("no screen with affordance/id {goal_id}"))?;
+
+        let mut met: Vec<&UxTransitionEdge> =
+            self.edges.iter().filter(|e| e.intent_met).collect();
+        if met.is_empty() {
+            return Err(format!("no intent_met edges for {goal_id}"));
+        }
+        met.sort_by(|a, b| {
+            a.last_ms
+                .partial_cmp(&b.last_ms)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
+
+        let last_idx = met
+            .iter()
+            .rposition(|e| e.to_fp == goal_fp)
+            .ok_or_else(|| format!("no transition into goal screen {goal_id}"))?;
+
+        let mut chain: Vec<&UxTransitionEdge> = vec![met[last_idx]];
+        let mut current = met[last_idx].from_fp.clone();
+
+        for e in met[..last_idx].iter().rev() {
+            if e.to_fp == current {
+                chain.push(e);
+                current = e.from_fp.clone();
+            }
+        }
+        chain.reverse();
+
+        if chain.is_empty() {
+            return Err(format!("no intent_met path to {goal_id}"));
+        }
+
+        let mut steps: Vec<serde_json::Value> = Vec::new();
+        let mut fps: Vec<String> = Vec::new();
+        for fp in chain.iter().flat_map(|e| [e.from_fp.as_str(), e.to_fp.as_str()]) {
+            if !fps.contains(&fp.to_string()) {
+                fps.push(fp.to_string());
+            }
+        }
+        if !fps.contains(&goal_fp) {
+            fps.push(goal_fp.clone());
+        }
+
+        for (i, edge) in chain.iter().enumerate() {
+            let mut step = match edge.intent.as_str() {
+                "type" => {
+                    let text = edge
+                        .text
+                        .clone()
+                        .filter(|t| !t.is_empty())
+                        .ok_or_else(|| {
+                            format!(
+                                "type edge missing text (id={:?})",
+                                edge.target_id
+                            )
+                        })?;
+                    let mut s = serde_json::json!({ "op": "type", "text": text });
+                    if let Some(id) = &edge.target_id {
+                        s["id"] = serde_json::json!(id);
+                    }
+                    if let Some(label) = &edge.target_label {
+                        s["label"] = serde_json::json!(label);
+                    }
+                    s
+                }
+                "tap" => {
+                    let mut s = serde_json::json!({ "op": "tap" });
+                    if let Some(id) = &edge.target_id {
+                        s["id"] = serde_json::json!(id);
+                    }
+                    if let Some(label) = &edge.target_label {
+                        s["label"] = serde_json::json!(label);
+                    }
+                    if i + 1 == chain.len() {
+                        s["until_id"] = serde_json::json!(goal_id);
+                    }
+                    s
+                }
+                "key" => serde_json::json!({
+                    "op": "key",
+                    "name": edge.target_id.as_deref().unwrap_or("return")
+                }),
+                other => {
+                    return Err(format!("unsupported compiled intent: {other}"));
+                }
+            };
+            steps.push(step);
+        }
+
+        let met = chain.iter().filter(|e| e.intent_met).count();
+        let confidence = met as f64 / chain.len().max(1) as f64;
+
+        Ok(CompiledFlow {
+            goal_id: goal_id.to_string(),
+            goal_fp,
+            steps,
+            source_fps: fps,
+            confidence,
+            compiled_ms: now_secs(),
+        })
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CompiledFlow {
+    pub goal_id: String,
+    pub goal_fp: String,
+    pub steps: Vec<serde_json::Value>,
+    pub source_fps: Vec<String>,
+    pub confidence: f64,
+    pub compiled_ms: f64,
+}
+
+impl CompiledFlow {
+    pub fn save(&self, path: &Path) -> std::io::Result<()> {
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent)?;
+        }
+        std::fs::write(path, serde_json::to_string_pretty(self)?)
+    }
+
+    pub fn load(path: &Path) -> std::io::Result<Self> {
+        let raw = std::fs::read_to_string(path)?;
+        serde_json::from_str(&raw).map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+    }
+}
+
+pub fn default_compiled_path(workspace: &Path, goal_id: &str) -> PathBuf {
+    workspace
+        .join(".ligh")
+        .join("compiled")
+        .join(format!("{goal_id}.json"))
 }
 
 fn merge_hints(dst: &mut Vec<SourceHint>, src: &[SourceHint]) {
@@ -589,10 +741,37 @@ mod tests {
         let mut g = UxGraph::new();
         let pre = perceive("fp_a", &["Login"]);
         let v = verdict(&pre, "fp_b", true);
-        g.record_attempt(&pre, &v, Some("Login"), None);
+        g.record_attempt(&pre, &v, Some("Login"), None, None);
         assert_eq!(g.nodes.len(), 2);
         assert_eq!(g.edges.len(), 1);
         assert_eq!(g.stats.intent_met, 1);
+    }
+
+    #[test]
+    fn compile_login_chain() {
+        let mut g = UxGraph::new();
+        let login = perceive("fp_login", &["usernameTextField", "loginButton"]);
+        let home = perceive("fp_home", &["homeTitle"]);
+        let mut v1 = verdict(&login, "fp_login", true);
+        v1.intent = "tap".into();
+        g.record_attempt(&login, &v1, None, Some("usernameTextField"), None);
+        let mut v2 = verdict(&login, "fp_login", true);
+        v2.intent = "type".into();
+        g.record_attempt(&login, &v2, None, Some("usernameTextField"), Some("alice"));
+        let mut v2b = verdict(&login, "fp_login", true);
+        v2b.intent = "tap".into();
+        g.record_attempt(&login, &v2b, None, Some("passwordSecureField"), None);
+        let mut v2c = verdict(&login, "fp_login", true);
+        v2c.intent = "type".into();
+        g.record_attempt(&login, &v2c, None, Some("passwordSecureField"), Some("secret"));
+        let mut v3 = verdict(&login, "fp_home", true);
+        v3.intent = "tap".into();
+        g.record_attempt(&login, &v3, None, Some("loginButton"), None);
+        g.record_perceive(&home);
+        let flow = g.compile_flow("homeTitle").expect("compile home");
+        assert_eq!(flow.steps.len(), 5);
+        assert_eq!(flow.steps[0]["op"], "tap");
+        assert_eq!(flow.steps[1]["text"], "alice");
     }
 
     #[test]

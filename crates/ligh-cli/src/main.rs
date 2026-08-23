@@ -482,6 +482,25 @@ enum UxgraphCommands {
         #[arg(long)]
         workspace: Option<String>,
     },
+    /// Compile graph edges into motor steps for a goal id.
+    CompileFlow {
+        goal_id: String,
+        #[arg(long)]
+        workspace: Option<String>,
+    },
+    /// Execute compiled flow (zero LLM).
+    ExecuteCompiled {
+        goal_id: String,
+        app: String,
+        #[arg(long)]
+        bundle_id: Option<String>,
+        #[arg(long)]
+        workspace: Option<String>,
+        #[arg(long, default_value_t = 3500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 20000)]
+        timeout_ms: u64,
+    },
 }
 
 #[derive(Subcommand)]
@@ -1493,6 +1512,24 @@ fn main() -> anyhow::Result<()> {
                     fingerprint,
                     source_path,
                     workspace,
+                },
+                UxgraphCommands::CompileFlow { goal_id, workspace } => {
+                    DaemonRequest::UxCompileFlow { goal_id, workspace }
+                }
+                UxgraphCommands::ExecuteCompiled {
+                    goal_id,
+                    app,
+                    bundle_id,
+                    workspace,
+                    settle_ms,
+                    timeout_ms,
+                } => DaemonRequest::UxExecuteCompiled {
+                    goal_id,
+                    app,
+                    bundle_id,
+                    workspace,
+                    settle_ms: Some(settle_ms),
+                    timeout_ms: Some(timeout_ms),
                 },
             };
             let resp = client.call(&req)?;

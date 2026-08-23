@@ -109,7 +109,7 @@ pub(crate) fn cap_attempt(
         label,
     );
     let pre_view = build_perceive(&pre, &pre.events);
-    ux_persist_attempt(workspace, &pre_view, &verdict, label, id);
+    ux_persist_attempt(workspace, &pre_view, &verdict, label, id, text);
 
     let fault = if verdict.intent_met {
         FaultClass::Ok

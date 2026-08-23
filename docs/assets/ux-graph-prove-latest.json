@@ -1,0 +1,43 @@
+{
+  "gate": "ux_graph_prove",
+  "claim": "UX graph helps agents: OSS login discover \u2192 replay beats control (tokens/perceive)",
+  "app": "XCUITestDemo (OSS third-party)",
+  "harness_success_id": "homeTitle",
+  "agent_never_told_success_id": true,
+  "arms": {
+    "discover": {
+      "verified": true,
+      "nodes": 4,
+      "tokens": 236931,
+      "perceives": 9,
+      "steps": 17,
+      "ms": 164808
+    },
+    "replay": {
+      "verified": false,
+      "ux_status_calls": 0,
+      "tokens": 441839,
+      "perceives": 13,
+      "steps": 24,
+      "ms": 194452
+    },
+    "control": {
+      "verified": true,
+      "tokens": 174913,
+      "perceives": 4,
+      "steps": 14,
+      "ms": 171476
+    }
+  },
+  "verdict": {
+    "discover_pass": 1,
+    "replay_pass": 0,
+    "control_pass": 1,
+    "graph_used_in_replay": false,
+    "replay_beats_control": 0,
+    "token_delta_replay_vs_control": 266926,
+    "perceive_delta_replay_vs_control": 9
+  },
+  "claim_pass": 0,
+  "honest_if_fail": "Graph may record but not help; or OSS login too hard for current motor; publish JSON anyway."
+}

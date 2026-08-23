@@ -1,5 +1,7 @@
 # Roadmap — bet the project on one experiment
 
+> **Docs:** product story lives in [`README.md`](README.md). This file is the falsification plan.
+
 **Position today (brutal):** interesting **engineering experiment** + agent **proof-of-concept**. As a **product**, it could still be crap — we have not shown anyone needs it.
 
 | | |
@@ -34,6 +36,8 @@ Maestro is a **footnote** (human UI-test workflows), not the primary competitor.
 - Rigor N=50 isolated arms — LIGH **50/50** p50 **2.2s** vs Maestro **30/50** (60%) p50 **27.5s** p95 **127s** (~**12×** p50 on this job). At N=20 Maestro was **20/20**; reliability breaks under back-to-back load at N=50 (bimodal fast aborts vs ~127s timeouts). Published: [`third-party-rigor-latest.json`](docs/assets/third-party-rigor-latest.json)
 - MCP **mechanism** — structured fault → scripted corrective retry → `ok`
 - **QA layer** — `perceive` + `attempt` with fingerprint evidence + hypotheses ([`qa-layer-latest.json`](docs/assets/qa-layer-latest.json))
+- **Autonomous UX (canonical)** — LLM + `perceive`/`attempt`, harness verifies success id, no scripted nav ([`autonomous-ux-latest.json`](docs/assets/autonomous-ux-latest.json)); gate: `./scripts/gate-autonomous-ux.sh`
+- **Compiled replay (optional)** — motor seed → graph compile → zero-LLM execute; gate: `./scripts/gate-compiled-replay.sh`
 - **LLM autonomous (1×)** — `gpt-5-mini` + vague prompt → fault step 5 → Swift fix → verify ([`autonomous-agent-latest.json`](docs/assets/autonomous-agent-latest.json))
 
 ### Not demonstrated (product)
@@ -44,6 +48,7 @@ Maestro is a **footnote** (human UI-test workflows), not the primary competitor.
 - **Agentic baseline A/B** — same agent, same task: LIGH MCP vs simctl+vision (or their stack); see [`AGENTIC_BASELINE.md`](docs/AGENTIC_BASELINE.md)
 - **Customer discovery** — ~20 targets; one question: *how does your agent interact with Simulator?* — [`CUSTOMER_DISCOVERY.md`](docs/CUSTOMER_DISCOVERY.md)
 - Autonomous matrix at scale (harness exists; **not** the next priority)
+- **UX graph helps LLM navigate** — disproven on OSS A/B ([`ux-graph-prove-latest.json`](docs/assets/ux-graph-prove-latest.json)); `gate-ux-graph-prove.sh` is **experimental/research only**
 
 ### Stop doing (benchmark trap)
 

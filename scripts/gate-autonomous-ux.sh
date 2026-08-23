@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
-# Autonomous UX-graph gate — one of the 5 workflow-matrix apps, cold sim, no scripted nav.
+# Canonical autonomous UX gate — perceive/attempt loop, harness verifies success id.
 #
-# The LLM discovers affordances via perceive/attempt. Harness verifies HomeReady (or env override).
+# Default arm is control (QA only, no graph). The LLM reads affordances via perceive/attempt;
+# the harness independently checks success_id (agent prompt never names it).
+#
 # Requires: OPENAI_API_KEY, release ligh, Xcode sim, ~500MB free disk for LighOnboard build.
 #
 # Usage:
 #   ./scripts/gate-autonomous-ux.sh
-#   LIGH_UX_APP=lighmodal ./scripts/gate-autonomous-ux.sh
+#   LIGH_UX_APP=xcuitestdemo ./scripts/gate-autonomous-ux.sh
+#   LIGH_UX_ARM=discover ./scripts/gate-autonomous-ux.sh   # also record ux graph (experimental)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LIGH="${LIGH_BIN:-$ROOT/target/release/ligh}"
@@ -81,8 +84,10 @@ fi
 # shellcheck source=lib/sim-clean.sh
 source "$ROOT/scripts/lib/sim-clean.sh"
 
-echo "══ Autonomous UX gate ══"
-echo "  app=$APP_ID bundle=$BUNDLE_ID success_id=$SUCCESS_ID"
+UX_ARM="${LIGH_UX_ARM:-control}"
+
+echo "══ Autonomous UX gate (canonical) ══"
+echo "  app=$APP_ID bundle=$BUNDLE_ID success_id=$SUCCESS_ID arm=$UX_ARM"
 echo "  workspace=$WORKSPACE"
 
 echo "  ▶ build $APP_NAME"
@@ -106,10 +111,13 @@ if ! "$ROOT/scripts/agent-first-loop.sh" >/tmp/autonomous-ux-first.log 2>&1; the
     || fail "ligh_ready failed"
 fi
 
-echo "  ▶ fresh ux graph"
-rm -rf "$WORKSPACE/.ligh"
-mkdir -p "$WORKSPACE/.ligh"
+if [[ "$UX_ARM" != "control" ]]; then
+  echo "  ▶ fresh ux graph (discover/replay arm)"
+  rm -rf "$WORKSPACE/.ligh"
+  mkdir -p "$WORKSPACE/.ligh"
+fi
 
+export LIGH_UX_ARM="$UX_ARM"
 export LIGH_APP_PATH="$APP_PATH"
 export LIGH_APP_BUNDLE_ID="$BUNDLE_ID"
 export LIGH_WORKSPACE="$WORKSPACE"
@@ -117,13 +125,13 @@ export LIGH_UX_SUCCESS_ID="$SUCCESS_ID"
 export LIGH_UX_GOAL="$GOAL"
 export LIGH_UX_AGENT_OUT="$OUT"
 
-echo "  ▶ autonomous UX agent (LLM, no scripted steps)"
+echo "  ▶ autonomous UX agent (arm=$UX_ARM, no scripted steps)"
 PASS=0
 if python3 "$ROOT/scripts/autonomous-ux-agent.py"; then
   PASS=1
   ok "autonomous UX verified"
 else
-  echo "  FAIL — harness did not see $SUCCESS_ID or graph did not grow"
+  echo "  FAIL — harness did not see $SUCCESS_ID (arm=$UX_ARM)"
 fi
 
 python3 - <<PY
@@ -132,6 +140,7 @@ p = "$OUT"
 doc = json.load(open(p)) if os.path.isfile(p) else {}
 doc["gate_env"] = "mac_integration"
 doc["app_id"] = "$APP_ID"
+doc["arm"] = "$UX_ARM"
 doc["claim_pass"] = bool(int("$PASS"))
 open(p, "w").write(json.dumps(doc, indent=2) + "\n")
 print(json.dumps({

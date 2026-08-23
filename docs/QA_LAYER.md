@@ -65,13 +65,15 @@ One `attempt` replaces ~4–6 observe/tap/observe/guess turns.
 
 ```bash
 cargo test -p ligh-core qa::
-./scripts/gate-qa-layer.sh          # unit gate (any platform)
-# Mac integration (requires booted sim):
-# OPENAI_API_KEY=… ./scripts/gate-qa-agent.sh
+./scripts/gate-qa-layer.sh              # unit gate (any platform)
+
+# Mac integration (booted sim + fixtures):
+./scripts/gate-autonomous-ux.sh         # canonical — LLM + perceive/attempt + harness
+./scripts/gate-compiled-replay.sh       # zero-LLM replay
 ```
 
 ## Design rule
 
 > Every host call answers: what I did, what changed, whether your intent worked, and what to try next.
 
-See also: [`UX_GRAPH.md`](UX_GRAPH.md) · [`OBSERVE.md`](OBSERVE.md) · [`AGENT.md`](AGENT.md) · [`CONTROL.md`](CONTROL.md).
+See also: [`UX_GRAPH.md`](UX_GRAPH.md) (compile/replay only) · [`OBSERVE.md`](OBSERVE.md) · [`AGENT.md`](AGENT.md)

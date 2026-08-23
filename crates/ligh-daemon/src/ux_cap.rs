@@ -3,16 +3,134 @@
 use std::collections::HashSet;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
 use ligh_core::{
-    default_graph_path, resolve_workspace, CapabilityResult, ExploreResult, ExploreStep,
-    FaultClass, ObserveSnapshot, SessionPhase, UxGraph,
+    default_compiled_path, default_graph_path, resolve_workspace, CapabilityResult, CompiledFlow,
+    ExploreResult, ExploreStep, FaultClass, ObserveSnapshot, SessionPhase, UxGraph,
 };
 use serde_json::json;
 
 use crate::capabilities::{ensure_ready, phase_of, settle_eyes, surface_of};
+use crate::motor::motor_tap;
 use crate::qa_cap::{cap_attempt, cap_perceive, perceive_from_snap};
 use crate::DaemonState;
+
+fn app_label_from_path(app: &str) -> String {
+    Path::new(app)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("app")
+        .to_string()
+}
+
+fn affordance_keys(view: &ligh_core::PerceiveView) -> HashSet<String> {
+    view.affordances
+        .iter()
+        .flat_map(|a| [a.id.clone(), a.label.clone()].into_iter().flatten())
+        .collect()
+}
+
+fn on_springboard(view: &ligh_core::PerceiveView, app_label: &str) -> bool {
+    view.affordances.iter().any(|a| {
+        a.label.as_deref() == Some(app_label) || a.id.as_deref() == Some(app_label)
+    })
+}
+
+/// After run_app, sim scene can report bundle_id while AX tree is still SpringBoard.
+fn ensure_app_foreground(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    app: &str,
+    bundle_id: &str,
+    entry_id: Option<&str>,
+    entry_label: Option<&str>,
+    settle_ms: u64,
+    timeout_ms: u64,
+) -> CapabilityResult {
+    let app_label = app_label_from_path(app);
+    let markers: Vec<&str> = [entry_id, entry_label]
+        .into_iter()
+        .flatten()
+        .collect();
+
+    for attempt in 1..=5u32 {
+        let snap = settle_eyes(build, settle_ms);
+        let view = perceive_from_snap(&snap);
+        let keys = affordance_keys(&view);
+
+        if markers.iter().any(|m| keys.contains(*m)) {
+            return CapabilityResult::success(
+                phase_of(&snap),
+                surface_of(&snap),
+                "ensure_foreground",
+                json!({ "attempt": attempt, "via": "entry_marker" }),
+                Some(snap),
+            );
+        }
+
+        if on_springboard(&view, &app_label) {
+            let udid = match state.lock().unwrap().current_udid() {
+                Ok(u) => u,
+                Err(e) => {
+                    return CapabilityResult::fail(
+                        FaultClass::Infra,
+                        SessionPhase::Dead,
+                        None,
+                        "ensure_foreground",
+                        json!({ "error": e }),
+                        Some(snap),
+                    );
+                }
+            };
+            let _ = ligh_sim::Simctl::run(&["launch", &udid, bundle_id]);
+            thread::sleep(Duration::from_millis(1200));
+            let _ = motor_tap(
+                build,
+                state,
+                Some(app_label.as_str()),
+                None,
+                settle_ms.min(2000),
+                timeout_ms.min(8000),
+                None,
+                None,
+            );
+            thread::sleep(Duration::from_millis(1000));
+            continue;
+        }
+
+        if snap
+            .scene
+            .as_ref()
+            .and_then(|s| s.bundle_id.as_deref())
+            == Some(bundle_id)
+        {
+            return CapabilityResult::success(
+                phase_of(&snap),
+                surface_of(&snap),
+                "ensure_foreground",
+                json!({ "attempt": attempt, "via": "bundle_id" }),
+                Some(snap),
+            );
+        }
+    }
+
+    let snap = settle_eyes(build, settle_ms);
+    CapabilityResult::fail(
+        FaultClass::TargetMissing,
+        phase_of(&snap),
+        surface_of(&snap),
+        "ensure_foreground",
+        json!({
+            "error": "app never foregrounded",
+            "app_label": app_label,
+            "entry_id": entry_id,
+            "entry_label": entry_label,
+        }),
+        Some(snap),
+    )
+}
 
 pub(crate) fn graph_file(workspace: Option<&Path>) -> PathBuf {
     if let Ok(p) = std::env::var("LIGH_UXGRAPH_PATH") {
@@ -44,10 +162,11 @@ pub(crate) fn ux_persist_attempt(
     verdict: &ligh_core::AttemptVerdict,
     label: Option<&str>,
     id: Option<&str>,
+    text: Option<&str>,
 ) {
     let path = graph_file(workspace);
     let mut g = load_graph(&path);
-    g.record_attempt(pre, verdict, label, id);
+    g.record_attempt(pre, verdict, label, id, text);
     let _ = save_graph(&mut g, &path);
 }
 
@@ -310,6 +429,196 @@ pub(crate) fn cap_ux_explore(
         surface_of(&snap),
         "ux_explore",
         json!({ "explore": result, "path": path.display().to_string() }),
+        Some(snap),
+    )
+}
+
+pub(crate) fn cap_ux_compile_flow(
+    workspace: Option<&Path>,
+    goal_id: &str,
+) -> CapabilityResult {
+    let ws = resolve_workspace(workspace);
+    let graph_path = graph_file(workspace);
+    let g = load_graph(&graph_path);
+    match g.compile_flow(goal_id) {
+        Ok(flow) => {
+            let out = default_compiled_path(&ws, goal_id);
+            if let Err(e) = flow.save(&out) {
+                return CapabilityResult::fail(
+                    FaultClass::Infra,
+                    SessionPhase::Ready,
+                    None,
+                    "ux_compile_flow",
+                    json!({ "error": e.to_string() }),
+                    None,
+                );
+            }
+            CapabilityResult::success(
+                SessionPhase::Ready,
+                None,
+                "ux_compile_flow",
+                json!({
+                    "goal_id": goal_id,
+                    "steps": flow.steps.len(),
+                    "confidence": flow.confidence,
+                    "source_fps": flow.source_fps,
+                    "path": out.display().to_string(),
+                    "flow": flow,
+                }),
+                None,
+            )
+        }
+        Err(e) => CapabilityResult::fail(
+            FaultClass::Model,
+            SessionPhase::Ready,
+            None,
+            "ux_compile_flow",
+            json!({ "error": e, "graph_edges": g.edges.len(), "graph_nodes": g.nodes.len() }),
+            None,
+        ),
+    }
+}
+
+pub(crate) fn cap_ux_execute_compiled(
+    workspace: Option<&Path>,
+    goal_id: &str,
+    app: &str,
+    bundle_id: Option<&str>,
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    settle_ms: u64,
+    timeout_ms: u64,
+) -> CapabilityResult {
+    use crate::capabilities::{app_job, run_motor_step};
+
+    let ws = resolve_workspace(workspace);
+    let compiled_path = default_compiled_path(&ws, goal_id);
+    let flow = match CompiledFlow::load(&compiled_path) {
+        Ok(f) => f,
+        Err(e) => {
+            return CapabilityResult::fail(
+                FaultClass::Infra,
+                SessionPhase::Ready,
+                None,
+                "ux_execute_compiled",
+                json!({ "error": e.to_string(), "path": compiled_path.display().to_string() }),
+                None,
+            );
+        }
+    };
+
+    let ready = ensure_ready(build, state, settle_ms, 4);
+    if !ready.ok {
+        return ready;
+    }
+
+    let run = app_job(
+        build,
+        state,
+        app,
+        bundle_id,
+        &[],
+        settle_ms,
+        timeout_ms,
+        true,
+        None,
+    );
+    if !run.ok {
+        return CapabilityResult::fail(
+            run.fault,
+            run.phase,
+            run.surface,
+            "ux_execute_compiled",
+            json!({ "stage": "run_app", "detail": run.detail }),
+            run.observe,
+        );
+    }
+
+    let first = flow.steps.first();
+    let entry_id = first.and_then(|s| s.get("id")).and_then(|v| v.as_str());
+    let entry_label = first.and_then(|s| s.get("label")).and_then(|v| v.as_str());
+    let bid = bundle_id.unwrap_or("");
+    if !bid.is_empty() {
+        let fg = ensure_app_foreground(
+            build,
+            state,
+            app,
+            bid,
+            entry_id,
+            entry_label,
+            settle_ms,
+            timeout_ms,
+        );
+        if !fg.ok {
+            return CapabilityResult::fail(
+                fg.fault,
+                fg.phase,
+                fg.surface,
+                "ux_execute_compiled",
+                json!({ "stage": "foreground", "detail": fg.detail }),
+                fg.observe,
+            );
+        }
+    }
+
+    let mut trace = Vec::new();
+    for (i, step) in flow.steps.iter().enumerate() {
+        let r = run_motor_step(build, state, step, settle_ms, timeout_ms);
+        trace.push(json!({ "step": i, "op": step.get("op"), "ok": r.ok, "fault": format!("{:?}", r.fault) }));
+        if !r.ok {
+            return CapabilityResult::fail(
+                r.fault,
+                r.phase,
+                r.surface,
+                "ux_execute_compiled",
+                json!({
+                    "stage": "motor",
+                    "step_index": i,
+                    "step": step,
+                    "trace": trace,
+                    "compiled_path": compiled_path.display().to_string(),
+                }),
+                r.observe,
+            );
+        }
+    }
+
+    let snap = settle_eyes(build, settle_ms);
+    let view = perceive_from_snap(&snap);
+    let found = view.affordances.iter().any(|a| a.id.as_deref() == Some(goal_id))
+        || view
+            .affordances
+            .iter()
+            .any(|a| a.label.as_deref() == Some(goal_id));
+    if !found {
+        return CapabilityResult::fail(
+            FaultClass::TargetMissing,
+            phase_of(&snap),
+            surface_of(&snap),
+            "ux_execute_compiled",
+            json!({
+                "stage": "verify",
+                "goal_id": goal_id,
+                "trace": trace,
+                "perceive": view,
+            }),
+            Some(snap),
+        );
+    }
+
+    CapabilityResult::success(
+        phase_of(&snap),
+        surface_of(&snap),
+        "ux_execute_compiled",
+        json!({
+            "goal_id": goal_id,
+            "steps_executed": flow.steps.len(),
+            "confidence": flow.confidence,
+            "compiled_path": compiled_path.display().to_string(),
+            "trace": trace,
+            "verified": true,
+            "llm_tokens": 0,
+        }),
         Some(snap),
     )
 }

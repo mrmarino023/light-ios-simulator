@@ -1,87 +1,82 @@
-# UX Graph — computational user experience
+# UX Graph — optional compile path (not LLM memory)
 
-LIGH turns app UX into a **persistent, diffable graph** stored at `<workspace>/.ligh/uxgraph.json`.
+LIGH can persist screen fingerprints and transitions to `<workspace>/.ligh/uxgraph.json` while you run `perceive` / `attempt` with a workspace set.
 
-Each `perceive` / `attempt` auto-records nodes (screen fingerprints) and edges (verified transitions).
+**Honest positioning:** the graph is **telemetry + a compiler input**. It does **not** make LLM agents navigate better (disproven — see [`ux-graph-prove-latest.json`](assets/ux-graph-prove-latest.json)).
+
+The one validated use case: **compile `intent_met` edges → motor steps → zero-LLM replay**.
+
+Evidence: [`compiled-replay-latest.json`](assets/compiled-replay-latest.json) · gate: `./scripts/gate-compiled-replay.sh`
+
+---
 
 ## Concepts
 
 | Object | Meaning |
 |--------|---------|
-| **Screen node** | `fingerprint` + affordance labels + optional `source_hints` |
-| **Transition edge** | `from_fp` → `to_fp` via `intent` + target, with `intent_met` history |
-| **Baseline** | Named snapshot of known-good screens |
-| **Regress diff** | Structural diff vs baseline (new/removed/changed screens) |
-| **Source hint** | Correlation `fingerprint ↔ Swift file` (confidence rises with edits) |
+| **Screen node** | `fingerprint` + affordance labels |
+| **Transition edge** | `from_fp` → `to_fp` via tap/type, with `intent_met` history |
+| **Compiled flow** | Motor step list written to `.ligh/compiled/{goal_id}.json` |
+| **Baseline / regress** | Structural diff vs saved screens (experimental) |
 
-## Setup
+---
 
-```bash
-export LIGH_WORKSPACE=/path/to/your/ios/repo   # or pass workspace in MCP/CLI
-ligh daemon start && ligh up
+## Workflow that works
+
+```text
+1. Run a successful flow (motor seed OR autonomous UX discover arm)
+2. ligh uxgraph compile-flow HomeReady --workspace …
+3. ligh uxgraph execute-compiled HomeReady MyApp.app --bundle-id … --workspace …
+   → llm_tokens = 0, harness verifies goal id
 ```
 
-Graph path override: `LIGH_UXGRAPH_PATH=/custom/uxgraph.json`
+Motor-only seed (no LLM):
+
+```bash
+./scripts/gate-compiled-replay.sh
+```
+
+---
 
 ## CLI
 
 ```bash
-# Auto-record on every perceive/attempt (default when workspace set)
-ligh --json cap perceive --workspace "$LIGH_WORKSPACE"
-ligh --json cap attempt tap --id loginButton \
-  --expect '{"see_id":"homeTitle"}' --workspace "$LIGH_WORKSPACE"
+export LIGH_WORKSPACE=/path/to/ios/repo
 
-# Graph ops
 ligh --json uxgraph status --workspace "$LIGH_WORKSPACE"
-ligh --json uxgraph baseline v1.0 --workspace "$LIGH_WORKSPACE"
-ligh --json uxgraph regress v1.0 --workspace "$LIGH_WORKSPACE"
-ligh --json uxgraph explore --max-steps 6 --workspace "$LIGH_WORKSPACE"
-ligh --json uxgraph hint fp_abc123 ContentView.swift --workspace "$LIGH_WORKSPACE"
+ligh --json uxgraph compile-flow HomeReady --workspace "$LIGH_WORKSPACE"
+ligh --json uxgraph execute-compiled HomeReady build/MyApp.app \
+  --bundle-id com.you.app --workspace "$LIGH_WORKSPACE"
 ```
 
-## MCP (Cursor)
+Auto-record happens on `ligh cap perceive` / `ligh cap attempt` when `--workspace` is set.
+
+---
+
+## MCP tools
 
 | Tool | Purpose |
 |------|---------|
-| `ligh_perceive` | World model + **records node** |
-| `ligh_attempt` | Act + verify + **records edge** |
-| `ligh_ux_status` | Graph summary |
-| `ligh_ux_baseline` | Save baseline |
-| `ligh_ux_regress` | Structural regress diff |
-| `ligh_ux_explore` | Safe BFS explore |
-| `ligh_ux_hint` | Link fingerprint → source file |
+| `ligh_ux_status` | Graph summary (nodes, edges) |
+| `ligh_ux_baseline` / `ligh_ux_regress` | Structural diff (experimental) |
+| `ligh_ux_explore` | Safe BFS explore (research) |
+| `ligh_ux_hint` | Fingerprint → source file hint |
 
-Pass `workspace` in tool args or set `LIGH_WORKSPACE`.
+**Do not** instruct agents to “read the graph instead of perceiving” — replay-arm A/B showed they ignore it or do worse.
 
-## Agent loop (fix + regress)
+---
 
-```text
-1. ligh_ux_baseline("pre-fix")          # optional
-2. ligh_attempt(tap login, expect home)  # fails → hypotheses
-3. edit Swift (agent)
-4. ligh_ux_hint(fp, "ContentView.swift") # after edit
-5. xcodebuild → ligh_attempt → pass
-6. ligh_ux_regress("pre-fix")           # structural UX diff
-```
-
-## Flywheel (why it improves)
-
-Every verify loop adds:
-
-- New screens discovered (`explore`)
-- Transition reliability stats (`intent_met` rate per edge)
-- Source hints (`fingerprint → file` correlation)
-- Baseline diffs on each build
-
-**The graph is the product memory** — not the benchmark JSON.
-
-## Prove it
+## Experimental / research
 
 ```bash
+./scripts/gate-ux-graph-prove.sh              # discover vs seed → compile → execute
+LIGH_PROVE_PHASE1=discover ./scripts/gate-ux-graph-prove.sh   # includes flaky LLM discover
 cargo test -p ligh-core uxgraph::
-./scripts/gate-uxgraph.sh
 ```
 
-Mac integration: run explore on a booted sim after `ligh up`.
+---
 
-See also: [`QA_LAYER.md`](QA_LAYER.md) · [`AGENT.md`](AGENT.md)
+## See also
+
+- [`QA_LAYER.md`](QA_LAYER.md) — primary agent API  
+- [`../README.md`](../README.md) — use cases and canonical gates

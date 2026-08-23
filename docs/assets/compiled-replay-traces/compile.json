@@ -1,0 +1,33 @@
+{
+  "capability": "ux_compile_flow",
+  "detail": {
+    "confidence": 1.0,
+    "flow": {
+      "compiled_ms": 1787508268.239968,
+      "confidence": 1.0,
+      "goal_fp": "fp_a2b0c922af8671da",
+      "goal_id": "HomeReady",
+      "source_fps": [
+        "fp_ab0895f8ab1dcb92",
+        "fp_a2b0c922af8671da"
+      ],
+      "steps": [
+        {
+          "id": "OnboardSkip",
+          "op": "tap",
+          "until_id": "HomeReady"
+        }
+      ]
+    },
+    "goal_id": "HomeReady",
+    "path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighOnboard/.ligh/compiled/HomeReady.json",
+    "source_fps": [
+      "fp_ab0895f8ab1dcb92",
+      "fp_a2b0c922af8671da"
+    ],
+    "steps": 1
+  },
+  "fault": "ok",
+  "ok": true,
+  "phase": "ready"
+}

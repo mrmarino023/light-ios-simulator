@@ -1,0 +1,4956 @@
+{
+  "gate": "autonomous_ux",
+  "arm": "replay",
+  "app": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app",
+  "bundle_id": "com.himali.XCUITestDemo",
+  "workspace": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo",
+  "goal": "You are on an iOS login screen cold. Log in with username \"alice\" and password \"secret\" until you reach the authenticated home screen. Use perceive before every action. Do not guess accessibility ids.",
+  "success_id": "homeTitle",
+  "model": "gpt-5-nano",
+  "verified": false,
+  "graph_grew": true,
+  "harness_verify": {
+    "ok": false,
+    "success_id": "homeTitle",
+    "seen_ids": [
+      "Calendario",
+      "Foto",
+      "Impostazioni",
+      "Mappe",
+      "Messaggi",
+      "News",
+      "Promemoria",
+      "Safari",
+      "Salute",
+      "Wallet"
+    ],
+    "fingerprint": "fp_22e81fdf4d19bc98",
+    "ux_graph": {
+      "node_count": 7,
+      "edge_count": 9
+    },
+    "perceive_ok": true
+  },
+  "action_counts": {
+    "perceive": 13,
+    "attempt": 3,
+    "find": 8,
+    "attempt_intent_met": 2,
+    "attempt_intent_fail": 1
+  },
+  "steps_used": 24,
+  "tokens": {
+    "in": 412012,
+    "out": 29827,
+    "total": 441839
+  },
+  "total_ms": 194452,
+  "bootstrap": {
+    "ok": true,
+    "data": {
+      "capability": "run_app",
+      "detail": {
+        "attempt": "1",
+        "bundle_id": "com.himali.XCUITestDemo",
+        "install": true
+      },
+      "fault": "ok",
+      "observe": {
+        "accessibility_tree": {
+          "element_count": 15,
+          "nodes": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 852,
+                "width": 393,
+                "x": 0,
+                "y": 0
+              },
+              "hittable": true,
+              "id": "ne7b7b916",
+              "label": " ",
+              "path_id": "n861ac8b6",
+              "role": "AXApplication",
+              "selected": false,
+              "text": " ",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.14241001564945227
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666666,
+                "width": 64,
+                "x": 29,
+                "y": 78
+              },
+              "hittable": true,
+              "id": "n49dc8ee4",
+              "identifier": "Fitness",
+              "label": "Fitness",
+              "parent_id": "ne7b7b916",
+              "path_id": "nf332e116",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Fitness",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.14241001564945227
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666666,
+                "width": 64,
+                "x": 119.33333333333326,
+                "y": 78
+              },
+              "hittable": true,
+              "id": "n240b3c3f",
+              "identifier": "Watch",
+              "label": "Watch",
+              "parent_id": "ne7b7b916",
+              "path_id": "n770cac8d",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Watch",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.14241001564945227
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666666,
+                "width": 67,
+                "x": 208.3333333333333,
+                "y": 78
+              },
+              "hittable": true,
+              "id": "n80f1cbce",
+              "identifier": "Contatti",
+              "label": "Contatti",
+              "parent_id": "ne7b7b916",
+              "path_id": "ndb4435ac",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Contatti",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.14241001564945227
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666666,
+                "width": 64,
+                "x": 300,
+                "y": 78
+              },
+              "hittable": true,
+              "id": "n010e6b88",
+              "identifier": "File",
+              "label": "File",
+              "parent_id": "ne7b7b916",
+              "path_id": "n71285761",
+              "role": "AXButton",
+              "selected": false,
+              "text": "File",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.257433489827856
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 64,
+                "x": 29,
+                "y": 176
+              },
+              "hittable": true,
+              "id": "ne566c7fc",
+              "identifier": "Utility",
+              "label": "Cartella Utility",
+              "parent_id": "ne7b7b916",
+              "path_id": "na9721c52",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Cartella Utility",
+              "traits": "button",
+              "value": "2 app",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.38592027141645446,
+                "y": 0.257433489827856
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 80.66666666666669,
+                "x": 111.33333333333326,
+                "y": 176
+              },
+              "hittable": true,
+              "id": "n90fe3b42",
+              "identifier": "WebDriverAgentRunner-Runner",
+              "label": "WebDriverAgentRunner-Runner",
+              "parent_id": "ne7b7b916",
+              "path_id": "n6d51f3d7",
+              "role": "AXButton",
+              "selected": false,
+              "text": "WebDriverAgentRunner-Runner",
+              "traits": "button",
+              "value": "Aggiornata di recente",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.257433489827856
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 85,
+                "x": 199.3333333333333,
+                "y": 176
+              },
+              "hittable": true,
+              "id": "n34dc0bb3",
+              "identifier": "LighFixture",
+              "label": "LighFixture",
+              "parent_id": "ne7b7b916",
+              "path_id": "nb9d502ba",
+              "role": "AXButton",
+              "selected": false,
+              "text": "LighFixture",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.8452078032230705,
+                "y": 0.25880281690140844
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 89,
+                "width": 101,
+                "x": 281.66666666666674,
+                "y": 176
+              },
+              "hittable": true,
+              "id": "n981ee946",
+              "identifier": "XCUITestDemo",
+              "label": "XCUITestDemo",
+              "parent_id": "ne7b7b916",
+              "path_id": "nb3f60ea1",
+              "role": "AXButton",
+              "selected": false,
+              "text": "XCUITestDemo",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.15564037319762522,
+                "y": 0.3724569640062598
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 73.66666666666667,
+                "x": 24.33333333333337,
+                "y": 274
+              },
+              "hittable": true,
+              "id": "nf02888c0",
+              "identifier": "LighFeed",
+              "label": "LighFeed",
+              "parent_id": "ne7b7b916",
+              "path_id": "nb33578d6",
+              "role": "AXButton",
+              "selected": false,
+              "text": "LighFeed",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.3854961832061069,
+                "y": 0.3724569640062598
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 95,
+                "x": 104,
+                "y": 274
+              },
+              "hittable": true,
+              "id": "nf3c0cb91",
+              "identifier": "LighOnboard",
+              "label": "LighOnboard",
+              "parent_id": "ne7b7b916",
+              "path_id": "na5a15e79",
+              "role": "AXButton",
+              "selected": false,
+              "text": "LighOnboard",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145886,
+                "y": 0.3724569640062598
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 80.33333333333331,
+                "x": 201.66666666666663,
+                "y": 274
+              },
+              "hittable": true,
+              "id": "nf5bdc3d9",
+              "identifier": "LighModal",
+              "label": "LighModal",
+              "parent_id": "ne7b7b916",
+              "path_id": "n69ad0911",
+              "role": "AXButton",
+              "selected": false,
+              "text": "LighModal",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5004240882103477,
+                "y": 0.8321596244131455
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 30,
+                "width": 71.33333333333331,
+                "x": 161,
+                "y": 694
+              },
+              "hittable": true,
+              "id": "n9e6567a4",
+              "identifier": "spotlight-pill",
+              "label": "Cerca",
+              "parent_id": "ne7b7b916",
+              "path_id": "nb499bd11",
+              "role": "AXSlider",
+              "selected": false,
+              "text": "Cerca",
+              "traits": "slider",
+              "value": "Pagina 2 di 2",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 64,
+                "width": 64,
+                "x": 120,
+                "y": 759
+              },
+              "hittable": true,
+              "id": "n9c166d7e",
+              "identifier": "Safari",
+              "label": "Safari",
+              "parent_id": "ne7b7b916",
+              "path_id": "n84914d1d",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Safari",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 64,
+                "width": 64,
+                "x": 209,
+                "y": 759
+              },
+              "hittable": true,
+              "id": "nc55536b8",
+              "identifier": "Messaggi",
+              "label": "Messaggi",
+              "parent_id": "ne7b7b916",
+              "path_id": "n639f7fd2",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Messaggi",
+              "traits": "button",
+              "visible": true
+            }
+          ],
+          "point_size": [
+            393.0,
+            852.0
+          ],
+          "root": {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "children": [
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 29,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n49dc8ee4",
+                "identifier": "Fitness",
+                "label": "Fitness",
+                "parent_id": "ne7b7b916",
+                "path_id": "nf332e116",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Fitness",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 119.33333333333326,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n240b3c3f",
+                "identifier": "Watch",
+                "label": "Watch",
+                "parent_id": "ne7b7b916",
+                "path_id": "n770cac8d",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Watch",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 67,
+                  "x": 208.3333333333333,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n80f1cbce",
+                "identifier": "Contatti",
+                "label": "Contatti",
+                "parent_id": "ne7b7b916",
+                "path_id": "ndb4435ac",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Contatti",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 300,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n010e6b88",
+                "identifier": "File",
+                "label": "File",
+                "parent_id": "ne7b7b916",
+                "path_id": "n71285761",
+                "role": "AXButton",
+                "selected": false,
+                "text": "File",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 64,
+                  "x": 29,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "ne566c7fc",
+                "identifier": "Utility",
+                "label": "Cartella Utility",
+                "parent_id": "ne7b7b916",
+                "path_id": "na9721c52",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Cartella Utility",
+                "traits": "button",
+                "value": "2 app",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38592027141645446,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 80.66666666666669,
+                  "x": 111.33333333333326,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n90fe3b42",
+                "identifier": "WebDriverAgentRunner-Runner",
+                "label": "WebDriverAgentRunner-Runner",
+                "parent_id": "ne7b7b916",
+                "path_id": "n6d51f3d7",
+                "role": "AXButton",
+                "selected": false,
+                "text": "WebDriverAgentRunner-Runner",
+                "traits": "button",
+                "value": "Aggiornata di recente",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 85,
+                  "x": 199.3333333333333,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n34dc0bb3",
+                "identifier": "LighFixture",
+                "label": "LighFixture",
+                "parent_id": "ne7b7b916",
+                "path_id": "nb9d502ba",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighFixture",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.8452078032230705,
+                  "y": 0.25880281690140844
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 89,
+                  "width": 101,
+                  "x": 281.66666666666674,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n981ee946",
+                "identifier": "XCUITestDemo",
+                "label": "XCUITestDemo",
+                "parent_id": "ne7b7b916",
+                "path_id": "nb3f60ea1",
+                "role": "AXButton",
+                "selected": false,
+                "text": "XCUITestDemo",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.15564037319762522,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 73.66666666666667,
+                  "x": 24.33333333333337,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf02888c0",
+                "identifier": "LighFeed",
+                "label": "LighFeed",
+                "parent_id": "ne7b7b916",
+                "path_id": "nb33578d6",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighFeed",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.3854961832061069,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 95,
+                  "x": 104,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf3c0cb91",
+                "identifier": "LighOnboard",
+                "label": "LighOnboard",
+                "parent_id": "ne7b7b916",
+                "path_id": "na5a15e79",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighOnboard",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145886,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 80.33333333333331,
+                  "x": 201.66666666666663,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf5bdc3d9",
+                "identifier": "LighModal",
+                "label": "LighModal",
+                "parent_id": "ne7b7b916",
+                "path_id": "n69ad0911",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighModal",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5004240882103477,
+                  "y": 0.8321596244131455
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 30,
+                  "width": 71.33333333333331,
+                  "x": 161,
+                  "y": 694
+                },
+                "hittable": true,
+                "id": "n9e6567a4",
+                "identifier": "spotlight-pill",
+                "label": "Cerca",
+                "parent_id": "ne7b7b916",
+                "path_id": "nb499bd11",
+                "role": "AXSlider",
+                "selected": false,
+                "text": "Cerca",
+                "traits": "slider",
+                "value": "Pagina 2 di 2",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 64,
+                  "width": 64,
+                  "x": 120,
+                  "y": 759
+                },
+                "hittable": true,
+                "id": "n9c166d7e",
+                "identifier": "Safari",
+                "label": "Safari",
+                "parent_id": "ne7b7b916",
+                "path_id": "n84914d1d",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Safari",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 64,
+                  "width": 64,
+                  "x": 209,
+                  "y": 759
+                },
+                "hittable": true,
+                "id": "nc55536b8",
+                "identifier": "Messaggi",
+                "label": "Messaggi",
+                "parent_id": "ne7b7b916",
+                "path_id": "n639f7fd2",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Messaggi",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "children_ids": [
+              "n49dc8ee4",
+              "n240b3c3f",
+              "n80f1cbce",
+              "n010e6b88",
+              "ne566c7fc",
+              "n90fe3b42",
+              "n34dc0bb3",
+              "n981ee946",
+              "nf02888c0",
+              "nf3c0cb91",
+              "nf5bdc3d9",
+              "n9e6567a4",
+              "n9c166d7e",
+              "nc55536b8"
+            ],
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 852,
+              "width": 393,
+              "x": 0,
+              "y": 0
+            },
+            "hittable": true,
+            "id": "ne7b7b916",
+            "label": " ",
+            "path_id": "n861ac8b6",
+            "role": "AXApplication",
+            "selected": false,
+            "text": " ",
+            "visible": true
+          },
+          "status": "available"
+        },
+        "actionable_topk": [
+          {
+            "center_norm": {
+              "x": 0.15521628498727735,
+              "y": 0.14241001564945227
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666666,
+              "width": 64,
+              "x": 29,
+              "y": 78
+            },
+            "hittable": true,
+            "id": "n49dc8ee4",
+            "identifier": "Fitness",
+            "label": "Fitness",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Fitness",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.38507209499575895,
+              "y": 0.14241001564945227
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666666,
+              "width": 64,
+              "x": 119.33333333333326,
+              "y": 78
+            },
+            "hittable": true,
+            "id": "n240b3c3f",
+            "identifier": "Watch",
+            "label": "Watch",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Watch",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.6153519932145884,
+              "y": 0.14241001564945227
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666666,
+              "width": 67,
+              "x": 208.3333333333333,
+              "y": 78
+            },
+            "hittable": true,
+            "id": "n80f1cbce",
+            "identifier": "Contatti",
+            "label": "Contatti",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Contatti",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.8447837150127228,
+              "y": 0.14241001564945227
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666666,
+              "width": 64,
+              "x": 300,
+              "y": 78
+            },
+            "hittable": true,
+            "id": "n010e6b88",
+            "identifier": "File",
+            "label": "File",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "File",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.15521628498727735,
+              "y": 0.257433489827856
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 64,
+              "x": 29,
+              "y": 176
+            },
+            "hittable": true,
+            "id": "ne566c7fc",
+            "identifier": "Utility",
+            "label": "Cartella Utility",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Cartella Utility",
+            "traits": "button",
+            "value": "2 app",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.38592027141645446,
+              "y": 0.257433489827856
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 80.66666666666669,
+              "x": 111.33333333333326,
+              "y": 176
+            },
+            "hittable": true,
+            "id": "n90fe3b42",
+            "identifier": "WebDriverAgentRunner-Runner",
+            "label": "WebDriverAgentRunner-Runner",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "WebDriverAgentRunner-Runner",
+            "traits": "button",
+            "value": "Aggiornata di recente",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.6153519932145884,
+              "y": 0.257433489827856
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 85,
+              "x": 199.3333333333333,
+              "y": 176
+            },
+            "hittable": true,
+            "id": "n34dc0bb3",
+            "identifier": "LighFixture",
+            "label": "LighFixture",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "LighFixture",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.8452078032230705,
+              "y": 0.25880281690140844
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 89,
+              "width": 101,
+              "x": 281.66666666666674,
+              "y": 176
+            },
+            "hittable": true,
+            "id": "n981ee946",
+            "identifier": "XCUITestDemo",
+            "label": "XCUITestDemo",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "XCUITestDemo",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.15564037319762522,
+              "y": 0.3724569640062598
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 73.66666666666667,
+              "x": 24.33333333333337,
+              "y": 274
+            },
+            "hittable": true,
+            "id": "nf02888c0",
+            "identifier": "LighFeed",
+            "label": "LighFeed",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "LighFeed",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.3854961832061069,
+              "y": 0.3724569640062598
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 95,
+              "x": 104,
+              "y": 274
+            },
+            "hittable": true,
+            "id": "nf3c0cb91",
+            "identifier": "LighOnboard",
+            "label": "LighOnboard",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "LighOnboard",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.6153519932145886,
+              "y": 0.3724569640062598
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 80.33333333333331,
+              "x": 201.66666666666663,
+              "y": 274
+            },
+            "hittable": true,
+            "id": "nf5bdc3d9",
+            "identifier": "LighModal",
+            "label": "LighModal",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "LighModal",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.38676844783715014,
+              "y": 0.9284037558685446
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 64,
+              "width": 64,
+              "x": 120,
+              "y": 759
+            },
+            "hittable": true,
+            "id": "n9c166d7e",
+            "identifier": "Safari",
+            "label": "Safari",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Safari",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.6132315521628499,
+              "y": 0.9284037558685446
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 64,
+              "width": 64,
+              "x": 209,
+              "y": 759
+            },
+            "hittable": true,
+            "id": "nc55536b8",
+            "identifier": "Messaggi",
+            "label": "Messaggi",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Messaggi",
+            "traits": "button",
+            "visible": true
+          }
+        ],
+        "app_bundle_id": "com.himali.XCUITestDemo",
+        "ax_quality": "ready",
+        "booted": true,
+        "eyes_unusable": false,
+        "frame": {
+          "fps": 47.06753816258791,
+          "h": 2556,
+          "id": 702,
+          "imports_ok": true,
+          "w": 1179
+        },
+        "observe_ms": 0.000417,
+        "overlay": "none",
+        "path": "lighd",
+        "phase": "ready",
+        "scene": {
+          "bundle_id": "com.himali.XCUITestDemo",
+          "keyboard_visible": false,
+          "surface": "app"
+        },
+        "schema_version": 2,
+        "settled": true,
+        "simulator_app_running": false,
+        "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+      },
+      "ok": true,
+      "overlay": "none",
+      "phase": "ready",
+      "surface": "app"
+    },
+    "foreground_attempt": 1,
+    "foreground_ok": true
+  },
+  "trace": [
+    {
+      "step": 9,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Perceiving SpringBoard again to check if XCUITestDemo icon is visible; if not, will consider swiping/scrolling or using find with the app label."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "springboard",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.2697201017811705,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe",
+                "value": "Widget"
+              },
+              {
+                "center_norm": {
+                  "x": 0.7302798982188295,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "Widget, Raccolta"
+              },
+              {
+                "center_norm": {
+                  "x": 0.1560644614079729,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "domenica 23 agosto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Foto",
+                "kind": "button",
+                "label": "Foto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6157760814249363,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Promemoria",
+                "kind": "button",
+                "label": "Promemoria"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "News",
+                "kind": "button",
+                "label": "News"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Salute",
+                "kind": "button",
+                "label": "Salute"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6149279050042408,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Wallet",
+                "kind": "button",
+                "label": "Wallet"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8456318914334179,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Impostazioni",
+                "kind": "button",
+                "label": "Impostazioni"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_22e81fdf4d19bc98",
+              "surface": "springboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Foto",
+              "label": "Foto",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Promemoria",
+              "label": "Promemoria",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "News",
+              "label": "News",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Salute",
+              "label": "Salute",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Wallet",
+              "label": "Wallet",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Impostazioni",
+              "label": "Impostazioni",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.2697201017811705,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe",
+              "value": "Widget"
+            },
+            {
+              "center_norm": {
+                "x": 0.7302798982188295,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "Widget, Raccolta"
+            },
+            {
+              "center_norm": {
+                "x": 0.1560644614079729,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "domenica 23 agosto"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Foto",
+              "kind": "button",
+              "label": "Foto"
+            },
+            {
+              "center_norm": {
+                "x": 0.6157760814249363,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Promemoria",
+              "kind": "button",
+              "label": "Promemoria"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "News",
+              "kind": "button",
+              "label": "News"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Salute",
+              "kind": "button",
+              "label": "Salute"
+            },
+            {
+              "center_norm": {
+                "x": 0.6149279050042408,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Wallet",
+              "kind": "button",
+              "label": "Wallet"
+            },
+            {
+              "center_norm": {
+                "x": 0.8456318914334179,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Impostazioni",
+              "kind": "button",
+              "label": "Impostazioni"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_22e81fdf4d19bc98",
+            "surface": "springboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 10,
+      "action": {
+        "action": "find",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_id": "XCUITestDemo"
+        },
+        "summary": "SpringBoard pages detected; attempting to locate XCUITestDemo icon on the next page. If found, will tap to launch the app."
+      },
+      "result": {
+        "ok": false,
+        "fault": "target_missing",
+        "error": "find needs id or label"
+      }
+    },
+    {
+      "step": 11,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Perceive SpringBoard to locate XCUITestDemo icon on current or adjacent home pages. If not visible, swipe to reveal the next page and perceive again."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "springboard",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.2697201017811705,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe",
+                "value": "Widget"
+              },
+              {
+                "center_norm": {
+                  "x": 0.7302798982188295,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "Widget, Raccolta"
+              },
+              {
+                "center_norm": {
+                  "x": 0.1560644614079729,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "domenica 23 agosto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Foto",
+                "kind": "button",
+                "label": "Foto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6157760814249363,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Promemoria",
+                "kind": "button",
+                "label": "Promemoria"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "News",
+                "kind": "button",
+                "label": "News"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Salute",
+                "kind": "button",
+                "label": "Salute"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6149279050042408,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Wallet",
+                "kind": "button",
+                "label": "Wallet"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8456318914334179,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Impostazioni",
+                "kind": "button",
+                "label": "Impostazioni"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_22e81fdf4d19bc98",
+              "surface": "springboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Foto",
+              "label": "Foto",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Promemoria",
+              "label": "Promemoria",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "News",
+              "label": "News",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Salute",
+              "label": "Salute",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Wallet",
+              "label": "Wallet",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Impostazioni",
+              "label": "Impostazioni",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.2697201017811705,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe",
+              "value": "Widget"
+            },
+            {
+              "center_norm": {
+                "x": 0.7302798982188295,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "Widget, Raccolta"
+            },
+            {
+              "center_norm": {
+                "x": 0.1560644614079729,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "domenica 23 agosto"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Foto",
+              "kind": "button",
+              "label": "Foto"
+            },
+            {
+              "center_norm": {
+                "x": 0.6157760814249363,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Promemoria",
+              "kind": "button",
+              "label": "Promemoria"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "News",
+              "kind": "button",
+              "label": "News"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Salute",
+              "kind": "button",
+              "label": "Salute"
+            },
+            {
+              "center_norm": {
+                "x": 0.6149279050042408,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Wallet",
+              "kind": "button",
+              "label": "Wallet"
+            },
+            {
+              "center_norm": {
+                "x": 0.8456318914334179,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Impostazioni",
+              "kind": "button",
+              "label": "Impostazioni"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_22e81fdf4d19bc98",
+            "surface": "springboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 12,
+      "action": {
+        "action": "find",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_id": "XCUITestDemo"
+        },
+        "summary": "Retry locating XCUITestDemo app icon on SpringBoard; if not visible, swipe to the next page and perceive again."
+      },
+      "result": {
+        "ok": false,
+        "fault": "target_missing",
+        "error": "find needs id or label"
+      }
+    },
+    {
+      "step": 13,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Perceive SpringBoard to re-check for XCUITestDemo icon. If not visible, prepare to swipe to the next page and perceive again."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "springboard",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.2697201017811705,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe",
+                "value": "Widget"
+              },
+              {
+                "center_norm": {
+                  "x": 0.7302798982188295,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "Widget, Raccolta"
+              },
+              {
+                "center_norm": {
+                  "x": 0.1560644614079729,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "domenica 23 agosto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Foto",
+                "kind": "button",
+                "label": "Foto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6157760814249363,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Promemoria",
+                "kind": "button",
+                "label": "Promemoria"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "News",
+                "kind": "button",
+                "label": "News"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Salute",
+                "kind": "button",
+                "label": "Salute"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6149279050042408,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Wallet",
+                "kind": "button",
+                "label": "Wallet"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8456318914334179,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Impostazioni",
+                "kind": "button",
+                "label": "Impostazioni"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_22e81fdf4d19bc98",
+              "surface": "springboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Foto",
+              "label": "Foto",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Promemoria",
+              "label": "Promemoria",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "News",
+              "label": "News",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Salute",
+              "label": "Salute",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Wallet",
+              "label": "Wallet",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Impostazioni",
+              "label": "Impostazioni",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.2697201017811705,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe",
+              "value": "Widget"
+            },
+            {
+              "center_norm": {
+                "x": 0.7302798982188295,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "Widget, Raccolta"
+            },
+            {
+              "center_norm": {
+                "x": 0.1560644614079729,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "domenica 23 agosto"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Foto",
+              "kind": "button",
+              "label": "Foto"
+            },
+            {
+              "center_norm": {
+                "x": 0.6157760814249363,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Promemoria",
+              "kind": "button",
+              "label": "Promemoria"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "News",
+              "kind": "button",
+              "label": "News"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Salute",
+              "kind": "button",
+              "label": "Salute"
+            },
+            {
+              "center_norm": {
+                "x": 0.6149279050042408,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Wallet",
+              "kind": "button",
+              "label": "Wallet"
+            },
+            {
+              "center_norm": {
+                "x": 0.8456318914334179,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Impostazioni",
+              "kind": "button",
+              "label": "Impostazioni"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_22e81fdf4d19bc98",
+            "surface": "springboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 14,
+      "action": {
+        "action": "find",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_id": "XCUITestDemo"
+        },
+        "summary": "XCUITestDemo app icon not visible on current SpringBoard page. Swiping to reveal the next page to locate it."
+      },
+      "result": {
+        "ok": false,
+        "fault": "target_missing",
+        "error": "find needs id or label"
+      }
+    },
+    {
+      "step": 15,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Current SpringBoard page does not show XCUITestDemo icon. Prepare to swipe left to reveal the next page and perceive again."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "springboard",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.2697201017811705,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe",
+                "value": "Widget"
+              },
+              {
+                "center_norm": {
+                  "x": 0.7302798982188295,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "Widget, Raccolta"
+              },
+              {
+                "center_norm": {
+                  "x": 0.1560644614079729,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "domenica 23 agosto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Foto",
+                "kind": "button",
+                "label": "Foto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6157760814249363,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Promemoria",
+                "kind": "button",
+                "label": "Promemoria"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "News",
+                "kind": "button",
+                "label": "News"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Salute",
+                "kind": "button",
+                "label": "Salute"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6149279050042408,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Wallet",
+                "kind": "button",
+                "label": "Wallet"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8456318914334179,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Impostazioni",
+                "kind": "button",
+                "label": "Impostazioni"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_22e81fdf4d19bc98",
+              "surface": "springboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Foto",
+              "label": "Foto",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Promemoria",
+              "label": "Promemoria",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "News",
+              "label": "News",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Salute",
+              "label": "Salute",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Wallet",
+              "label": "Wallet",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Impostazioni",
+              "label": "Impostazioni",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.2697201017811705,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe",
+              "value": "Widget"
+            },
+            {
+              "center_norm": {
+                "x": 0.7302798982188295,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "Widget, Raccolta"
+            },
+            {
+              "center_norm": {
+                "x": 0.1560644614079729,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "domenica 23 agosto"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Foto",
+              "kind": "button",
+              "label": "Foto"
+            },
+            {
+              "center_norm": {
+                "x": 0.6157760814249363,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Promemoria",
+              "kind": "button",
+              "label": "Promemoria"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "News",
+              "kind": "button",
+              "label": "News"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Salute",
+              "kind": "button",
+              "label": "Salute"
+            },
+            {
+              "center_norm": {
+                "x": 0.6149279050042408,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Wallet",
+              "kind": "button",
+              "label": "Wallet"
+            },
+            {
+              "center_norm": {
+                "x": 0.8456318914334179,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Impostazioni",
+              "kind": "button",
+              "label": "Impostazioni"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_22e81fdf4d19bc98",
+            "surface": "springboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 16,
+      "action": {
+        "action": "find",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_id": "XCUITestDemo"
+        },
+        "summary": "SpringBoard shows app icons; attempting to locate XCUITestDemo on current or next SpringBoard page. If found, will tap to launch the app."
+      },
+      "result": {
+        "ok": false,
+        "fault": "target_missing",
+        "error": "find needs id or label"
+      }
+    },
+    {
+      "step": 17,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Perceive SpringBoard again to locate the XCUITestDemo icon on current or next page. If not visible, prepare to swipe to reveal additional icons and perceive again."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "springboard",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.2697201017811705,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe",
+                "value": "Widget"
+              },
+              {
+                "center_norm": {
+                  "x": 0.7302798982188295,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "Widget, Raccolta"
+              },
+              {
+                "center_norm": {
+                  "x": 0.1560644614079729,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "domenica 23 agosto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Foto",
+                "kind": "button",
+                "label": "Foto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6157760814249363,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Promemoria",
+                "kind": "button",
+                "label": "Promemoria"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "News",
+                "kind": "button",
+                "label": "News"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Salute",
+                "kind": "button",
+                "label": "Salute"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6149279050042408,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Wallet",
+                "kind": "button",
+                "label": "Wallet"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8456318914334179,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Impostazioni",
+                "kind": "button",
+                "label": "Impostazioni"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_22e81fdf4d19bc98",
+              "surface": "springboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Foto",
+              "label": "Foto",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Promemoria",
+              "label": "Promemoria",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "News",
+              "label": "News",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Salute",
+              "label": "Salute",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Wallet",
+              "label": "Wallet",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Impostazioni",
+              "label": "Impostazioni",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.2697201017811705,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe",
+              "value": "Widget"
+            },
+            {
+              "center_norm": {
+                "x": 0.7302798982188295,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "Widget, Raccolta"
+            },
+            {
+              "center_norm": {
+                "x": 0.1560644614079729,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "domenica 23 agosto"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Foto",
+              "kind": "button",
+              "label": "Foto"
+            },
+            {
+              "center_norm": {
+                "x": 0.6157760814249363,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Promemoria",
+              "kind": "button",
+              "label": "Promemoria"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "News",
+              "kind": "button",
+              "label": "News"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Salute",
+              "kind": "button",
+              "label": "Salute"
+            },
+            {
+              "center_norm": {
+                "x": 0.6149279050042408,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Wallet",
+              "kind": "button",
+              "label": "Wallet"
+            },
+            {
+              "center_norm": {
+                "x": 0.8456318914334179,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Impostazioni",
+              "kind": "button",
+              "label": "Impostazioni"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_22e81fdf4d19bc98",
+            "surface": "springboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 18,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "SpringBoard still does not show XCUITestDemo. Continue to swipe to reveal additional home screen pages and perceive again; once the app icon is visible, tap it to launch and proceed with the login flow (alice / secret) per the approved graph."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "springboard",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.2697201017811705,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe",
+                "value": "Widget"
+              },
+              {
+                "center_norm": {
+                  "x": 0.7302798982188295,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "Widget, Raccolta"
+              },
+              {
+                "center_norm": {
+                  "x": 0.1560644614079729,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "domenica 23 agosto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Foto",
+                "kind": "button",
+                "label": "Foto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6157760814249363,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Promemoria",
+                "kind": "button",
+                "label": "Promemoria"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "News",
+                "kind": "button",
+                "label": "News"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Salute",
+                "kind": "button",
+                "label": "Salute"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6149279050042408,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Wallet",
+                "kind": "button",
+                "label": "Wallet"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8456318914334179,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Impostazioni",
+                "kind": "button",
+                "label": "Impostazioni"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_22e81fdf4d19bc98",
+              "surface": "springboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Foto",
+              "label": "Foto",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Promemoria",
+              "label": "Promemoria",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "News",
+              "label": "News",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Salute",
+              "label": "Salute",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Wallet",
+              "label": "Wallet",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Impostazioni",
+              "label": "Impostazioni",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.2697201017811705,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe",
+              "value": "Widget"
+            },
+            {
+              "center_norm": {
+                "x": 0.7302798982188295,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "Widget, Raccolta"
+            },
+            {
+              "center_norm": {
+                "x": 0.1560644614079729,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "domenica 23 agosto"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Foto",
+              "kind": "button",
+              "label": "Foto"
+            },
+            {
+              "center_norm": {
+                "x": 0.6157760814249363,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Promemoria",
+              "kind": "button",
+              "label": "Promemoria"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "News",
+              "kind": "button",
+              "label": "News"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Salute",
+              "kind": "button",
+              "label": "Salute"
+            },
+            {
+              "center_norm": {
+                "x": 0.6149279050042408,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Wallet",
+              "kind": "button",
+              "label": "Wallet"
+            },
+            {
+              "center_norm": {
+                "x": 0.8456318914334179,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Impostazioni",
+              "kind": "button",
+              "label": "Impostazioni"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_22e81fdf4d19bc98",
+            "surface": "springboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 19,
+      "action": {
+        "action": "find",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_id": "XCUITestDemo"
+        },
+        "summary": "Attempting to locate XCUITestDemo icon on SpringBoard; if found, next step will tap to launch app and resume login flow."
+      },
+      "result": {
+        "ok": false,
+        "fault": "target_missing",
+        "error": "find needs id or label"
+      }
+    },
+    {
+      "step": 20,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "SpringBoard icons visible on current page (Mappe, Calendario, Foto, Promemoria, News, Mappe, Salute, Wallet, Impostazioni, Safari, Messaggi). XCUITestDemo icon is not visible on this page; will swipe to reveal next page and perceive again to locate the app icon, then tap to launch and continue login flow."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "springboard",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.2697201017811705,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe",
+                "value": "Widget"
+              },
+              {
+                "center_norm": {
+                  "x": 0.7302798982188295,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "Widget, Raccolta"
+              },
+              {
+                "center_norm": {
+                  "x": 0.1560644614079729,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "domenica 23 agosto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Foto",
+                "kind": "button",
+                "label": "Foto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6157760814249363,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Promemoria",
+                "kind": "button",
+                "label": "Promemoria"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "News",
+                "kind": "button",
+                "label": "News"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Salute",
+                "kind": "button",
+                "label": "Salute"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6149279050042408,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Wallet",
+                "kind": "button",
+                "label": "Wallet"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8456318914334179,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Impostazioni",
+                "kind": "button",
+                "label": "Impostazioni"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_22e81fdf4d19bc98",
+              "surface": "springboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Foto",
+              "label": "Foto",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Promemoria",
+              "label": "Promemoria",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "News",
+              "label": "News",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Salute",
+              "label": "Salute",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Wallet",
+              "label": "Wallet",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Impostazioni",
+              "label": "Impostazioni",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.2697201017811705,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe",
+              "value": "Widget"
+            },
+            {
+              "center_norm": {
+                "x": 0.7302798982188295,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "Widget, Raccolta"
+            },
+            {
+              "center_norm": {
+                "x": 0.1560644614079729,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "domenica 23 agosto"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Foto",
+              "kind": "button",
+              "label": "Foto"
+            },
+            {
+              "center_norm": {
+                "x": 0.6157760814249363,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Promemoria",
+              "kind": "button",
+              "label": "Promemoria"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "News",
+              "kind": "button",
+              "label": "News"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Salute",
+              "kind": "button",
+              "label": "Salute"
+            },
+            {
+              "center_norm": {
+                "x": 0.6149279050042408,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Wallet",
+              "kind": "button",
+              "label": "Wallet"
+            },
+            {
+              "center_norm": {
+                "x": 0.8456318914334179,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Impostazioni",
+              "kind": "button",
+              "label": "Impostazioni"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_22e81fdf4d19bc98",
+            "surface": "springboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 21,
+      "action": {
+        "action": "find",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_id": "XCUITestDemo"
+        },
+        "summary": "Searching subsequent SpringBoard pages for XCUITestDemo icon to launch the app and continue login flow."
+      },
+      "result": {
+        "ok": false,
+        "fault": "target_missing",
+        "error": "find needs id or label"
+      }
+    },
+    {
+      "step": 22,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "SpringBoard on current page does not show XCUITestDemo. Plan: swipe left to reveal the next home screen page, then perceive again to locate the app icon."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "springboard",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.2697201017811705,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe",
+                "value": "Widget"
+              },
+              {
+                "center_norm": {
+                  "x": 0.7302798982188295,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "Widget, Raccolta"
+              },
+              {
+                "center_norm": {
+                  "x": 0.1560644614079729,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "domenica 23 agosto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Foto",
+                "kind": "button",
+                "label": "Foto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6157760814249363,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Promemoria",
+                "kind": "button",
+                "label": "Promemoria"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "News",
+                "kind": "button",
+                "label": "News"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Salute",
+                "kind": "button",
+                "label": "Salute"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6149279050042408,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Wallet",
+                "kind": "button",
+                "label": "Wallet"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8456318914334179,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Impostazioni",
+                "kind": "button",
+                "label": "Impostazioni"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_22e81fdf4d19bc98",
+              "surface": "springboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Foto",
+              "label": "Foto",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Promemoria",
+              "label": "Promemoria",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "News",
+              "label": "News",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Salute",
+              "label": "Salute",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Wallet",
+              "label": "Wallet",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Impostazioni",
+              "label": "Impostazioni",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.2697201017811705,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe",
+              "value": "Widget"
+            },
+            {
+              "center_norm": {
+                "x": 0.7302798982188295,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "Widget, Raccolta"
+            },
+            {
+              "center_norm": {
+                "x": 0.1560644614079729,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "domenica 23 agosto"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Foto",
+              "kind": "button",
+              "label": "Foto"
+            },
+            {
+              "center_norm": {
+                "x": 0.6157760814249363,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Promemoria",
+              "kind": "button",
+              "label": "Promemoria"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "News",
+              "kind": "button",
+              "label": "News"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Salute",
+              "kind": "button",
+              "label": "Salute"
+            },
+            {
+              "center_norm": {
+                "x": 0.6149279050042408,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Wallet",
+              "kind": "button",
+              "label": "Wallet"
+            },
+            {
+              "center_norm": {
+                "x": 0.8456318914334179,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Impostazioni",
+              "kind": "button",
+              "label": "Impostazioni"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_22e81fdf4d19bc98",
+            "surface": "springboard"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 23,
+      "action": {
+        "action": "find",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_id": "XCUITestDemo"
+        },
+        "summary": "Attempting to locate the XCUITestDemo app icon on the current or next SpringBoard page to launch the app for login."
+      },
+      "result": {
+        "ok": false,
+        "fault": "target_missing",
+        "error": "find needs id or label"
+      }
+    },
+    {
+      "step": 24,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "SpringBoard icons visible; XCUITestDemo icon is not on this page. Plan: swipe left to reveal the next home screen page, then perceive again to locate the app icon and launch to resume login flow."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "springboard",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.2697201017811705,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe",
+                "value": "Widget"
+              },
+              {
+                "center_norm": {
+                  "x": 0.7302798982188295,
+                  "y": 0.19992175273865417
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "Widget, Raccolta"
+              },
+              {
+                "center_norm": {
+                  "x": 0.1560644614079729,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Calendario",
+                "kind": "button",
+                "label": "Calendario",
+                "value": "domenica 23 agosto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Foto",
+                "kind": "button",
+                "label": "Foto"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6157760814249363,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Promemoria",
+                "kind": "button",
+                "label": "Promemoria"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "News",
+                "kind": "button",
+                "label": "News"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Mappe",
+                "kind": "button",
+                "label": "Mappe"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Salute",
+                "kind": "button",
+                "label": "Salute"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6149279050042408,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Wallet",
+                "kind": "button",
+                "label": "Wallet"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8456318914334179,
+                  "y": 0.4874804381846636
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Impostazioni",
+                "kind": "button",
+                "label": "Impostazioni"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_22e81fdf4d19bc98",
+              "surface": "springboard"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Calendario",
+              "label": "Calendario",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Foto",
+              "label": "Foto",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Promemoria",
+              "label": "Promemoria",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "News",
+              "label": "News",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Mappe",
+              "label": "Mappe",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Salute",
+              "label": "Salute",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Wallet",
+              "label": "Wallet",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Impostazioni",
+              "label": "Impostazioni",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.2697201017811705,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe",
+              "value": "Widget"
+            },
+            {
+              "center_norm": {
+                "x": 0.7302798982188295,
+                "y": 0.19992175273865417
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "Widget, Raccolta"
+            },
+            {
+              "center_norm": {
+                "x": 0.1560644614079729,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Calendario",
+              "kind": "button",
+              "label": "Calendario",
+              "value": "domenica 23 agosto"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Foto",
+              "kind": "button",
+              "label": "Foto"
+            },
+            {
+              "center_norm": {
+                "x": 0.6157760814249363,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Promemoria",
+              "kind": "button",
+              "label": "Promemoria"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "News",
+              "kind": "button",
+              "label": "News"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Mappe",
+              "kind": "button",
+              "label": "Mappe"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Salute",
+              "kind": "button",
+              "label": "Salute"
+            },
+            {
+              "center_norm": {
+                "x": 0.6149279050042408,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Wallet",
+              "kind": "button",
+              "label": "Wallet"
+            },
+            {
+              "center_norm": {
+                "x": 0.8456318914334179,
+                "y": 0.4874804381846636
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Impostazioni",
+              "kind": "button",
+              "label": "Impostazioni"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_22e81fdf4d19bc98",
+            "surface": "springboard"
+          },
+          "ready": true
+        }
+      }
+    }
+  ],
+  "claim_pass": false
+}

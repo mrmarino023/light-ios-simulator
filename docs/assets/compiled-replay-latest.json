@@ -1,0 +1,34 @@
+{
+  "gate": "compiled_replay",
+  "claim": "Motor seed \u2192 compile \u2192 execute with zero LLM tokens",
+  "app_id": "lighonboard",
+  "harness_success_id": "HomeReady",
+  "phases": {
+    "seed": {
+      "verified": true,
+      "nodes": 3,
+      "edges": 2,
+      "ms": 32915,
+      "llm_tokens": 0
+    },
+    "compile": {
+      "steps": 1,
+      "confidence": 1.0,
+      "path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighOnboard/.ligh/compiled/HomeReady.json"
+    },
+    "execute": {
+      "verified": true,
+      "ms": 31268,
+      "llm_tokens": 0,
+      "ok": true
+    }
+  },
+  "verdict": {
+    "seed_ok": true,
+    "compile_ok": true,
+    "execute_ok": true,
+    "zero_llm": true,
+    "execute_faster_than_seed": true
+  },
+  "claim_pass": true
+}

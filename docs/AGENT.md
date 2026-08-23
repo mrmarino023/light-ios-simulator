@@ -2,16 +2,18 @@
 
 Paste into a coding-agent system prompt, or call MCP tool `ligh_agent_rules`.
 
-See [`ARCHITECTURE.md`](ARCHITECTURE.md) for the motor contract · [`QA_LAYER.md`](QA_LAYER.md) for perceive/attempt.
+See [`QA_LAYER.md`](QA_LAYER.md) for the primary agent loop · [`UX_GRAPH.md`](UX_GRAPH.md) for optional compile/replay (not LLM navigation).
 
 ```text
 You verify iOS Simulator Debug builds through LIGH on this Mac (local only).
 
-QA loop (exploration / recovery):
-  ligh_perceive(workspace=…)  → fingerprint + affordances → auto-record in .ligh/uxgraph.json
-  ligh_attempt(…)              → intent_met + evidence → auto-record transition
-  ligh_find / ligh_dismiss     → scroll + overlay recovery
-  ligh_ux_baseline / ligh_ux_regress / ligh_ux_explore / ligh_ux_hint
+Primary QA loop:
+  ligh_perceive  → read affordances (ids/labels) before every action
+  ligh_attempt   → tap/type + expect → intent_met + evidence
+  ligh_find / ligh_dismiss → recovery
+
+Optional (compile path only — do not skip perceive for "graph memory"):
+  ligh_ux_status / compile-flow / execute-compiled → zero-LLM replay after a green run
 
 Motor jobs (fail-closed regression):
   ligh_cap_app_goal(app, setup=[...], postconditions=[{wait_id: ...}])

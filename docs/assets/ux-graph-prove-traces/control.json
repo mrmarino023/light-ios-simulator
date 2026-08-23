@@ -1,0 +1,5065 @@
+{
+  "gate": "autonomous_ux",
+  "arm": "control",
+  "app": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app",
+  "bundle_id": "com.himali.XCUITestDemo",
+  "workspace": null,
+  "goal": "You are on an iOS login screen cold. Log in with username \"alice\" and password \"secret\" until you reach the authenticated home screen. Use perceive before every action. Do not guess accessibility ids.",
+  "success_id": "homeTitle",
+  "model": "gpt-5-nano",
+  "verified": true,
+  "graph_grew": null,
+  "harness_verify": {
+    "ok": true,
+    "success_id": "homeTitle",
+    "seen_ids": [
+      "Home",
+      "You\u2019re logged in!",
+      "homeMessage",
+      "homeTitle"
+    ],
+    "fingerprint": "fp_19f1529abee7518a",
+    "ux_graph": {
+      "node_count": null,
+      "edge_count": null
+    },
+    "perceive_ok": true
+  },
+  "action_counts": {
+    "perceive": 4,
+    "attempt": 8,
+    "done": 2,
+    "attempt_intent_met": 4,
+    "attempt_intent_fail": 4
+  },
+  "steps_used": 14,
+  "tokens": {
+    "in": 155329,
+    "out": 19584,
+    "total": 174913
+  },
+  "total_ms": 171476,
+  "bootstrap": {
+    "ok": true,
+    "data": {
+      "capability": "run_app",
+      "detail": {
+        "attempt": "1",
+        "bundle_id": "com.himali.XCUITestDemo",
+        "install": true
+      },
+      "fault": "ok",
+      "observe": {
+        "accessibility_tree": {
+          "element_count": 15,
+          "nodes": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 852,
+                "width": 393,
+                "x": 0,
+                "y": 0
+              },
+              "hittable": true,
+              "id": "ne7b7b916",
+              "label": " ",
+              "path_id": "n861ac8b6",
+              "role": "AXApplication",
+              "selected": false,
+              "text": " ",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.14241001564945227
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666666,
+                "width": 64,
+                "x": 29,
+                "y": 78
+              },
+              "hittable": true,
+              "id": "n49dc8ee4",
+              "identifier": "Fitness",
+              "label": "Fitness",
+              "parent_id": "ne7b7b916",
+              "path_id": "nf332e116",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Fitness",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.14241001564945227
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666666,
+                "width": 64,
+                "x": 119.33333333333326,
+                "y": 78
+              },
+              "hittable": true,
+              "id": "n240b3c3f",
+              "identifier": "Watch",
+              "label": "Watch",
+              "parent_id": "ne7b7b916",
+              "path_id": "n770cac8d",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Watch",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.14241001564945227
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666666,
+                "width": 67,
+                "x": 208.3333333333333,
+                "y": 78
+              },
+              "hittable": true,
+              "id": "n80f1cbce",
+              "identifier": "Contatti",
+              "label": "Contatti",
+              "parent_id": "ne7b7b916",
+              "path_id": "ndb4435ac",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Contatti",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.14241001564945227
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666666,
+                "width": 64,
+                "x": 300,
+                "y": 78
+              },
+              "hittable": true,
+              "id": "n010e6b88",
+              "identifier": "File",
+              "label": "File",
+              "parent_id": "ne7b7b916",
+              "path_id": "n71285761",
+              "role": "AXButton",
+              "selected": false,
+              "text": "File",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.257433489827856
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 64,
+                "x": 29,
+                "y": 176
+              },
+              "hittable": true,
+              "id": "ne566c7fc",
+              "identifier": "Utility",
+              "label": "Cartella Utility",
+              "parent_id": "ne7b7b916",
+              "path_id": "na9721c52",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Cartella Utility",
+              "traits": "button",
+              "value": "2 app",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.38592027141645446,
+                "y": 0.257433489827856
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 80.66666666666669,
+                "x": 111.33333333333326,
+                "y": 176
+              },
+              "hittable": true,
+              "id": "n90fe3b42",
+              "identifier": "WebDriverAgentRunner-Runner",
+              "label": "WebDriverAgentRunner-Runner",
+              "parent_id": "ne7b7b916",
+              "path_id": "n6d51f3d7",
+              "role": "AXButton",
+              "selected": false,
+              "text": "WebDriverAgentRunner-Runner",
+              "traits": "button",
+              "value": "Aggiornata di recente",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.257433489827856
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 85,
+                "x": 199.3333333333333,
+                "y": 176
+              },
+              "hittable": true,
+              "id": "n34dc0bb3",
+              "identifier": "LighFixture",
+              "label": "LighFixture",
+              "parent_id": "ne7b7b916",
+              "path_id": "nb9d502ba",
+              "role": "AXButton",
+              "selected": false,
+              "text": "LighFixture",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.8452078032230705,
+                "y": 0.25880281690140844
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 89,
+                "width": 101,
+                "x": 281.66666666666674,
+                "y": 176
+              },
+              "hittable": true,
+              "id": "n981ee946",
+              "identifier": "XCUITestDemo",
+              "label": "XCUITestDemo",
+              "parent_id": "ne7b7b916",
+              "path_id": "nb3f60ea1",
+              "role": "AXButton",
+              "selected": false,
+              "text": "XCUITestDemo",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.15564037319762522,
+                "y": 0.3724569640062598
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 73.66666666666667,
+                "x": 24.33333333333337,
+                "y": 274
+              },
+              "hittable": true,
+              "id": "nf02888c0",
+              "identifier": "LighFeed",
+              "label": "LighFeed",
+              "parent_id": "ne7b7b916",
+              "path_id": "nb33578d6",
+              "role": "AXButton",
+              "selected": false,
+              "text": "LighFeed",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.3854961832061069,
+                "y": 0.3724569640062598
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 95,
+                "x": 104,
+                "y": 274
+              },
+              "hittable": true,
+              "id": "nf3c0cb91",
+              "identifier": "LighOnboard",
+              "label": "LighOnboard",
+              "parent_id": "ne7b7b916",
+              "path_id": "na5a15e79",
+              "role": "AXButton",
+              "selected": false,
+              "text": "LighOnboard",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145886,
+                "y": 0.3724569640062598
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 86.66666666666669,
+                "width": 80.33333333333331,
+                "x": 201.66666666666663,
+                "y": 274
+              },
+              "hittable": true,
+              "id": "nf5bdc3d9",
+              "identifier": "LighModal",
+              "label": "LighModal",
+              "parent_id": "ne7b7b916",
+              "path_id": "n69ad0911",
+              "role": "AXButton",
+              "selected": false,
+              "text": "LighModal",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5004240882103477,
+                "y": 0.8321596244131455
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 30,
+                "width": 71.33333333333331,
+                "x": 161,
+                "y": 694
+              },
+              "hittable": true,
+              "id": "n9e6567a4",
+              "identifier": "spotlight-pill",
+              "label": "Cerca",
+              "parent_id": "ne7b7b916",
+              "path_id": "nb499bd11",
+              "role": "AXSlider",
+              "selected": false,
+              "text": "Cerca",
+              "traits": "slider",
+              "value": "Pagina 2 di 2",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 64,
+                "width": 64,
+                "x": 120,
+                "y": 759
+              },
+              "hittable": true,
+              "id": "n9c166d7e",
+              "identifier": "Safari",
+              "label": "Safari",
+              "parent_id": "ne7b7b916",
+              "path_id": "n84914d1d",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Safari",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 64,
+                "width": 64,
+                "x": 209,
+                "y": 759
+              },
+              "hittable": true,
+              "id": "nc55536b8",
+              "identifier": "Messaggi",
+              "label": "Messaggi",
+              "parent_id": "ne7b7b916",
+              "path_id": "n639f7fd2",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Messaggi",
+              "traits": "button",
+              "visible": true
+            }
+          ],
+          "point_size": [
+            393.0,
+            852.0
+          ],
+          "root": {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "children": [
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 29,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n49dc8ee4",
+                "identifier": "Fitness",
+                "label": "Fitness",
+                "parent_id": "ne7b7b916",
+                "path_id": "nf332e116",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Fitness",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 119.33333333333326,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n240b3c3f",
+                "identifier": "Watch",
+                "label": "Watch",
+                "parent_id": "ne7b7b916",
+                "path_id": "n770cac8d",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Watch",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 67,
+                  "x": 208.3333333333333,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n80f1cbce",
+                "identifier": "Contatti",
+                "label": "Contatti",
+                "parent_id": "ne7b7b916",
+                "path_id": "ndb4435ac",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Contatti",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 300,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n010e6b88",
+                "identifier": "File",
+                "label": "File",
+                "parent_id": "ne7b7b916",
+                "path_id": "n71285761",
+                "role": "AXButton",
+                "selected": false,
+                "text": "File",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 64,
+                  "x": 29,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "ne566c7fc",
+                "identifier": "Utility",
+                "label": "Cartella Utility",
+                "parent_id": "ne7b7b916",
+                "path_id": "na9721c52",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Cartella Utility",
+                "traits": "button",
+                "value": "2 app",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38592027141645446,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 80.66666666666669,
+                  "x": 111.33333333333326,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n90fe3b42",
+                "identifier": "WebDriverAgentRunner-Runner",
+                "label": "WebDriverAgentRunner-Runner",
+                "parent_id": "ne7b7b916",
+                "path_id": "n6d51f3d7",
+                "role": "AXButton",
+                "selected": false,
+                "text": "WebDriverAgentRunner-Runner",
+                "traits": "button",
+                "value": "Aggiornata di recente",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 85,
+                  "x": 199.3333333333333,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n34dc0bb3",
+                "identifier": "LighFixture",
+                "label": "LighFixture",
+                "parent_id": "ne7b7b916",
+                "path_id": "nb9d502ba",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighFixture",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.8452078032230705,
+                  "y": 0.25880281690140844
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 89,
+                  "width": 101,
+                  "x": 281.66666666666674,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n981ee946",
+                "identifier": "XCUITestDemo",
+                "label": "XCUITestDemo",
+                "parent_id": "ne7b7b916",
+                "path_id": "nb3f60ea1",
+                "role": "AXButton",
+                "selected": false,
+                "text": "XCUITestDemo",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.15564037319762522,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 73.66666666666667,
+                  "x": 24.33333333333337,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf02888c0",
+                "identifier": "LighFeed",
+                "label": "LighFeed",
+                "parent_id": "ne7b7b916",
+                "path_id": "nb33578d6",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighFeed",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.3854961832061069,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 95,
+                  "x": 104,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf3c0cb91",
+                "identifier": "LighOnboard",
+                "label": "LighOnboard",
+                "parent_id": "ne7b7b916",
+                "path_id": "na5a15e79",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighOnboard",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145886,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 80.33333333333331,
+                  "x": 201.66666666666663,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf5bdc3d9",
+                "identifier": "LighModal",
+                "label": "LighModal",
+                "parent_id": "ne7b7b916",
+                "path_id": "n69ad0911",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighModal",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5004240882103477,
+                  "y": 0.8321596244131455
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 30,
+                  "width": 71.33333333333331,
+                  "x": 161,
+                  "y": 694
+                },
+                "hittable": true,
+                "id": "n9e6567a4",
+                "identifier": "spotlight-pill",
+                "label": "Cerca",
+                "parent_id": "ne7b7b916",
+                "path_id": "nb499bd11",
+                "role": "AXSlider",
+                "selected": false,
+                "text": "Cerca",
+                "traits": "slider",
+                "value": "Pagina 2 di 2",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 64,
+                  "width": 64,
+                  "x": 120,
+                  "y": 759
+                },
+                "hittable": true,
+                "id": "n9c166d7e",
+                "identifier": "Safari",
+                "label": "Safari",
+                "parent_id": "ne7b7b916",
+                "path_id": "n84914d1d",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Safari",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 64,
+                  "width": 64,
+                  "x": 209,
+                  "y": 759
+                },
+                "hittable": true,
+                "id": "nc55536b8",
+                "identifier": "Messaggi",
+                "label": "Messaggi",
+                "parent_id": "ne7b7b916",
+                "path_id": "n639f7fd2",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Messaggi",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "children_ids": [
+              "n49dc8ee4",
+              "n240b3c3f",
+              "n80f1cbce",
+              "n010e6b88",
+              "ne566c7fc",
+              "n90fe3b42",
+              "n34dc0bb3",
+              "n981ee946",
+              "nf02888c0",
+              "nf3c0cb91",
+              "nf5bdc3d9",
+              "n9e6567a4",
+              "n9c166d7e",
+              "nc55536b8"
+            ],
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 852,
+              "width": 393,
+              "x": 0,
+              "y": 0
+            },
+            "hittable": true,
+            "id": "ne7b7b916",
+            "label": " ",
+            "path_id": "n861ac8b6",
+            "role": "AXApplication",
+            "selected": false,
+            "text": " ",
+            "visible": true
+          },
+          "status": "available"
+        },
+        "actionable_topk": [
+          {
+            "center_norm": {
+              "x": 0.15521628498727735,
+              "y": 0.14241001564945227
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666666,
+              "width": 64,
+              "x": 29,
+              "y": 78
+            },
+            "hittable": true,
+            "id": "n49dc8ee4",
+            "identifier": "Fitness",
+            "label": "Fitness",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Fitness",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.38507209499575895,
+              "y": 0.14241001564945227
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666666,
+              "width": 64,
+              "x": 119.33333333333326,
+              "y": 78
+            },
+            "hittable": true,
+            "id": "n240b3c3f",
+            "identifier": "Watch",
+            "label": "Watch",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Watch",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.6153519932145884,
+              "y": 0.14241001564945227
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666666,
+              "width": 67,
+              "x": 208.3333333333333,
+              "y": 78
+            },
+            "hittable": true,
+            "id": "n80f1cbce",
+            "identifier": "Contatti",
+            "label": "Contatti",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Contatti",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.8447837150127228,
+              "y": 0.14241001564945227
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666666,
+              "width": 64,
+              "x": 300,
+              "y": 78
+            },
+            "hittable": true,
+            "id": "n010e6b88",
+            "identifier": "File",
+            "label": "File",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "File",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.15521628498727735,
+              "y": 0.257433489827856
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 64,
+              "x": 29,
+              "y": 176
+            },
+            "hittable": true,
+            "id": "ne566c7fc",
+            "identifier": "Utility",
+            "label": "Cartella Utility",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Cartella Utility",
+            "traits": "button",
+            "value": "2 app",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.38592027141645446,
+              "y": 0.257433489827856
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 80.66666666666669,
+              "x": 111.33333333333326,
+              "y": 176
+            },
+            "hittable": true,
+            "id": "n90fe3b42",
+            "identifier": "WebDriverAgentRunner-Runner",
+            "label": "WebDriverAgentRunner-Runner",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "WebDriverAgentRunner-Runner",
+            "traits": "button",
+            "value": "Aggiornata di recente",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.6153519932145884,
+              "y": 0.257433489827856
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 85,
+              "x": 199.3333333333333,
+              "y": 176
+            },
+            "hittable": true,
+            "id": "n34dc0bb3",
+            "identifier": "LighFixture",
+            "label": "LighFixture",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "LighFixture",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.8452078032230705,
+              "y": 0.25880281690140844
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 89,
+              "width": 101,
+              "x": 281.66666666666674,
+              "y": 176
+            },
+            "hittable": true,
+            "id": "n981ee946",
+            "identifier": "XCUITestDemo",
+            "label": "XCUITestDemo",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "XCUITestDemo",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.15564037319762522,
+              "y": 0.3724569640062598
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 73.66666666666667,
+              "x": 24.33333333333337,
+              "y": 274
+            },
+            "hittable": true,
+            "id": "nf02888c0",
+            "identifier": "LighFeed",
+            "label": "LighFeed",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "LighFeed",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.3854961832061069,
+              "y": 0.3724569640062598
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 95,
+              "x": 104,
+              "y": 274
+            },
+            "hittable": true,
+            "id": "nf3c0cb91",
+            "identifier": "LighOnboard",
+            "label": "LighOnboard",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "LighOnboard",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.6153519932145886,
+              "y": 0.3724569640062598
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 86.66666666666669,
+              "width": 80.33333333333331,
+              "x": 201.66666666666663,
+              "y": 274
+            },
+            "hittable": true,
+            "id": "nf5bdc3d9",
+            "identifier": "LighModal",
+            "label": "LighModal",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "LighModal",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.38676844783715014,
+              "y": 0.9284037558685446
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 64,
+              "width": 64,
+              "x": 120,
+              "y": 759
+            },
+            "hittable": true,
+            "id": "n9c166d7e",
+            "identifier": "Safari",
+            "label": "Safari",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Safari",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.6132315521628499,
+              "y": 0.9284037558685446
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 64,
+              "width": 64,
+              "x": 209,
+              "y": 759
+            },
+            "hittable": true,
+            "id": "nc55536b8",
+            "identifier": "Messaggi",
+            "label": "Messaggi",
+            "parent_id": "ne7b7b916",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Messaggi",
+            "traits": "button",
+            "visible": true
+          }
+        ],
+        "app_bundle_id": "com.himali.XCUITestDemo",
+        "ax_quality": "ready",
+        "booted": true,
+        "eyes_unusable": false,
+        "frame": {
+          "fps": 44.847403425124085,
+          "h": 2556,
+          "id": 640,
+          "imports_ok": true,
+          "w": 1179
+        },
+        "observe_ms": 0.00075,
+        "overlay": "none",
+        "path": "lighd",
+        "phase": "ready",
+        "scene": {
+          "bundle_id": "com.himali.XCUITestDemo",
+          "keyboard_visible": false,
+          "surface": "app"
+        },
+        "schema_version": 2,
+        "settled": true,
+        "simulator_app_running": false,
+        "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+      },
+      "ok": true,
+      "overlay": "none",
+      "phase": "ready",
+      "surface": "app"
+    },
+    "foreground_attempt": 1,
+    "foreground_ok": true
+  },
+  "trace": [
+    {
+      "step": 1,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Perceiving the login screen to locate username, password fields and login button; no actions yet."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Fitness",
+                "kind": "button",
+                "label": "Fitness"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Watch",
+                "kind": "button",
+                "label": "Watch"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Contatti",
+                "kind": "button",
+                "label": "Contatti"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "File",
+                "kind": "button",
+                "label": "File"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.257433489827856
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Utility",
+                "kind": "button",
+                "label": "Cartella Utility",
+                "value": "2 app"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38592027141645446,
+                  "y": 0.257433489827856
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "WebDriverAgentRunner-Runner",
+                "kind": "button",
+                "label": "WebDriverAgentRunner-Runner",
+                "value": "Aggiornata di recente"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.257433489827856
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighFixture",
+                "kind": "button",
+                "label": "LighFixture"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8452078032230705,
+                  "y": 0.25880281690140844
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "XCUITestDemo",
+                "kind": "button",
+                "label": "XCUITestDemo"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15564037319762522,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighFeed",
+                "kind": "button",
+                "label": "LighFeed"
+              },
+              {
+                "center_norm": {
+                  "x": 0.3854961832061069,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighOnboard",
+                "kind": "button",
+                "label": "LighOnboard"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145886,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighModal",
+                "kind": "button",
+                "label": "LighModal"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_eaef1312cb2ef1de",
+              "surface": "app"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Fitness",
+              "label": "Fitness",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Watch",
+              "label": "Watch",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Contatti",
+              "label": "Contatti",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "File",
+              "label": "File",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Utility",
+              "label": "Cartella Utility",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "WebDriverAgentRunner-Runner",
+              "label": "WebDriverAgentRunner-Runner",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighFixture",
+              "label": "LighFixture",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "XCUITestDemo",
+              "label": "XCUITestDemo",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighFeed",
+              "label": "LighFeed",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighOnboard",
+              "label": "LighOnboard",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighModal",
+              "label": "LighModal",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Fitness",
+              "kind": "button",
+              "label": "Fitness"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Watch",
+              "kind": "button",
+              "label": "Watch"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Contatti",
+              "kind": "button",
+              "label": "Contatti"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "File",
+              "kind": "button",
+              "label": "File"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Utility",
+              "kind": "button",
+              "label": "Cartella Utility",
+              "value": "2 app"
+            },
+            {
+              "center_norm": {
+                "x": 0.38592027141645446,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "WebDriverAgentRunner-Runner",
+              "kind": "button",
+              "label": "WebDriverAgentRunner-Runner",
+              "value": "Aggiornata di recente"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFixture",
+              "kind": "button",
+              "label": "LighFixture"
+            },
+            {
+              "center_norm": {
+                "x": 0.8452078032230705,
+                "y": 0.25880281690140844
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "XCUITestDemo",
+              "kind": "button",
+              "label": "XCUITestDemo"
+            },
+            {
+              "center_norm": {
+                "x": 0.15564037319762522,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFeed",
+              "kind": "button",
+              "label": "LighFeed"
+            },
+            {
+              "center_norm": {
+                "x": 0.3854961832061069,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighOnboard",
+              "kind": "button",
+              "label": "LighOnboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145886,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighModal",
+              "kind": "button",
+              "label": "LighModal"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_eaef1312cb2ef1de",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 2,
+      "action": {
+        "action": "attempt",
+        "intent": "tap",
+        "id": "XCUITestDemo",
+        "label": "XCUITestDemo",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_label": "Username"
+        },
+        "summary": "Tapping XCUITestDemo to navigate toward login; expect a Username field to appear on the login screen."
+      },
+      "result": {
+        "ok": false,
+        "fault": "intent_unmet",
+        "capability": "attempt",
+        "phase": "degraded",
+        "overlay": "transition",
+        "surface": "transition",
+        "detail": {
+          "motor_detail": {
+            "method": "hid_tap",
+            "motor": "ensure_path",
+            "target": "XCUITestDemo",
+            "verified": true
+          },
+          "motor_fault": "ok",
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": true,
+              "hypotheses": [
+                {
+                  "confidence": 0.9,
+                  "detail": "ax_quality=transition",
+                  "kind": "eyes_unusable"
+                },
+                {
+                  "confidence": 0.55,
+                  "detail": "transition",
+                  "kind": "overlay_blocking"
+                }
+              ],
+              "missing": [
+                "see_label:Username"
+              ],
+              "post_fingerprint": "fp_b5432573f349a51a",
+              "pre_fingerprint": "fp_eaef1312cb2ef1de"
+            },
+            "fault": "intent_unmet",
+            "intent": "tap",
+            "intent_met": false,
+            "motor_ok": true,
+            "perceive_after": {
+              "affordances": [],
+              "blocking": {
+                "kind": "transition"
+              },
+              "eyes_unusable": true,
+              "location": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "fingerprint": "fp_b5432573f349a51a",
+                "surface": "transition",
+                "title": "16:13"
+              },
+              "ready": false
+            }
+          }
+        },
+        "intent_met": false,
+        "evidence": {
+          "fingerprint_changed": true,
+          "hypotheses": [
+            {
+              "confidence": 0.9,
+              "detail": "ax_quality=transition",
+              "kind": "eyes_unusable"
+            },
+            {
+              "confidence": 0.55,
+              "detail": "transition",
+              "kind": "overlay_blocking"
+            }
+          ],
+          "missing": [
+            "see_label:Username"
+          ],
+          "post_fingerprint": "fp_b5432573f349a51a",
+          "pre_fingerprint": "fp_eaef1312cb2ef1de"
+        },
+        "perceive_after": {
+          "affordances": [],
+          "blocking": {
+            "kind": "transition"
+          },
+          "eyes_unusable": true,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_b5432573f349a51a",
+            "surface": "transition",
+            "title": "16:13"
+          },
+          "ready": false
+        }
+      }
+    },
+    {
+      "step": 3,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Perceiving after transition overlay to check for login fields or an alternate path; no action until Username/Password fields are visible."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.48904538341158055
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "usernameTextField",
+                "kind": "text_field",
+                "value": "Username"
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5477308294209702
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "passwordSecureField",
+                "kind": "text_field",
+                "value": "Password"
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.6066118935837245
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "loginButton",
+                "kind": "primary_button",
+                "label": "Login"
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000000000001,
+                  "y": 0.4264475743348983
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "n157d4fda",
+                "kind": "static_text",
+                "label": "Welcome"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_67f84fe6fa9605dc",
+              "surface": "app"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "usernameTextField",
+              "label": null,
+              "role": "AXTextField",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "passwordSecureField",
+              "label": null,
+              "role": "AXTextField",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "loginButton",
+              "label": "Login",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "n157d4fda",
+              "label": "Welcome",
+              "role": "AXStaticText",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.48904538341158055
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "usernameTextField",
+              "kind": "text_field",
+              "value": "Username"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5477308294209702
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "passwordSecureField",
+              "kind": "text_field",
+              "value": "Password"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6066118935837245
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "loginButton",
+              "kind": "primary_button",
+              "label": "Login"
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.4264475743348983
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "n157d4fda",
+              "kind": "static_text",
+              "label": "Welcome"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_67f84fe6fa9605dc",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 4,
+      "action": {
+        "action": "attempt",
+        "intent": "type",
+        "id": "usernameTextField",
+        "label": "usernameTextField",
+        "text": "alice",
+        "key": "",
+        "expect": null,
+        "summary": "Typing username 'alice' into usernameTextField."
+      },
+      "result": {
+        "ok": false,
+        "fault": "motor_failed",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "actionable_topk": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.48904538341158055
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34,
+                  "width": 361,
+                  "x": 16,
+                  "y": 399.66666666666663
+                },
+                "hittable": true,
+                "id": "nb4f5abd1",
+                "identifier": "usernameTextField",
+                "parent_id": "n8e51e0b4",
+                "placeholder": "Username",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Username",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5477308294209702
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34,
+                  "width": 361,
+                  "x": 16,
+                  "y": 449.66666666666663
+                },
+                "hittable": true,
+                "id": "n0a75f426",
+                "identifier": "passwordSecureField",
+                "parent_id": "n8e51e0b4",
+                "placeholder": "Password",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Password",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.6066118935837245
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34.33333333333337,
+                  "width": 65.66666666666666,
+                  "x": 163.66666666666666,
+                  "y": 499.66666666666663
+                },
+                "hittable": true,
+                "id": "n90ddeefd",
+                "identifier": "loginButton",
+                "label": "Login",
+                "parent_id": "n8e51e0b4",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Login",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000000000001,
+                  "y": 0.4264475743348983
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.666666666666686,
+                  "width": 136.66666666666669,
+                  "x": 128.16666666666669,
+                  "y": 343
+                },
+                "hittable": true,
+                "id": "n157d4fda",
+                "label": "Welcome",
+                "parent_id": "n8e51e0b4",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Welcome",
+                "visible": true
+              }
+            ],
+            "error": "focus_type: field value unchanged after retries",
+            "id": "usernameTextField",
+            "label": "usernameTextField",
+            "text": "alice"
+          },
+          "motor_fault": "motor_no_effect",
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": false,
+              "post_fingerprint": "fp_67f84fe6fa9605dc",
+              "pre_fingerprint": "fp_67f84fe6fa9605dc"
+            },
+            "fault": "motor_failed",
+            "intent": "type",
+            "intent_met": false,
+            "motor_ok": false,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.48904538341158055
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "usernameTextField",
+                  "kind": "text_field",
+                  "value": "Username"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5477308294209702
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "passwordSecureField",
+                  "kind": "text_field",
+                  "value": "Password"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6066118935837245
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "loginButton",
+                  "kind": "primary_button",
+                  "label": "Login"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.4264475743348983
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "n157d4fda",
+                  "kind": "static_text",
+                  "label": "Welcome"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "fingerprint": "fp_67f84fe6fa9605dc",
+                "surface": "app"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": false,
+          "post_fingerprint": "fp_67f84fe6fa9605dc",
+          "pre_fingerprint": "fp_67f84fe6fa9605dc"
+        },
+        "suggestion": "UI unchanged after tap \u2014 try ligh_cap_reach or fix affordance; do not retry same tap",
+        "intent_met": false,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.48904538341158055
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "usernameTextField",
+              "kind": "text_field",
+              "value": "Username"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5477308294209702
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "passwordSecureField",
+              "kind": "text_field",
+              "value": "Password"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6066118935837245
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "loginButton",
+              "kind": "primary_button",
+              "label": "Login"
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.4264475743348983
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "n157d4fda",
+              "kind": "static_text",
+              "label": "Welcome"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_67f84fe6fa9605dc",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 5,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Perceiving after failed typing attempt to see current focus/keyboard state and available inputs."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Fitness",
+                "kind": "button",
+                "label": "Fitness"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Watch",
+                "kind": "button",
+                "label": "Watch"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Contatti",
+                "kind": "button",
+                "label": "Contatti"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "File",
+                "kind": "button",
+                "label": "File"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.257433489827856
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Utility",
+                "kind": "button",
+                "label": "Cartella Utility",
+                "value": "2 app"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38592027141645446,
+                  "y": 0.257433489827856
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "WebDriverAgentRunner-Runner",
+                "kind": "button",
+                "label": "WebDriverAgentRunner-Runner",
+                "value": "Aggiornata di recente"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.257433489827856
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighFixture",
+                "kind": "button",
+                "label": "LighFixture"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8452078032230705,
+                  "y": 0.25880281690140844
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "XCUITestDemo",
+                "kind": "button",
+                "label": "XCUITestDemo"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15564037319762522,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighFeed",
+                "kind": "button",
+                "label": "LighFeed"
+              },
+              {
+                "center_norm": {
+                  "x": 0.3854961832061069,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighOnboard",
+                "kind": "button",
+                "label": "LighOnboard"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145886,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighModal",
+                "kind": "button",
+                "label": "LighModal"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_eaef1312cb2ef1de",
+              "surface": "app"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Fitness",
+              "label": "Fitness",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Watch",
+              "label": "Watch",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Contatti",
+              "label": "Contatti",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "File",
+              "label": "File",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Utility",
+              "label": "Cartella Utility",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "WebDriverAgentRunner-Runner",
+              "label": "WebDriverAgentRunner-Runner",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighFixture",
+              "label": "LighFixture",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "XCUITestDemo",
+              "label": "XCUITestDemo",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighFeed",
+              "label": "LighFeed",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighOnboard",
+              "label": "LighOnboard",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighModal",
+              "label": "LighModal",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Fitness",
+              "kind": "button",
+              "label": "Fitness"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Watch",
+              "kind": "button",
+              "label": "Watch"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Contatti",
+              "kind": "button",
+              "label": "Contatti"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "File",
+              "kind": "button",
+              "label": "File"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Utility",
+              "kind": "button",
+              "label": "Cartella Utility",
+              "value": "2 app"
+            },
+            {
+              "center_norm": {
+                "x": 0.38592027141645446,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "WebDriverAgentRunner-Runner",
+              "kind": "button",
+              "label": "WebDriverAgentRunner-Runner",
+              "value": "Aggiornata di recente"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFixture",
+              "kind": "button",
+              "label": "LighFixture"
+            },
+            {
+              "center_norm": {
+                "x": 0.8452078032230705,
+                "y": 0.25880281690140844
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "XCUITestDemo",
+              "kind": "button",
+              "label": "XCUITestDemo"
+            },
+            {
+              "center_norm": {
+                "x": 0.15564037319762522,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFeed",
+              "kind": "button",
+              "label": "LighFeed"
+            },
+            {
+              "center_norm": {
+                "x": 0.3854961832061069,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighOnboard",
+              "kind": "button",
+              "label": "LighOnboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145886,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighModal",
+              "kind": "button",
+              "label": "LighModal"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_eaef1312cb2ef1de",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 6,
+      "action": {
+        "action": "attempt",
+        "intent": "tap",
+        "id": "usernameTextField",
+        "label": "usernameTextField",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_label": "Username"
+        },
+        "summary": "Tap usernameTextField to focus and bring up the keyboard for typing 'alice'."
+      },
+      "result": {
+        "ok": false,
+        "fault": "motor_failed",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "actionable_topk": [
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 29,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n49dc8ee4",
+                "identifier": "Fitness",
+                "label": "Fitness",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Fitness",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 119.33333333333326,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n240b3c3f",
+                "identifier": "Watch",
+                "label": "Watch",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Watch",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 67,
+                  "x": 208.3333333333333,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n80f1cbce",
+                "identifier": "Contatti",
+                "label": "Contatti",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Contatti",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 300,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n010e6b88",
+                "identifier": "File",
+                "label": "File",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "File",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 64,
+                  "x": 29,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "ne566c7fc",
+                "identifier": "Utility",
+                "label": "Cartella Utility",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Cartella Utility",
+                "traits": "button",
+                "value": "2 app",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38592027141645446,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 80.66666666666669,
+                  "x": 111.33333333333326,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n90fe3b42",
+                "identifier": "WebDriverAgentRunner-Runner",
+                "label": "WebDriverAgentRunner-Runner",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "WebDriverAgentRunner-Runner",
+                "traits": "button",
+                "value": "Aggiornata di recente",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 85,
+                  "x": 199.3333333333333,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n34dc0bb3",
+                "identifier": "LighFixture",
+                "label": "LighFixture",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighFixture",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.8452078032230705,
+                  "y": 0.25880281690140844
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 89,
+                  "width": 101,
+                  "x": 281.66666666666674,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n981ee946",
+                "identifier": "XCUITestDemo",
+                "label": "XCUITestDemo",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "XCUITestDemo",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.15564037319762522,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 73.66666666666667,
+                  "x": 24.33333333333337,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf02888c0",
+                "identifier": "LighFeed",
+                "label": "LighFeed",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighFeed",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.3854961832061069,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 95,
+                  "x": 104,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf3c0cb91",
+                "identifier": "LighOnboard",
+                "label": "LighOnboard",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighOnboard",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145886,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 80.33333333333331,
+                  "x": 201.66666666666663,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf5bdc3d9",
+                "identifier": "LighModal",
+                "label": "LighModal",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighModal",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 64,
+                  "width": 64,
+                  "x": 120,
+                  "y": 759
+                },
+                "hittable": true,
+                "id": "n9c166d7e",
+                "identifier": "Safari",
+                "label": "Safari",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Safari",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 64,
+                  "width": 64,
+                  "x": 209,
+                  "y": 759
+                },
+                "hittable": true,
+                "id": "nc55536b8",
+                "identifier": "Messaggi",
+                "label": "Messaggi",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Messaggi",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "candidates": [],
+            "error": "timeout waiting for clear path",
+            "id": "usernameTextField",
+            "label": "usernameTextField",
+            "overlay": "none",
+            "scene": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "keyboard_visible": false,
+              "surface": "app"
+            },
+            "wanted": {
+              "id": "usernameTextField",
+              "label": "usernameTextField"
+            }
+          },
+          "motor_fault": "target_missing",
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": false,
+              "hypotheses": [
+                {
+                  "confidence": 0.8,
+                  "detail": "id usernameTextField not in pre-action tree",
+                  "kind": "target_missing"
+                },
+                {
+                  "confidence": 0.7,
+                  "detail": "label usernameTextField not found",
+                  "kind": "label_missing"
+                }
+              ],
+              "missing": [
+                "see_label:Username"
+              ],
+              "post_fingerprint": "fp_eaef1312cb2ef1de",
+              "pre_fingerprint": "fp_eaef1312cb2ef1de"
+            },
+            "fault": "motor_failed",
+            "intent": "tap",
+            "intent_met": false,
+            "motor_ok": false,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.15521628498727735,
+                    "y": 0.14241001564945227
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Fitness",
+                  "kind": "button",
+                  "label": "Fitness"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.38507209499575895,
+                    "y": 0.14241001564945227
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Watch",
+                  "kind": "button",
+                  "label": "Watch"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.6153519932145884,
+                    "y": 0.14241001564945227
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Contatti",
+                  "kind": "button",
+                  "label": "Contatti"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.8447837150127228,
+                    "y": 0.14241001564945227
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "File",
+                  "kind": "button",
+                  "label": "File"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.15521628498727735,
+                    "y": 0.257433489827856
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Utility",
+                  "kind": "button",
+                  "label": "Cartella Utility",
+                  "value": "2 app"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.38592027141645446,
+                    "y": 0.257433489827856
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "WebDriverAgentRunner-Runner",
+                  "kind": "button",
+                  "label": "WebDriverAgentRunner-Runner",
+                  "value": "Aggiornata di recente"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.6153519932145884,
+                    "y": 0.257433489827856
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "LighFixture",
+                  "kind": "button",
+                  "label": "LighFixture"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.8452078032230705,
+                    "y": 0.25880281690140844
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "XCUITestDemo",
+                  "kind": "button",
+                  "label": "XCUITestDemo"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.15564037319762522,
+                    "y": 0.3724569640062598
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "LighFeed",
+                  "kind": "button",
+                  "label": "LighFeed"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.3854961832061069,
+                    "y": 0.3724569640062598
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "LighOnboard",
+                  "kind": "button",
+                  "label": "LighOnboard"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.6153519932145886,
+                    "y": 0.3724569640062598
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "LighModal",
+                  "kind": "button",
+                  "label": "LighModal"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.38676844783715014,
+                    "y": 0.9284037558685446
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Safari",
+                  "kind": "button",
+                  "label": "Safari"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.6132315521628499,
+                    "y": 0.9284037558685446
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Messaggi",
+                  "kind": "button",
+                  "label": "Messaggi"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "fingerprint": "fp_eaef1312cb2ef1de",
+                "surface": "app"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": false,
+          "hypotheses": [
+            {
+              "confidence": 0.8,
+              "detail": "id usernameTextField not in pre-action tree",
+              "kind": "target_missing"
+            },
+            {
+              "confidence": 0.7,
+              "detail": "label usernameTextField not found",
+              "kind": "label_missing"
+            }
+          ],
+          "missing": [
+            "see_label:Username"
+          ],
+          "post_fingerprint": "fp_eaef1312cb2ef1de",
+          "pre_fingerprint": "fp_eaef1312cb2ef1de"
+        },
+        "suggestion": "read evidence.candidates; use ligh_cap_reach or fix accessibility id",
+        "intent_met": false,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Fitness",
+              "kind": "button",
+              "label": "Fitness"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Watch",
+              "kind": "button",
+              "label": "Watch"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Contatti",
+              "kind": "button",
+              "label": "Contatti"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "File",
+              "kind": "button",
+              "label": "File"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Utility",
+              "kind": "button",
+              "label": "Cartella Utility",
+              "value": "2 app"
+            },
+            {
+              "center_norm": {
+                "x": 0.38592027141645446,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "WebDriverAgentRunner-Runner",
+              "kind": "button",
+              "label": "WebDriverAgentRunner-Runner",
+              "value": "Aggiornata di recente"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFixture",
+              "kind": "button",
+              "label": "LighFixture"
+            },
+            {
+              "center_norm": {
+                "x": 0.8452078032230705,
+                "y": 0.25880281690140844
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "XCUITestDemo",
+              "kind": "button",
+              "label": "XCUITestDemo"
+            },
+            {
+              "center_norm": {
+                "x": 0.15564037319762522,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFeed",
+              "kind": "button",
+              "label": "LighFeed"
+            },
+            {
+              "center_norm": {
+                "x": 0.3854961832061069,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighOnboard",
+              "kind": "button",
+              "label": "LighOnboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145886,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighModal",
+              "kind": "button",
+              "label": "LighModal"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_eaef1312cb2ef1de",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 7,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Perceiving after failed typing attempt to confirm current fields and keyboard state; ready for next action."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "perceive",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "perceive": {
+            "affordances": [
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Fitness",
+                "kind": "button",
+                "label": "Fitness"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Watch",
+                "kind": "button",
+                "label": "Watch"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Contatti",
+                "kind": "button",
+                "label": "Contatti"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.14241001564945227
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "File",
+                "kind": "button",
+                "label": "File"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.257433489827856
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Utility",
+                "kind": "button",
+                "label": "Cartella Utility",
+                "value": "2 app"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38592027141645446,
+                  "y": 0.257433489827856
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "WebDriverAgentRunner-Runner",
+                "kind": "button",
+                "label": "WebDriverAgentRunner-Runner",
+                "value": "Aggiornata di recente"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.257433489827856
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighFixture",
+                "kind": "button",
+                "label": "LighFixture"
+              },
+              {
+                "center_norm": {
+                  "x": 0.8452078032230705,
+                  "y": 0.25880281690140844
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "XCUITestDemo",
+                "kind": "button",
+                "label": "XCUITestDemo"
+              },
+              {
+                "center_norm": {
+                  "x": 0.15564037319762522,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighFeed",
+                "kind": "button",
+                "label": "LighFeed"
+              },
+              {
+                "center_norm": {
+                  "x": 0.3854961832061069,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighOnboard",
+                "kind": "button",
+                "label": "LighOnboard"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145886,
+                  "y": 0.3724569640062598
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "LighModal",
+                "kind": "button",
+                "label": "LighModal"
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Safari",
+                "kind": "button",
+                "label": "Safari"
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "focused": false,
+                "hittable": true,
+                "id": "Messaggi",
+                "kind": "button",
+                "label": "Messaggi"
+              }
+            ],
+            "eyes_unusable": false,
+            "location": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "fingerprint": "fp_eaef1312cb2ef1de",
+              "surface": "app"
+            },
+            "ready": true
+          }
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "Fitness",
+              "label": "Fitness",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Watch",
+              "label": "Watch",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Contatti",
+              "label": "Contatti",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "File",
+              "label": "File",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Utility",
+              "label": "Cartella Utility",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "WebDriverAgentRunner-Runner",
+              "label": "WebDriverAgentRunner-Runner",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighFixture",
+              "label": "LighFixture",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "XCUITestDemo",
+              "label": "XCUITestDemo",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighFeed",
+              "label": "LighFeed",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighOnboard",
+              "label": "LighOnboard",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighModal",
+              "label": "LighModal",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Safari",
+              "label": "Safari",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "Messaggi",
+              "label": "Messaggi",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        },
+        "perceive": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Fitness",
+              "kind": "button",
+              "label": "Fitness"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Watch",
+              "kind": "button",
+              "label": "Watch"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Contatti",
+              "kind": "button",
+              "label": "Contatti"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "File",
+              "kind": "button",
+              "label": "File"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Utility",
+              "kind": "button",
+              "label": "Cartella Utility",
+              "value": "2 app"
+            },
+            {
+              "center_norm": {
+                "x": 0.38592027141645446,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "WebDriverAgentRunner-Runner",
+              "kind": "button",
+              "label": "WebDriverAgentRunner-Runner",
+              "value": "Aggiornata di recente"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFixture",
+              "kind": "button",
+              "label": "LighFixture"
+            },
+            {
+              "center_norm": {
+                "x": 0.8452078032230705,
+                "y": 0.25880281690140844
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "XCUITestDemo",
+              "kind": "button",
+              "label": "XCUITestDemo"
+            },
+            {
+              "center_norm": {
+                "x": 0.15564037319762522,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFeed",
+              "kind": "button",
+              "label": "LighFeed"
+            },
+            {
+              "center_norm": {
+                "x": 0.3854961832061069,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighOnboard",
+              "kind": "button",
+              "label": "LighOnboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145886,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighModal",
+              "kind": "button",
+              "label": "LighModal"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_eaef1312cb2ef1de",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 8,
+      "action": {
+        "action": "attempt",
+        "intent": "tap",
+        "id": "usernameTextField",
+        "label": "usernameTextField",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_label": "Username"
+        },
+        "summary": "Tap usernameTextField to attempt to focus the field for typing."
+      },
+      "result": {
+        "ok": false,
+        "fault": "motor_failed",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "actionable_topk": [
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 29,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n49dc8ee4",
+                "identifier": "Fitness",
+                "label": "Fitness",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Fitness",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38507209499575895,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 119.33333333333326,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n240b3c3f",
+                "identifier": "Watch",
+                "label": "Watch",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Watch",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 67,
+                  "x": 208.3333333333333,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n80f1cbce",
+                "identifier": "Contatti",
+                "label": "Contatti",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Contatti",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.8447837150127228,
+                  "y": 0.14241001564945227
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666666,
+                  "width": 64,
+                  "x": 300,
+                  "y": 78
+                },
+                "hittable": true,
+                "id": "n010e6b88",
+                "identifier": "File",
+                "label": "File",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "File",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.15521628498727735,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 64,
+                  "x": 29,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "ne566c7fc",
+                "identifier": "Utility",
+                "label": "Cartella Utility",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Cartella Utility",
+                "traits": "button",
+                "value": "2 app",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38592027141645446,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 80.66666666666669,
+                  "x": 111.33333333333326,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n90fe3b42",
+                "identifier": "WebDriverAgentRunner-Runner",
+                "label": "WebDriverAgentRunner-Runner",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "WebDriverAgentRunner-Runner",
+                "traits": "button",
+                "value": "Aggiornata di recente",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145884,
+                  "y": 0.257433489827856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 85,
+                  "x": 199.3333333333333,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n34dc0bb3",
+                "identifier": "LighFixture",
+                "label": "LighFixture",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighFixture",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.8452078032230705,
+                  "y": 0.25880281690140844
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 89,
+                  "width": 101,
+                  "x": 281.66666666666674,
+                  "y": 176
+                },
+                "hittable": true,
+                "id": "n981ee946",
+                "identifier": "XCUITestDemo",
+                "label": "XCUITestDemo",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "XCUITestDemo",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.15564037319762522,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 73.66666666666667,
+                  "x": 24.33333333333337,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf02888c0",
+                "identifier": "LighFeed",
+                "label": "LighFeed",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighFeed",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.3854961832061069,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 95,
+                  "x": 104,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf3c0cb91",
+                "identifier": "LighOnboard",
+                "label": "LighOnboard",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighOnboard",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6153519932145886,
+                  "y": 0.3724569640062598
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 86.66666666666669,
+                  "width": 80.33333333333331,
+                  "x": 201.66666666666663,
+                  "y": 274
+                },
+                "hittable": true,
+                "id": "nf5bdc3d9",
+                "identifier": "LighModal",
+                "label": "LighModal",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "LighModal",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.38676844783715014,
+                  "y": 0.9284037558685446
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 64,
+                  "width": 64,
+                  "x": 120,
+                  "y": 759
+                },
+                "hittable": true,
+                "id": "n9c166d7e",
+                "identifier": "Safari",
+                "label": "Safari",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Safari",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.6132315521628499,
+                  "y": 0.9284037558685446
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 64,
+                  "width": 64,
+                  "x": 209,
+                  "y": 759
+                },
+                "hittable": true,
+                "id": "nc55536b8",
+                "identifier": "Messaggi",
+                "label": "Messaggi",
+                "parent_id": "ne7b7b916",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Messaggi",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "candidates": [],
+            "error": "timeout waiting for clear path",
+            "id": "usernameTextField",
+            "label": "usernameTextField",
+            "overlay": "none",
+            "scene": {
+              "bundle_id": "com.himali.XCUITestDemo",
+              "keyboard_visible": false,
+              "surface": "app"
+            },
+            "wanted": {
+              "id": "usernameTextField",
+              "label": "usernameTextField"
+            }
+          },
+          "motor_fault": "target_missing",
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": false,
+              "hypotheses": [
+                {
+                  "confidence": 0.8,
+                  "detail": "id usernameTextField not in pre-action tree",
+                  "kind": "target_missing"
+                },
+                {
+                  "confidence": 0.7,
+                  "detail": "label usernameTextField not found",
+                  "kind": "label_missing"
+                }
+              ],
+              "missing": [
+                "see_label:Username"
+              ],
+              "post_fingerprint": "fp_eaef1312cb2ef1de",
+              "pre_fingerprint": "fp_eaef1312cb2ef1de"
+            },
+            "fault": "motor_failed",
+            "intent": "tap",
+            "intent_met": false,
+            "motor_ok": false,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.15521628498727735,
+                    "y": 0.14241001564945227
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Fitness",
+                  "kind": "button",
+                  "label": "Fitness"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.38507209499575895,
+                    "y": 0.14241001564945227
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Watch",
+                  "kind": "button",
+                  "label": "Watch"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.6153519932145884,
+                    "y": 0.14241001564945227
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Contatti",
+                  "kind": "button",
+                  "label": "Contatti"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.8447837150127228,
+                    "y": 0.14241001564945227
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "File",
+                  "kind": "button",
+                  "label": "File"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.15521628498727735,
+                    "y": 0.257433489827856
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Utility",
+                  "kind": "button",
+                  "label": "Cartella Utility",
+                  "value": "2 app"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.38592027141645446,
+                    "y": 0.257433489827856
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "WebDriverAgentRunner-Runner",
+                  "kind": "button",
+                  "label": "WebDriverAgentRunner-Runner",
+                  "value": "Aggiornata di recente"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.6153519932145884,
+                    "y": 0.257433489827856
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "LighFixture",
+                  "kind": "button",
+                  "label": "LighFixture"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.8452078032230705,
+                    "y": 0.25880281690140844
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "XCUITestDemo",
+                  "kind": "button",
+                  "label": "XCUITestDemo"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.15564037319762522,
+                    "y": 0.3724569640062598
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "LighFeed",
+                  "kind": "button",
+                  "label": "LighFeed"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.3854961832061069,
+                    "y": 0.3724569640062598
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "LighOnboard",
+                  "kind": "button",
+                  "label": "LighOnboard"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.6153519932145886,
+                    "y": 0.3724569640062598
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "LighModal",
+                  "kind": "button",
+                  "label": "LighModal"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.38676844783715014,
+                    "y": 0.9284037558685446
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Safari",
+                  "kind": "button",
+                  "label": "Safari"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.6132315521628499,
+                    "y": 0.9284037558685446
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "Messaggi",
+                  "kind": "button",
+                  "label": "Messaggi"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "fingerprint": "fp_eaef1312cb2ef1de",
+                "surface": "app"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": false,
+          "hypotheses": [
+            {
+              "confidence": 0.8,
+              "detail": "id usernameTextField not in pre-action tree",
+              "kind": "target_missing"
+            },
+            {
+              "confidence": 0.7,
+              "detail": "label usernameTextField not found",
+              "kind": "label_missing"
+            }
+          ],
+          "missing": [
+            "see_label:Username"
+          ],
+          "post_fingerprint": "fp_eaef1312cb2ef1de",
+          "pre_fingerprint": "fp_eaef1312cb2ef1de"
+        },
+        "suggestion": "read evidence.candidates; use ligh_cap_reach or fix accessibility id",
+        "intent_met": false,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Fitness",
+              "kind": "button",
+              "label": "Fitness"
+            },
+            {
+              "center_norm": {
+                "x": 0.38507209499575895,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Watch",
+              "kind": "button",
+              "label": "Watch"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Contatti",
+              "kind": "button",
+              "label": "Contatti"
+            },
+            {
+              "center_norm": {
+                "x": 0.8447837150127228,
+                "y": 0.14241001564945227
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "File",
+              "kind": "button",
+              "label": "File"
+            },
+            {
+              "center_norm": {
+                "x": 0.15521628498727735,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Utility",
+              "kind": "button",
+              "label": "Cartella Utility",
+              "value": "2 app"
+            },
+            {
+              "center_norm": {
+                "x": 0.38592027141645446,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "WebDriverAgentRunner-Runner",
+              "kind": "button",
+              "label": "WebDriverAgentRunner-Runner",
+              "value": "Aggiornata di recente"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145884,
+                "y": 0.257433489827856
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFixture",
+              "kind": "button",
+              "label": "LighFixture"
+            },
+            {
+              "center_norm": {
+                "x": 0.8452078032230705,
+                "y": 0.25880281690140844
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "XCUITestDemo",
+              "kind": "button",
+              "label": "XCUITestDemo"
+            },
+            {
+              "center_norm": {
+                "x": 0.15564037319762522,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighFeed",
+              "kind": "button",
+              "label": "LighFeed"
+            },
+            {
+              "center_norm": {
+                "x": 0.3854961832061069,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighOnboard",
+              "kind": "button",
+              "label": "LighOnboard"
+            },
+            {
+              "center_norm": {
+                "x": 0.6153519932145886,
+                "y": 0.3724569640062598
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "LighModal",
+              "kind": "button",
+              "label": "LighModal"
+            },
+            {
+              "center_norm": {
+                "x": 0.38676844783715014,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Safari",
+              "kind": "button",
+              "label": "Safari"
+            },
+            {
+              "center_norm": {
+                "x": 0.6132315521628499,
+                "y": 0.9284037558685446
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "Messaggi",
+              "kind": "button",
+              "label": "Messaggi"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_eaef1312cb2ef1de",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 9,
+      "action": {
+        "action": "attempt",
+        "intent": "tap",
+        "id": "XCUITestDemo",
+        "label": "XCUITestDemo",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_label": "Username"
+        },
+        "summary": "Tapping XCUITestDemo to reopen the login screen; expect Username field to appear."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "method": "hid_tap",
+            "motor": "ensure_path",
+            "target": "XCUITestDemo",
+            "verified": true
+          },
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": true,
+              "post_fingerprint": "fp_67f84fe6fa9605dc",
+              "pre_fingerprint": "fp_eaef1312cb2ef1de"
+            },
+            "intent": "tap",
+            "intent_met": true,
+            "motor_ok": true,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.48904538341158055
+                  },
+                  "focused": true,
+                  "hittable": true,
+                  "id": "usernameTextField",
+                  "kind": "text_field",
+                  "value": "Username"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5477308294209702
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "passwordSecureField",
+                  "kind": "text_field",
+                  "value": "Password"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6066118935837245
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "loginButton",
+                  "kind": "primary_button",
+                  "label": "Login"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.4264475743348983
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "n157d4fda",
+                  "kind": "static_text",
+                  "label": "Welcome"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "fingerprint": "fp_67f84fe6fa9605dc",
+                "surface": "app"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": true,
+          "post_fingerprint": "fp_67f84fe6fa9605dc",
+          "pre_fingerprint": "fp_eaef1312cb2ef1de"
+        },
+        "intent_met": true,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.48904538341158055
+              },
+              "focused": true,
+              "hittable": true,
+              "id": "usernameTextField",
+              "kind": "text_field",
+              "value": "Username"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5477308294209702
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "passwordSecureField",
+              "kind": "text_field",
+              "value": "Password"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6066118935837245
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "loginButton",
+              "kind": "primary_button",
+              "label": "Login"
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.4264475743348983
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "n157d4fda",
+              "kind": "static_text",
+              "label": "Welcome"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_67f84fe6fa9605dc",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 10,
+      "action": {
+        "action": "attempt",
+        "intent": "type",
+        "id": "usernameTextField",
+        "label": "usernameTextField",
+        "text": "alice",
+        "key": "",
+        "expect": null,
+        "summary": "Typing username 'alice' into usernameTextField."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "attempt": 1,
+            "motor": "focus_type",
+            "text": "alice",
+            "verified": "field_value"
+          },
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": false,
+              "post_fingerprint": "fp_67f84fe6fa9605dc",
+              "pre_fingerprint": "fp_67f84fe6fa9605dc"
+            },
+            "intent": "type",
+            "intent_met": true,
+            "motor_ok": true,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.48904538341158055
+                  },
+                  "focused": true,
+                  "hittable": true,
+                  "id": "usernameTextField",
+                  "kind": "text_field",
+                  "value": "Alicealice"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5477308294209702
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "passwordSecureField",
+                  "kind": "text_field",
+                  "value": "Password"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6066118935837245
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "loginButton",
+                  "kind": "primary_button",
+                  "label": "Login"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.4264475743348983
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "n157d4fda",
+                  "kind": "static_text",
+                  "label": "Welcome"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "fingerprint": "fp_67f84fe6fa9605dc",
+                "surface": "app"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": false,
+          "post_fingerprint": "fp_67f84fe6fa9605dc",
+          "pre_fingerprint": "fp_67f84fe6fa9605dc"
+        },
+        "intent_met": true,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.48904538341158055
+              },
+              "focused": true,
+              "hittable": true,
+              "id": "usernameTextField",
+              "kind": "text_field",
+              "value": "Alicealice"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5477308294209702
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "passwordSecureField",
+              "kind": "text_field",
+              "value": "Password"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6066118935837245
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "loginButton",
+              "kind": "primary_button",
+              "label": "Login"
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.4264475743348983
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "n157d4fda",
+              "kind": "static_text",
+              "label": "Welcome"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_67f84fe6fa9605dc",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 11,
+      "action": {
+        "action": "attempt",
+        "intent": "type",
+        "id": "passwordSecureField",
+        "label": "passwordSecureField",
+        "text": "secret",
+        "key": "",
+        "expect": null,
+        "summary": "Typing password 'secret' into passwordSecureField."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "attempt": 0,
+            "motor": "focus_type",
+            "text": "secret",
+            "verified": "field_value"
+          },
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": false,
+              "post_fingerprint": "fp_67f84fe6fa9605dc",
+              "pre_fingerprint": "fp_67f84fe6fa9605dc"
+            },
+            "intent": "type",
+            "intent_met": true,
+            "motor_ok": true,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5477308294209702
+                  },
+                  "focused": true,
+                  "hittable": true,
+                  "id": "passwordSecureField",
+                  "kind": "text_field",
+                  "value": "\u2022\u2022\u2022\u2022\u2022\u2022"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.48904538341158055
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "usernameTextField",
+                  "kind": "text_field",
+                  "value": "Alicealice"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6066118935837245
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "loginButton",
+                  "kind": "primary_button",
+                  "label": "Login"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.4264475743348983
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "n157d4fda",
+                  "kind": "static_text",
+                  "label": "Welcome"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "fingerprint": "fp_67f84fe6fa9605dc",
+                "surface": "app"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": false,
+          "post_fingerprint": "fp_67f84fe6fa9605dc",
+          "pre_fingerprint": "fp_67f84fe6fa9605dc"
+        },
+        "intent_met": true,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5477308294209702
+              },
+              "focused": true,
+              "hittable": true,
+              "id": "passwordSecureField",
+              "kind": "text_field",
+              "value": "\u2022\u2022\u2022\u2022\u2022\u2022"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.48904538341158055
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "usernameTextField",
+              "kind": "text_field",
+              "value": "Alicealice"
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6066118935837245
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "loginButton",
+              "kind": "primary_button",
+              "label": "Login"
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.4264475743348983
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "n157d4fda",
+              "kind": "static_text",
+              "label": "Welcome"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_67f84fe6fa9605dc",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 12,
+      "action": {
+        "action": "attempt",
+        "intent": "tap",
+        "id": "loginButton",
+        "label": "Login",
+        "text": "",
+        "key": "",
+        "expect": {
+          "see_label": "Home"
+        },
+        "summary": "Tapping Login to submit credentials; expect to reach authenticated home screen."
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "attempt",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "motor_detail": {
+            "method": "hid_tap",
+            "motor": "ensure_path",
+            "target": "loginButton",
+            "verified": true
+          },
+          "verdict": {
+            "evidence": {
+              "fingerprint_changed": true,
+              "post_fingerprint": "fp_19f1529abee7518a",
+              "pre_fingerprint": "fp_67f84fe6fa9605dc"
+            },
+            "intent": "tap",
+            "intent_met": true,
+            "motor_ok": true,
+            "perceive_after": {
+              "affordances": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.49569640062597814
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "homeTitle",
+                  "kind": "static_text",
+                  "label": "Home"
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.5455790297339593
+                  },
+                  "focused": false,
+                  "hittable": true,
+                  "id": "homeMessage",
+                  "kind": "static_text",
+                  "label": "You\u2019re logged in!"
+                }
+              ],
+              "eyes_unusable": false,
+              "location": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "fingerprint": "fp_19f1529abee7518a",
+                "surface": "app"
+              },
+              "ready": true
+            }
+          }
+        },
+        "evidence": {
+          "fingerprint_changed": true,
+          "post_fingerprint": "fp_19f1529abee7518a",
+          "pre_fingerprint": "fp_67f84fe6fa9605dc"
+        },
+        "intent_met": true,
+        "perceive_after": {
+          "affordances": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.49569640062597814
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "homeTitle",
+              "kind": "static_text",
+              "label": "Home"
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.5455790297339593
+              },
+              "focused": false,
+              "hittable": true,
+              "id": "homeMessage",
+              "kind": "static_text",
+              "label": "You\u2019re logged in!"
+            }
+          ],
+          "eyes_unusable": false,
+          "location": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "fingerprint": "fp_19f1529abee7518a",
+            "surface": "app"
+          },
+          "ready": true
+        }
+      }
+    },
+    {
+      "step": 13,
+      "action": {
+        "action": "done",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Authenticated home screen detected: login flow complete (Home title and You're logged in! visible)."
+      },
+      "result": {
+        "ok": false,
+        "error": "action done not allowed in arm=control"
+      }
+    },
+    {
+      "step": 13,
+      "action": {
+        "action": "done",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": null,
+        "summary": "Authenticated home screen detected: login flow complete (Home title and You're logged in! visible)."
+      },
+      "result": {
+        "ok": true,
+        "done": true,
+        "harness_pre": {
+          "ok": true,
+          "success_id": "homeTitle",
+          "seen_ids": [
+            "Home",
+            "You\u2019re logged in!",
+            "homeMessage",
+            "homeTitle"
+          ],
+          "fingerprint": "fp_19f1529abee7518a",
+          "ux_graph": {
+            "node_count": null,
+            "edge_count": null
+          },
+          "perceive_ok": true
+        }
+      }
+    }
+  ],
+  "claim_pass": true
+}

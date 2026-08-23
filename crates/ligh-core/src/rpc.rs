@@ -351,6 +351,25 @@ pub enum DaemonRequest {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         workspace: Option<String>,
     },
+    /// UX graph: compile intent_met path to motor steps (`.ligh/compiled/{goal}.json`).
+    UxCompileFlow {
+        goal_id: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
+    },
+    /// UX graph: execute compiled flow — zero LLM, motor only.
+    UxExecuteCompiled {
+        goal_id: String,
+        app: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        bundle_id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+    },
     StreamStats,
     /// Tear down the simulator session and exit the daemon.
     Shutdown,

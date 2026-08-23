@@ -32,9 +32,9 @@ pub use qa::{
     Expectation, Hypothesis, LocationView, PerceiveView,
 };
 pub use uxgraph::{
-    default_graph_path, resolve_workspace, ExploreResult, ExploreStep, GraphDiff, GraphSummary,
-    ScreenChange, SourceHint, UxBaseline, UxGraph, UxGraphStats, UxScreenNode, UxTransitionEdge,
-    UXGRAPH_SCHEMA_VERSION,
+    default_compiled_path, default_graph_path, resolve_workspace, CompiledFlow, ExploreResult,
+    ExploreStep, GraphDiff, GraphSummary, ScreenChange, SourceHint, UxBaseline, UxGraph,
+    UxGraphStats, UxScreenNode, UxTransitionEdge, UXGRAPH_SCHEMA_VERSION,
 };
 pub use profile::{FeatureRequirements, resolve_disabled_jobs, slim_labels};
 pub use rpc::{

@@ -1,0 +1,278 @@
+{
+  "capability": "ux_execute_compiled",
+  "detail": {
+    "compiled_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighOnboard/.ligh/compiled/HomeReady.json",
+    "confidence": 1.0,
+    "goal_id": "HomeReady",
+    "llm_tokens": 0,
+    "steps_executed": 1,
+    "trace": [
+      {
+        "fault": "Ok",
+        "ok": true,
+        "op": "tap",
+        "step": 0
+      }
+    ],
+    "verified": true
+  },
+  "fault": "ok",
+  "observe": {
+    "accessibility_tree": {
+      "element_count": 3,
+      "nodes": [
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 852,
+            "width": 393,
+            "x": 0,
+            "y": 0
+          },
+          "hittable": true,
+          "id": "n91b0a6ff",
+          "label": "LighOnboard",
+          "path_id": "n286645ff",
+          "role": "AXApplication",
+          "selected": false,
+          "text": "LighOnboard",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.21670907548770135,
+            "y": 0.1428012519561815
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 40.66666666666667,
+            "width": 138.33333333333331,
+            "x": 15.999999999999986,
+            "y": 101.33333333333331
+          },
+          "hittable": true,
+          "id": "nb5a02070",
+          "label": "Onboard",
+          "parent_id": "n91b0a6ff",
+          "path_id": "n1a7f2ac0",
+          "role": "AXHeading",
+          "selected": false,
+          "text": "Onboard",
+          "traits": "heading",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5678794992175275
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 40.666666666666686,
+            "width": 180.3333333333333,
+            "x": 106.33333333333334,
+            "y": 463.5
+          },
+          "hittable": true,
+          "id": "n7489e226",
+          "identifier": "HomeReady",
+          "label": "HomeReady",
+          "parent_id": "n91b0a6ff",
+          "path_id": "n0b530215",
+          "role": "AXStaticText",
+          "selected": false,
+          "text": "HomeReady",
+          "visible": true
+        }
+      ],
+      "point_size": [
+        393.0,
+        852.0
+      ],
+      "root": {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "children": [
+          {
+            "center_norm": {
+              "x": 0.21670907548770135,
+              "y": 0.1428012519561815
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.66666666666667,
+              "width": 138.33333333333331,
+              "x": 15.999999999999986,
+              "y": 101.33333333333331
+            },
+            "hittable": true,
+            "id": "nb5a02070",
+            "label": "Onboard",
+            "parent_id": "n91b0a6ff",
+            "path_id": "n1a7f2ac0",
+            "role": "AXHeading",
+            "selected": false,
+            "text": "Onboard",
+            "traits": "heading",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5678794992175275
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.666666666666686,
+              "width": 180.3333333333333,
+              "x": 106.33333333333334,
+              "y": 463.5
+            },
+            "hittable": true,
+            "id": "n7489e226",
+            "identifier": "HomeReady",
+            "label": "HomeReady",
+            "parent_id": "n91b0a6ff",
+            "path_id": "n0b530215",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "HomeReady",
+            "visible": true
+          }
+        ],
+        "children_ids": [
+          "nb5a02070",
+          "n7489e226"
+        ],
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 852,
+          "width": 393,
+          "x": 0,
+          "y": 0
+        },
+        "hittable": true,
+        "id": "n91b0a6ff",
+        "label": "LighOnboard",
+        "path_id": "n286645ff",
+        "role": "AXApplication",
+        "selected": false,
+        "text": "LighOnboard",
+        "visible": true
+      },
+      "status": "available"
+    },
+    "actionable_topk": [
+      {
+        "center_norm": {
+          "x": 0.21670907548770135,
+          "y": 0.1428012519561815
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 40.66666666666667,
+          "width": 138.33333333333331,
+          "x": 15.999999999999986,
+          "y": 101.33333333333331
+        },
+        "hittable": true,
+        "id": "nb5a02070",
+        "label": "Onboard",
+        "parent_id": "n91b0a6ff",
+        "role": "AXHeading",
+        "selected": false,
+        "text": "Onboard",
+        "traits": "heading",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5678794992175275
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 40.666666666666686,
+          "width": 180.3333333333333,
+          "x": 106.33333333333334,
+          "y": 463.5
+        },
+        "hittable": true,
+        "id": "n7489e226",
+        "identifier": "HomeReady",
+        "label": "HomeReady",
+        "parent_id": "n91b0a6ff",
+        "role": "AXStaticText",
+        "selected": false,
+        "text": "HomeReady",
+        "visible": true
+      }
+    ],
+    "app_bundle_id": "dev.ligh.Onboard",
+    "ax_quality": "ready",
+    "booted": true,
+    "events": [
+      {
+        "kind": "navigated",
+        "payload": {
+          "from": null,
+          "to": "Onboard"
+        },
+        "t": 1787508369.938277
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_tap",
+          "detail": {
+            "method": "hid_tap",
+            "target": "OnboardSkip",
+            "verified": true
+          },
+          "ok": true
+        },
+        "t": 1787508369.900767
+      }
+    ],
+    "eyes_unusable": false,
+    "frame": {
+      "fps": 47.640715781537565,
+      "h": 2556,
+      "id": 1732,
+      "imports_ok": true,
+      "w": 1179
+    },
+    "observe_ms": 0.00033299999999999996,
+    "overlay": "none",
+    "path": "lighd",
+    "phase": "ready",
+    "scene": {
+      "bundle_id": "dev.ligh.Onboard",
+      "keyboard_visible": false,
+      "screen_title": "Onboard",
+      "surface": "app"
+    },
+    "schema_version": 2,
+    "settled": true,
+    "simulator_app_running": false,
+    "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+  },
+  "ok": true,
+  "overlay": "none",
+  "phase": "ready",
+  "surface": "app"
+}

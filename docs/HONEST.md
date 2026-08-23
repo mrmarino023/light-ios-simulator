@@ -1,56 +1,78 @@
-# Honest status (do not oversell)
+# Honest status
 
-Last updated: 2026-08-22
+Last updated: 2026-08-23
 
-## Is this useless?
+## Bottom line
 
-**Not 100%. Not a product either.**
+**Real engineering experiment. Not a validated product.**
+
+LIGH is useful **if** you are building a coding agent on macOS that must verify Debug Simulator builds with accessibility ids — and you want structured outcomes instead of screenshot roulette.
+
+It is **not** useful if you need general UI test authoring (use Maestro/XCUITest) or apps without AX identifiers.
+
+---
+
+## What actually works (with published JSON)
 
 | Layer | Verdict |
 |-------|---------|
-| `lighd` motor (headless sim, HID, AX) | Real engineering — keep |
-| Fail-closed faults | Real — keep |
-| Login N=50 / Maestro bakeoffs | **Misleading** — stop publishing as wins |
-| `host_policy` / `agent-cap-loop.py` goal matching | **Cheating** — not agent proof |
-| `perceive` / `attempt` + evidence | Right direction — **unvalidated on Mac** |
-| UX Graph (`.ligh/uxgraph.json`) | Right direction — **unvalidated on Mac** |
-| Cloud agent (Linux) | **Cannot test iOS** — LIGH is Mac-local MCP only |
+| `lighd` motor + headless sim | ✅ Keep — real infra |
+| Fail-closed `app-job` faults | ✅ 5/5 injected faults never lie |
+| QA `perceive` / `attempt` + evidence | ✅ Demonstrated — [`qa-layer-latest.json`](assets/qa-layer-latest.json) |
+| Autonomous agent + **harness verify** (no scripted nav) | ✅ LighOnboard pass — [`autonomous-ux-latest.json`](assets/autonomous-ux-latest.json) |
+| **Compiled replay** (seed → compile → execute, 0 LLM) | ✅ LighOnboard pass — [`compiled-replay-latest.json`](assets/compiled-replay-latest.json) |
+| OSS login job reliability (app-job) | ✅ LIGH 50/50 at rigor N=50 — narrow job only |
+| MCP fault → retry mechanism | ✅ Scripted proof, not a reliability stat |
+| LLM finds one injected Swift bug (1×) | ✅ PoC only — [`autonomous-agent-latest.json`](assets/autonomous-agent-latest.json) |
 
-## What would make it NOT useless
+---
 
-One sentence from a developer who did not build LIGH:
+## What we tried and should stop selling
 
-> "On my app, Cursor + LIGH MCP fixed a real bug in fewer steps than screenshot/computer-use, and I know why."
+| Claim | Verdict |
+|-------|---------|
+| **UX graph helps LLM navigate faster** | ❌ Disproven — replay arm used *more* tokens than control — [`ux-graph-prove-latest.json`](assets/ux-graph-prove-latest.json) |
+| **“Beats Maestro” (general)** | ❌ One login job, one OSS app — footnote at best |
+| **“Graph is the product memory”** | ❌ Recording works; LLM navigation aid does not |
+| **`host_policy` / co-designed caps** | ❌ Not agent proof |
+| **15/15 breadth / frontier vision wins** | ❌ Research harnesses — not wedge |
+| **Cloud agent tests iOS** | ❌ LIGH is Mac-local only |
 
-**Zero developers have said that.**
+---
 
-## Kill criteria (unchanged)
+## The only product question that matters
 
-After **3 blind OSS apps** + same Cursor prompt:
+> On **your** app, does Cursor + LIGH MCP fix or verify faster than simctl + screenshot/vision — and can you say **why**?
 
-- LIGH MCP: higher success **or** ≥2× fewer turns **or** unprompted preference
-- Otherwise: **stop product thesis**. Keep motor as OSS infra.
+**Zero external developers have answered that yet.**
 
-## What we will not claim
+Until then: publish gates, publish failures, run [`docs/AGENTIC_BASELINE.md`](AGENTIC_BASELINE.md) fairly.
 
-- "Beats Maestro" (general)
-- "5× better" (unmeasured)
-- "Autonomous agent works" (1× injected typo)
-- "15/15 breadth" (`host_policy` / co-designed caps)
-- "Frontier wins" (`if "bluetooth" in goal`)
+---
 
-## What we can claim today
+## Kill criteria
 
-- Host returns structured `intent_met` + evidence (unit-tested)
-- UX graph persists nodes/edges/baselines (unit-tested)
-- Mac integration: **your job to run** (`gate-autonomous-qa.sh`)
+After **3 blind OSS apps** + same agent prompt vs agentic baseline:
 
-## Run the honest test (Mac)
+- LIGH wins on success rate **or** ≥2× fewer agent turns **or** unprompted preference  
+- Otherwise: **stop the product thesis**. Keep motor as OSS infra.
+
+---
+
+## Run the honest tests (Mac)
 
 ```bash
-export LIGH_WORKSPACE=$PWD
-export OPENAI_API_KEY=…
-./scripts/gate-third-party-rigor.sh   # narrow — not marketing
-./scripts/gate-autonomous-qa.sh       # QA-layer agent (attempt + ux_hint)
-./scripts/gate-blind-bakeoff.sh       # protocol doc + turn counter scaffold
+unset CARGO_TARGET_DIR && cargo build --release -p ligh-cli -p ligh-daemon
+
+# Canonical product gates
+./scripts/gate-autonomous-ux.sh       # LLM + perceive/attempt + harness
+./scripts/gate-compiled-replay.sh     # zero-LLM replay
+
+# Motor acceptance
+LIGH_APP_N=50 ./scripts/gate-app-reliability.sh
+LIGH_APP_N=50 ./scripts/gate-third-party-rigor.sh
+
+# Experimental — publish even when claim_pass: 0
+./scripts/gate-ux-graph-prove.sh
+./scripts/gate-agentic-baseline.sh    # LIGH vs vision (needs OPENAI_API_KEY)
 ```
