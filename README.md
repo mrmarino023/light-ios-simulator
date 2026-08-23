@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/ligh-messages-demo.gif" alt="LIGH agent opens Messages and types a pitch line" width="320" />
+</p>
+
 <h1 align="center">LIGH</h1>
 
 <p align="center">
@@ -205,7 +209,7 @@ Details: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · motor design: [`docs/
 
 ## Research demos (not the product wedge)
 
-SpringBoard / Messages / Settings loops and WDA microbenches are host experiments — useful for engineering, not the headline:
+SpringBoard / Messages / Settings loops and WDA microbenches are host experiments — useful for engineering, not the headline. Clip: [`docs/assets/ligh-messages-demo.mp4`](docs/assets/ligh-messages-demo.mp4)
 
 ```bash
 ./scripts/demo-type-agent.sh      # Messages typing demo
