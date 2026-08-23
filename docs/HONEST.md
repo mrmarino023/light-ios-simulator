@@ -4,11 +4,13 @@ Last updated: 2026-08-23
 
 ## Bottom line
 
-**Real engineering experiment. Not a validated product.**
+**Real tool. Unproven product.**
 
-LIGH is useful **if** you are building a coding agent on macOS that must verify Debug Simulator builds with accessibility ids — and you want structured outcomes instead of screenshot roulette.
+You have a coding agent that edits Swift. You want it to **open the app, try the flow, and say if it worked**. LIGH is a local Mac experiment for that — accessibility JSON + verified actions, not screenshots.
 
-It is **not** useful if you need general UI test authoring (use Maestro/XCUITest) or apps without AX identifiers.
+We do **not** know if developers prefer this over XCUITest or vision. **That is the only question that matters now.**
+
+**Next milestone:** 5 iOS developers using Cursor (or similar) try LIGH on **their** app without a 1-hour walkthrough. If 3/5 get value, explore further. If most say "I'd just generate XCUITest," stop the product thesis and keep the motor as OSS.
 
 ---
 
