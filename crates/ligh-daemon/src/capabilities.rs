@@ -6,7 +6,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use ligh_core::{
-    CapabilityResult, FaultClass, ObserveSnapshot, SessionPhase,
+    detect_surface, CapabilityResult, FaultClass, ObserveSnapshot, SessionPhase,
 };
 use ligh_host::{AxDump, HidInput};
 use serde_json::json;
@@ -33,6 +33,191 @@ pub(crate) fn phase_of(snap: &ObserveSnapshot) -> SessionPhase {
             _ => None,
         })
         .unwrap_or(SessionPhase::Degraded)
+}
+
+fn ax_nodes(snap: &ObserveSnapshot) -> &[serde_json::Value] {
+    snap.accessibility_tree.nodes()
+}
+
+fn node_label(n: &serde_json::Value) -> Option<&str> {
+    n.get("label")
+        .and_then(|v| v.as_str())
+        .or_else(|| n.get("identifier").and_then(|v| v.as_str()))
+}
+
+fn looks_like_springboard(snap: &ObserveSnapshot) -> bool {
+    if snap
+        .scene
+        .as_ref()
+        .and_then(|s| s.surface.as_deref())
+        == Some("springboard")
+    {
+        return true;
+    }
+    let nodes = ax_nodes(snap);
+    if detect_surface(&nodes) == "springboard" {
+        return true;
+    }
+    let has_spotlight = nodes.iter().any(|n| {
+        n.get("identifier").and_then(|v| v.as_str()) == Some("spotlight-pill")
+            || node_label(n).map(|l| l.eq_ignore_ascii_case("cerca") || l.eq_ignore_ascii_case("search"))
+                == Some(true)
+    });
+    let home_buttons = nodes
+        .iter()
+        .filter(|n| {
+            let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+            role.contains("Button")
+                && n.get("hittable").and_then(|v| v.as_bool()).unwrap_or(false)
+                && n.get("frame")
+                    .and_then(|f| f.get("y"))
+                    .and_then(|y| y.as_f64())
+                    .map(|y| y < 700.0)
+                    .unwrap_or(false)
+        })
+        .count();
+    // Home grid: spotlight + many icons, or dense icon grid without spotlight (slim sims).
+    (has_spotlight && home_buttons >= 6) || home_buttons >= 8
+}
+
+fn only_app_icon_on_home(snap: &ObserveSnapshot, app_label: &str) -> bool {
+    if !looks_like_springboard(snap) {
+        return false;
+    }
+    ax_nodes(snap).iter().any(|n| {
+        node_label(n).map(|l| l.eq_ignore_ascii_case(app_label)).unwrap_or(false)
+    })
+}
+
+fn ax_has_marker(snap: &ObserveSnapshot, wait_label: Option<&str>, wait_id: Option<&str>) -> bool {
+    let nodes = ax_nodes(snap);
+    if let Some(id) = wait_id {
+        if nodes.iter().any(|n| {
+            n.get("identifier").and_then(|v| v.as_str()) == Some(id)
+                || n.get("id").and_then(|v| v.as_str()) == Some(id)
+        }) {
+            return true;
+        }
+    }
+    if let Some(lab) = wait_label {
+        if nodes.iter().any(|n| node_label(n) == Some(lab)) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Trust gate: confirm we are *inside* the expected app, not looking at its SpringBoard icon.
+///
+/// Never accept `scene.bundle_id` alone — that lies while AX is still SpringBoard.
+pub(crate) fn confirm_app_ready(
+    snap: &ObserveSnapshot,
+    bundle_id: &str,
+    app_label: &str,
+    wait_label: Option<&str>,
+    wait_id: Option<&str>,
+) -> CapabilityResult {
+    if looks_like_springboard(snap) || only_app_icon_on_home(snap, app_label) {
+        return CapabilityResult::fail(
+            FaultClass::AppNotForeground,
+            phase_of(snap),
+            surface_of(snap),
+            "app_ready",
+            json!({
+                "reason": "app_not_foreground",
+                "bundle_id": bundle_id,
+                "app_label": app_label,
+                "surface": surface_of(snap),
+                "detail": "AX tree looks like SpringBoard / home grid — icon ≠ foreground",
+            }),
+            Some(snap.clone()),
+        );
+    }
+
+    if wait_label.is_some() || wait_id.is_some() {
+        if !ax_has_marker(snap, wait_label, wait_id) {
+            return CapabilityResult::fail(
+                FaultClass::AppNotForeground,
+                phase_of(snap),
+                surface_of(snap),
+                "app_ready",
+                json!({
+                    "reason": "entry_marker_missing",
+                    "bundle_id": bundle_id,
+                    "wait_label": wait_label,
+                    "wait_id": wait_id,
+                }),
+                Some(snap.clone()),
+            );
+        }
+        return CapabilityResult::success(
+            phase_of(snap),
+            surface_of(snap),
+            "app_ready",
+            json!({
+                "app_ready": true,
+                "via": "entry_marker",
+                "bundle_id": bundle_id,
+            }),
+            Some(snap.clone()),
+        );
+    }
+
+    // No markers: require non-springboard surface and settled AX with actionable content.
+    let surface = surface_of(snap).unwrap_or_else(|| "unknown".into());
+    if surface == "springboard" || surface == "transition" {
+        return CapabilityResult::fail(
+            FaultClass::AppNotForeground,
+            phase_of(snap),
+            Some(surface),
+            "app_ready",
+            json!({
+                "reason": "app_not_foreground",
+                "bundle_id": bundle_id,
+                "surface": surface_of(snap),
+            }),
+            Some(snap.clone()),
+        );
+    }
+
+    let actionable = snap.actionable_topk.len();
+    if actionable == 0 || !snap.settled {
+        return CapabilityResult::fail(
+            FaultClass::AppNotForeground,
+            phase_of(snap),
+            surface_of(snap),
+            "app_ready",
+            json!({
+                "reason": "app_not_ready",
+                "bundle_id": bundle_id,
+                "actionable": actionable,
+                "settled": snap.settled,
+            }),
+            Some(snap.clone()),
+        );
+    }
+
+    CapabilityResult::success(
+        phase_of(snap),
+        surface_of(snap),
+        "app_ready",
+        json!({
+            "app_ready": true,
+            "via": "ax_surface",
+            "bundle_id": bundle_id,
+            "surface": surface,
+            "actionable": actionable,
+        }),
+        Some(snap.clone()),
+    )
+}
+
+fn app_label_from_path(app: &str) -> String {
+    std::path::Path::new(app)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("app")
+        .to_string()
 }
 
 /// Build one observe + optional settle (reuses daemon observe builder via callback).
@@ -499,40 +684,28 @@ pub(crate) fn run_app(
                 (None, None) => true,
             };
             if chrome_ready {
-                if wait_label.is_none() && wait_id.is_none() {
-                    let ready = ensure_ready(build, state, settle_ms, 4);
-                    if ready.ok {
-                        return CapabilityResult::success(
-                            ready.phase,
-                            ready.surface.clone(),
-                            "run_app",
-                            json!({
-                                "bundle_id": bid,
-                                "install": false,
-                                "skipped_relaunch": true,
-                            }),
-                            ready.observe,
-                        );
-                    }
-                } else {
-                    let mut r = crate::motor::motor_wait(
-                        build,
-                        state,
-                        wait_label,
-                        wait_id,
-                        settle_ms,
-                        timeout_ms,
+                let app_label = app_label_from_path(app_path.to_str().unwrap_or(app));
+                let snap = build();
+                let trust = confirm_app_ready(
+                    &snap,
+                    &bid,
+                    &app_label,
+                    wait_label,
+                    wait_id,
+                );
+                if trust.ok {
+                    return CapabilityResult::success(
+                        trust.phase,
+                        trust.surface.clone(),
+                        "run_app",
+                        json!({
+                            "bundle_id": bid,
+                            "install": false,
+                            "skipped_relaunch": true,
+                            "app_ready": true,
+                        }),
+                        trust.observe.or(Some(snap)),
                     );
-                    if r.ok {
-                        if let Some(detail) = r.detail.as_mut() {
-                            if let Some(obj) = detail.as_object_mut() {
-                                obj.insert("skipped_relaunch".into(), json!(true));
-                                obj.insert("bundle_id".into(), json!(bid));
-                            }
-                        }
-                        r.capability = Some("run_app".into());
-                        return r;
-                    }
                 }
             }
         }
@@ -596,6 +769,38 @@ pub(crate) fn run_app(
         }
     }
 
+    // Foreground settle: simctl launch often leaves AX on the home grid while scene.bundle_id lies.
+    let app_label = app_label_from_path(app_path.to_str().unwrap_or(app));
+    for fg in 1..=10u32 {
+        let wait_ms = settle_ms.min(1200) + u64::from(fg) * 400;
+        let snap = settle_eyes(build, wait_ms);
+        let trust = confirm_app_ready(&snap, &bid, &app_label, None, None);
+        if trust.ok {
+            break;
+        }
+        // Give AX time to attach after launch_once before forcing another relaunch.
+        if fg <= 2 {
+            continue;
+        }
+        if only_app_icon_on_home(&snap, &app_label) && fg >= 5 {
+            let _ = crate::motor::motor_tap(
+                build,
+                state,
+                Some(app_label.as_str()),
+                None,
+                settle_ms.min(2000),
+                timeout_ms.min(8000),
+                None,
+                None,
+            );
+            std::thread::sleep(Duration::from_millis(1200));
+        } else if looks_like_springboard(&snap) {
+            // Relaunch without terminate — killing the process mid-attach keeps AX on SpringBoard.
+            let _ = ligh_sim::Simctl::run(&["launch", &udid, &bid]);
+            std::thread::sleep(Duration::from_millis(900 + u64::from(fg) * 150));
+        }
+    }
+
     let chrome_wait = |attempt: &str| -> CapabilityResult {
         let ready = ensure_ready(build, state, settle_ms, 6);
         if !ready.ok {
@@ -614,32 +819,72 @@ pub(crate) fn run_app(
                 ready.observe,
             );
         }
-        if wait_label.is_none() && wait_id.is_none() {
-            return CapabilityResult::success(
-                ready.phase,
-                ready.surface.clone(),
-                "run_app",
-                json!({ "bundle_id": bid, "install": install, "attempt": attempt }),
-                ready.observe,
+        let app_label = app_label_from_path(app_path.to_str().unwrap_or(app));
+
+        // Optional chrome markers: wait first, then trust-gate on the settled tree.
+        let snap_after_chrome = if wait_label.is_some() || wait_id.is_some() {
+            let mut r = crate::motor::motor_wait(
+                build,
+                state,
+                wait_label,
+                wait_id,
+                settle_ms,
+                timeout_ms,
             );
-        }
-        let mut r = crate::motor::motor_wait(
-            build,
-            state,
+            if !r.ok {
+                if let Some(detail) = r.detail.as_mut() {
+                    if let Some(obj) = detail.as_object_mut() {
+                        obj.insert("bundle_id".into(), json!(bid));
+                        obj.insert("attempt".into(), json!(attempt));
+                        obj.insert("install".into(), json!(install));
+                    }
+                }
+                r.capability = Some("run_app".into());
+                return r;
+            }
+            r.observe.unwrap_or_else(|| build())
+        } else {
+            ready.observe.clone().unwrap_or_else(|| build())
+        };
+
+        let trust = confirm_app_ready(
+            &snap_after_chrome,
+            &bid,
+            &app_label,
             wait_label,
             wait_id,
-            settle_ms,
-            timeout_ms,
         );
-        if let Some(detail) = r.detail.as_mut() {
-            if let Some(obj) = detail.as_object_mut() {
-                obj.insert("bundle_id".into(), json!(bid));
-                obj.insert("attempt".into(), json!(attempt));
-                obj.insert("install".into(), json!(install));
-            }
+        if !trust.ok {
+            return CapabilityResult::fail(
+                trust.fault,
+                trust.phase,
+                trust.surface.clone(),
+                "run_app",
+                json!({
+                    "bundle_id": bid,
+                    "step": "app_ready",
+                    "attempt": attempt,
+                    "install": install,
+                    "detail": trust.detail,
+                }),
+                trust.observe.or(Some(snap_after_chrome)),
+            );
         }
-        r.capability = Some("run_app".into());
-        r
+
+        CapabilityResult::success(
+            phase_of(&snap_after_chrome),
+            surface_of(&snap_after_chrome),
+            "run_app",
+            json!({
+                "bundle_id": bid,
+                "install": install,
+                "attempt": attempt,
+                "app_ready": true,
+                "wait_label": wait_label,
+                "wait_id": wait_id,
+            }),
+            Some(snap_after_chrome),
+        )
     };
 
     let mut out = chrome_wait("1");

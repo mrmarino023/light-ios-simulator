@@ -169,6 +169,106 @@ def compact_qa_cap(raw: dict[str, Any]) -> dict[str, Any]:
     return base
 
 
+def ligh_result_path(raw: dict[str, Any]) -> str | None:
+    """Extract a filesystem path from nested ligh() / call_tool responses."""
+    if raw.get("path"):
+        return str(raw["path"])
+    data = raw.get("data")
+    if isinstance(data, dict):
+        if data.get("path"):
+            return str(data["path"])
+        inner = data.get("data")
+        if isinstance(inner, dict) and inner.get("path"):
+            return str(inner["path"])
+    detail = raw.get("detail")
+    if isinstance(detail, dict) and detail.get("path"):
+        return str(detail["path"])
+    return None
+
+
+def _perceive_qa(settle_ms: int = 2500, workspace: str | None = None) -> dict[str, Any]:
+    ms = str(settle_ms)
+    cmd = ["--json", "cap", "perceive", "--settle-ms", ms]
+    if workspace:
+        cmd += ["--workspace", workspace]
+    return compact_qa_cap(ligh(*cmd))
+
+
+def _perceive_usable(perceive: dict[str, Any] | None) -> bool:
+    if not perceive:
+        return False
+    if perceive.get("eyes_unusable"):
+        return False
+    if perceive.get("ready"):
+        return True
+    return bool(perceive.get("affordances"))
+
+
+def route_perceive(
+    settle_ms: int = 2500,
+    *,
+    vision_fallback: bool = True,
+    recover_homes: int = 4,
+    workspace: str | None = None,
+) -> dict[str, Any]:
+    """AX-first perceive with optional vision escalation.
+
+    channel=ax     — plan on affordances (default path)
+    channel=vision — only after ligh_ready retry still eyes_unusable
+    channel=none   — hard fail, no screenshot spam
+    """
+    first = _perceive_qa(settle_ms, workspace)
+    perceive = first.get("perceive") or {}
+    if _perceive_usable(perceive):
+        return {**first, "channel": "ax", "vision_escalated": False, "route": "ax_first"}
+
+    ready = ligh(
+        "--json",
+        "ready",
+        "--settle-ms",
+        str(settle_ms),
+        "--recover-homes",
+        str(recover_homes),
+    )
+    second = _perceive_qa(settle_ms, workspace)
+    perceive2 = second.get("perceive") or {}
+    if _perceive_usable(perceive2):
+        return {
+            **second,
+            "channel": "ax",
+            "vision_escalated": False,
+            "route": "ax_after_ready",
+            "ready_result": ready,
+        }
+
+    if not vision_fallback:
+        return {
+            **second,
+            "ok": False,
+            "channel": "none",
+            "vision_escalated": False,
+            "route": "fail_closed",
+            "fault": "eyes_unusable",
+            "ready_result": ready,
+            "suggestion": "AX still unusable after ligh_ready — fix session trust; do not spam screenshots",
+        }
+
+    shot_path = os.path.expanduser("~/.ligh/routed-screenshot.png")
+    os.makedirs(os.path.dirname(shot_path), exist_ok=True)
+    shot = ligh("--json", "screenshot", "-o", shot_path)
+    path = ligh_result_path(shot) or shot_path
+    return {
+        **second,
+        "ok": True,
+        "channel": "vision",
+        "vision_escalated": True,
+        "route": "vision_fallback",
+        "ready_result": ready,
+        "screenshot_path": path,
+        "suggestion": "Vision escalation — use coordinates once, then perceive again for AX",
+    }
+
+
 def agent_rules_text() -> str:
     if os.path.isfile(AGENT_MD):
         return open(AGENT_MD, encoding="utf-8").read()
@@ -452,6 +552,18 @@ TOOLS = [
         },
     },
     {
+        "name": "ligh_perceive_routed",
+        "description": "AX-first perceive router: perceive → ligh_ready retry → vision screenshot only if still eyes_unusable. Returns channel=ax|vision|none.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "settle_ms": {"type": "integer", "default": 2500},
+                "vision_fallback": {"type": "boolean", "default": True},
+                "recover_homes": {"type": "integer", "default": 4},
+            },
+        },
+    },
+    {
         "name": "ligh_attempt",
         "description": "QA layer: tap|type|key with built-in verify. Returns intent_met + evidence.",
         "inputSchema": {
@@ -707,6 +819,13 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         if args.get("workspace"):
             cmd += ["--workspace", str(args["workspace"])]
         return compact_qa_cap(ligh(*cmd))
+    if name == "ligh_perceive_routed":
+        ms = int(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        vf = args.get("vision_fallback")
+        vision_fallback = True if vf is None else bool(vf)
+        homes = int(args.get("recover_homes") if args.get("recover_homes") is not None else 4)
+        ws = str(args["workspace"]) if args.get("workspace") else None
+        return route_perceive(ms, vision_fallback=vision_fallback, recover_homes=homes, workspace=ws)
     if name == "ligh_attempt":
         import json as _json
         intent = str(args.get("intent") or "")

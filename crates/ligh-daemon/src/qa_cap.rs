@@ -92,10 +92,15 @@ pub(crate) fn cap_attempt(
     };
 
     let motor_ok = motor.ok;
-    let post = motor
-        .observe
-        .clone()
-        .unwrap_or_else(|| settle_eyes(build, settle_ms));
+    let post = if motor_ok {
+        motor
+            .observe
+            .clone()
+            .unwrap_or_else(|| settle_eyes(build, settle_ms))
+    } else {
+        // Motor effect detector can miss overlay opens; re-settle before verdict.
+        settle_eyes(build, settle_ms.max(2500))
+    };
 
     // Re-attach events on post snapshot for delta (caller should have enriched via attach_sense).
     let verdict = evaluate_attempt(

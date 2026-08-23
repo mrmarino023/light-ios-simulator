@@ -1,0 +1,10 @@
+{
+  "_human_only": "Never pass this file to the agent or include in agent prompts.",
+  "task_id": "onboarding-home-broken",
+  "bug_id": "finish_never_dismisses",
+  "ground_truth": "OnboardingView.userInputComplete() no longer dismisses the onboarding overlay (isOnboardingVisible stays true after Finish Onboarding).",
+  "expected_fix": "Restore withAnimation { isOnboardingVisible = false } at end of userInputComplete.",
+  "patch_file": "bug.patch",
+  "upstream_commit": "0f9882f2bef6e00b6dd980dced1bd6b75a031177",
+  "protocol_note": "v1 run had false success (Hello, world! visible under overlay). v2 uses PRE/DO/POST strict verifier in task.json verification block."
+}

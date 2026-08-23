@@ -81,6 +81,10 @@ pub enum FaultClass {
     EyesUnusable,
     TargetMissing,
     WrongSurface,
+    /// Expected app is not in the foreground (e.g. SpringBoard showing the icon).
+    AppNotForeground,
+    /// Expected app process is not running.
+    AppNotRunning,
     MotorRejected,
     Timeout,
     /// Target exists but an overlay prevents a clear path and could not be cleared.
@@ -98,6 +102,8 @@ impl FaultClass {
             Self::EyesUnusable => "eyes_unusable",
             Self::TargetMissing => "target_missing",
             Self::WrongSurface => "wrong_surface",
+            Self::AppNotForeground => "app_not_foreground",
+            Self::AppNotRunning => "app_not_running",
             Self::MotorRejected => "motor_rejected",
             Self::MotorNoEffect => "motor_no_effect",
             Self::Timeout => "timeout",

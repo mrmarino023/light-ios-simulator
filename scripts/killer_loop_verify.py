@@ -1,0 +1,307 @@
+#!/usr/bin/env python3
+"""Strict transition-based verifier for killer-loop tasks (protocol v2).
+
+Harness only — not shown to the agent. Uses LIGH MCP for deterministic setup/exercise/post.
+Requires app_ready trust gate (no SpringBoard-as-success).
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+import time
+from typing import Any
+
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(ROOT, "scripts"))
+
+from killer_loop_task import load_task  # noqa: E402
+from ligh_mcp import call_tool  # noqa: E402
+
+
+def affordance_keys(perceive: dict[str, Any]) -> set[str]:
+    keys: set[str] = set()
+    for a in perceive.get("affordances") or []:
+        if not isinstance(a, dict):
+            continue
+        for k in ("id", "label", "identifier", "text"):
+            if a.get(k):
+                keys.add(str(a[k]))
+    return keys
+
+
+def perceive(settle_ms: int = 2500) -> dict[str, Any]:
+    r = call_tool("ligh_perceive", {"settle_ms": settle_ms})
+    perceive_doc = r.get("perceive") or {}
+    keys = affordance_keys(perceive_doc)
+    surface = (perceive_doc.get("scene") or {}).get("surface")
+    return {
+        "ok": bool(r.get("ok")),
+        "keys": keys,
+        "surface": surface,
+        "perceive": perceive_doc,
+        "raw": r,
+    }
+
+
+def is_springboard(keys: set[str], surface: str | None) -> bool:
+    if surface == "springboard":
+        return True
+    home_markers = {
+        "Cerca",
+        "Search",
+        "Safari",
+        "Messaggi",
+        "Messages",
+        "Fitness",
+        "Watch",
+        "Contatti",
+        "Contacts",
+        "File",
+        "Files",
+    }
+    # In-app home has Show Onboarding; SpringBoard may also list the app icon by name.
+    in_app_markers = {"Show Onboarding", "Hello, world!", "Get Started", "Welcome to MyApp"}
+    if keys & in_app_markers:
+        return False
+    if len(keys & home_markers) >= 2:
+        return True
+    # Dense home grid without in-app chrome.
+    icon_like = {k for k in keys if k and k[0].isupper() and " " not in k and len(k) < 24}
+    return len(icon_like) >= 6
+
+
+def bootstrap_app(app: str, bundle_id: str, *, wait_label: str | None = None) -> dict[str, Any]:
+    call_tool("ligh_ready", {"settle_ms": 2500, "recover_homes": 4})
+    payload: dict[str, Any] = {
+        "app": app,
+        "bundle_id": bundle_id,
+        "settle_ms": 3500,
+        "timeout_ms": 15000,
+    }
+    if wait_label:
+        payload["wait_label"] = wait_label
+    boot = call_tool("ligh_cap_run_app", payload)
+    fault = boot.get("fault") or (boot.get("detail") or {}).get("fault")
+    if fault and fault not in ("ok", None):
+        return {**boot, "foreground_ok": False, "trust_fault": fault}
+
+    for attempt in range(1, 8):
+        p = perceive(2500)
+        if is_springboard(p["keys"], p.get("surface")):
+            call_tool("ligh_launch", {"bundle_id": bundle_id})
+            time.sleep(1.5)
+            p = perceive(3000)
+        if not is_springboard(p["keys"], p.get("surface")):
+            return {**boot, "foreground_ok": True, "attempt": attempt, "keys": sorted(p["keys"])[:16]}
+        app_label = os.path.basename(app).replace(".app", "")
+        if app_label in p["keys"]:
+            call_tool(
+                "ligh_attempt",
+                {"intent": "tap", "label": app_label, "settle_ms": 2500, "timeout_ms": 10000},
+            )
+            time.sleep(1.2)
+            continue
+    return {**boot, "foreground_ok": False, "trust_fault": "app_not_foreground"}
+
+
+def run_tap(label: str, settle_ms: int = 2500) -> dict[str, Any]:
+    pre = perceive(settle_ms)
+    result = call_tool(
+        "ligh_attempt",
+        {
+            "intent": "tap",
+            "label": label,
+            "settle_ms": settle_ms,
+            "timeout_ms": 12000,
+        },
+    )
+    fault = result.get("fault") or ""
+    # Exercise records that we reached and fired on the control. POST verifies outcome
+    # (broken app: Finish fires but overlay stays — motor_no_effect is expected).
+    target_seen = label in pre["keys"]
+    ok = bool(result.get("ok")) or (
+        target_seen and fault in ("motor_no_effect", "motor_failed", "model")
+    )
+    return {
+        **result,
+        "ok": ok,
+        "fault": fault or None,
+        "target_seen": target_seen,
+    }
+
+
+def eval_spec(spec: dict[str, Any], keys: set[str]) -> dict[str, Any]:
+    must_see = spec.get("must_see_labels") or []
+    must_not = spec.get("must_not_see_labels") or []
+    seen = {l: (l in keys) for l in must_see}
+    absent = {l: (l not in keys) for l in must_not}
+    ok = all(seen.values()) and all(absent.values())
+    return {
+        "ok": ok,
+        "must_see": seen,
+        "must_not_see": absent,
+        "keys_sample": sorted(keys)[:40],
+    }
+
+
+def run_steps(steps: list[dict[str, Any]], phase: str) -> list[dict[str, Any]]:
+    trace: list[dict[str, Any]] = []
+    for i, step in enumerate(steps, start=1):
+        action = (step.get("action") or "tap").lower()
+        if action != "tap":
+            trace.append({"phase": phase, "step": i, "ok": False, "error": f"unsupported action {action}"})
+            continue
+        label = str(step.get("label") or "")
+        settle = int(step.get("settle_ms") or 2500)
+        result = run_tap(label, settle)
+        fault = result.get("fault") or ""
+        trace.append(
+            {
+                "phase": phase,
+                "step": i,
+                "action": "tap",
+                "label": label,
+                "ok": bool(result.get("ok")),
+                "fault": fault or None,
+            }
+        )
+        if not result.get("ok"):
+            break
+    return trace
+
+
+def legacy_weak_pass(task: dict[str, Any], keys: set[str]) -> bool:
+    labels = task.get("legacy_weak_success_labels") or task.get("harness_success_labels") or []
+    return any(l in keys for l in labels)
+
+
+def overlay_visible(task: dict[str, Any], keys: set[str]) -> bool:
+    overlay = (task.get("verification") or {}).get("onboarding_overlay_labels") or []
+    return any(l in keys for l in overlay)
+
+
+def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None, bundle_id: str | None = None) -> dict[str, Any]:
+    task = task or load_task()
+    app = app or os.environ.get("LIGH_APP_PATH") or task["app_path"]
+    bundle_id = bundle_id or task["bundle_id"]
+    ver = task.get("verification") or {}
+
+    boot = bootstrap_app(app, bundle_id)
+    if not boot.get("foreground_ok"):
+        return {
+            "verified": False,
+            "reason": boot.get("trust_fault") or "app_not_foreground",
+            "phase": "bootstrap",
+            "evidence": boot,
+            "bootstrap": boot,
+            "setup_trace": [],
+            "exercise_trace": [],
+            "legacy_weak_pass": False,
+            "false_success": False,
+        }
+
+    setup_trace = run_steps(ver.get("initial_setup") or [], "setup")
+    pre_keys = perceive(2500)["keys"]
+    pre = eval_spec(ver.get("preconditions") or {}, pre_keys)
+    # Overlay sometimes opens mid-carousel after agent edits; one recover cycle.
+    if not pre["ok"] and ({"Enable Location", "Skip for Now", "Temperature Preference"} & pre_keys):
+        call_tool("ligh_launch", {"bundle_id": bundle_id})
+        time.sleep(1.5)
+        boot2 = bootstrap_app(app, bundle_id, wait_label="Show Onboarding")
+        if boot2.get("foreground_ok"):
+            boot = boot2
+            setup_trace = run_steps(ver.get("initial_setup") or [], "setup")
+            pre = eval_spec(ver.get("preconditions") or {}, perceive(3000)["keys"])
+    if not pre["ok"]:
+        return {
+            "verified": False,
+            "reason": "precondition_not_satisfied",
+            "phase": "pre",
+            "evidence": pre,
+            "bootstrap": boot,
+            "setup_trace": setup_trace,
+            "exercise_trace": [],
+            "legacy_weak_pass": False,
+            "false_success": False,
+        }
+
+    exercise_trace = run_steps(ver.get("exercise") or [], "exercise")
+    post_keys = perceive(3500)["keys"]
+    post = eval_spec(ver.get("postconditions") or {}, post_keys)
+    weak = legacy_weak_pass(task, post_keys)
+    overlay = overlay_visible(task, post_keys)
+    home = "Hello, world!" in post_keys
+
+    false_success = weak and (overlay or not post["ok"])
+    verified = post["ok"] and not overlay
+
+    reason = "verified" if verified else "postcondition_not_satisfied"
+    if not all(s.get("ok") for s in exercise_trace):
+        reason = "exercise_failed"
+
+    return {
+        "verified": verified,
+        "reason": reason,
+        "phase": "post",
+        "evidence": {
+            "homeTitle": home,
+            "onboardingOverlay": overlay,
+            "post": post,
+            "legacy_weak_pass": weak,
+        },
+        "bootstrap": boot,
+        "setup_trace": setup_trace,
+        "exercise_trace": exercise_trace,
+        "preconditions": pre,
+        "legacy_weak_pass": weak,
+        "false_success": false_success,
+    }
+
+
+def establish_initial_state(task: dict[str, Any] | None = None, *, app: str | None = None, bundle_id: str | None = None) -> dict[str, Any]:
+    task = task or load_task()
+    app = app or os.environ.get("LIGH_APP_PATH") or task["app_path"]
+    bundle_id = bundle_id or task["bundle_id"]
+    ver = task.get("verification") or {}
+
+    boot = bootstrap_app(app, bundle_id, wait_label="Show Onboarding")
+    if not boot.get("foreground_ok"):
+        return {
+            "ok": False,
+            "reason": boot.get("trust_fault") or "app_not_foreground",
+            "bootstrap": boot,
+            "setup_trace": [],
+            "preconditions": {},
+        }
+
+    setup_trace = run_steps(ver.get("initial_setup") or [], "setup")
+    pre = eval_spec(ver.get("preconditions") or {}, perceive(2500)["keys"])
+    return {
+        "ok": pre["ok"],
+        "reason": "initial_state_ready" if pre["ok"] else "initial_state_failed",
+        "bootstrap": boot,
+        "setup_trace": setup_trace,
+        "preconditions": pre,
+    }
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--task", default=os.environ.get("LIGH_KILLER_TASK"))
+    ap.add_argument("--phase", choices=("setup", "strict"), default="strict")
+    args = ap.parse_args()
+    task = load_task(args.task)
+    if args.phase == "setup":
+        result = establish_initial_state(task)
+    else:
+        result = strict_verify(task)
+    print(json.dumps(result, indent=2))
+    ok = result.get("ok") if args.phase == "setup" else result.get("verified")
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,2200 @@
+{
+  "gate": "killer_loop",
+  "protocol_version": 2,
+  "arm": "baseline",
+  "task": "onboarding-home-broken",
+  "task_prompt": "The onboarding flow is broken. After a user finishes onboarding they should reach the app's home screen, but they get stuck on the onboarding overlay. Find the issue in the Swift source, apply a minimal fix (do not rewrite pages/enums), rebuild the app, and verify the fix in the Simulator. The app starts on the home screen \u2014 tap 'Show Onboarding' before exercising the flow. Success = home visible AND onboarding overlay gone after Finish.",
+  "app_id": "onboardingdemo",
+  "app_commit": "0f9882f2bef6e00b6dd980dced1bd6b75a031177",
+  "upstream_url": "https://github.com/axelrivera/OnboardingDemo",
+  "initial_state": "broken",
+  "initial_state_setup": {
+    "ok": true,
+    "reason": "initial_state_ready",
+    "bootstrap": {
+      "ok": true,
+      "data": {
+        "capability": "run_app",
+        "detail": {
+          "app_ready": true,
+          "attempt": "1",
+          "bundle_id": "me.axelrivera.OnboardingDemo",
+          "install": true,
+          "wait_id": null,
+          "wait_label": "Show Onboarding"
+        },
+        "fault": "ok",
+        "observe": {
+          "accessibility_tree": {
+            "element_count": 5,
+            "nodes": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 852,
+                  "width": 393,
+                  "x": 0,
+                  "y": 0
+                },
+                "hittable": true,
+                "id": "n9dc373de",
+                "label": "OnboardingDemo",
+                "path_id": "nd99684be",
+                "role": "AXApplication",
+                "selected": false,
+                "text": "OnboardingDemo",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5004240882103478,
+                  "y": 0.0886150234741784
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.33333333333333,
+                  "width": 144.66666666666669,
+                  "x": 124.33333333333331,
+                  "y": 65.33333333333333
+                },
+                "hittable": true,
+                "id": "n8f5115b5",
+                "label": "Onboarding Demo",
+                "parent_id": "n9dc373de",
+                "path_id": "n04b05d02",
+                "role": "AXHeading",
+                "selected": false,
+                "text": "Onboarding Demo",
+                "traits": "heading",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000016177681,
+                  "y": 0.4708528958948938
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 21.666667938232425,
+                  "width": 21.666667938232425,
+                  "x": 185.66666666666663,
+                  "y": 390.33333333333326
+                },
+                "hittable": true,
+                "id": "n2532b711",
+                "identifier": "globe",
+                "label": "Globe",
+                "parent_id": "n9dc373de",
+                "path_id": "n8ffdeee0",
+                "role": "AXImage",
+                "selected": false,
+                "text": "Globe",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.49786243229777977
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.33333333333331,
+                  "width": 94.66666666666666,
+                  "x": 149.16666666666669,
+                  "y": 414.0121256510417
+                },
+                "hittable": true,
+                "id": "n37d039f7",
+                "label": "Hello, world!",
+                "parent_id": "n9dc373de",
+                "path_id": "n436859c2",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Hello, world!",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5706181533646322
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 50.333333333333314,
+                  "width": 176.33333333333331,
+                  "x": 108.33333333333331,
+                  "y": 461
+                },
+                "hittable": true,
+                "id": "n18634e42",
+                "label": "Show Onboarding",
+                "parent_id": "n9dc373de",
+                "path_id": "n18ba444d",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Show Onboarding",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "point_size": [
+              393.0,
+              852.0
+            ],
+            "root": {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "children": [
+                {
+                  "center_norm": {
+                    "x": 0.5004240882103478,
+                    "y": 0.0886150234741784
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.33333333333333,
+                    "width": 144.66666666666669,
+                    "x": 124.33333333333331,
+                    "y": 65.33333333333333
+                  },
+                  "hittable": true,
+                  "id": "n8f5115b5",
+                  "label": "Onboarding Demo",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n04b05d02",
+                  "role": "AXHeading",
+                  "selected": false,
+                  "text": "Onboarding Demo",
+                  "traits": "heading",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000016177681,
+                    "y": 0.4708528958948938
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 21.666667938232425,
+                    "width": 21.666667938232425,
+                    "x": 185.66666666666663,
+                    "y": 390.33333333333326
+                  },
+                  "hittable": true,
+                  "id": "n2532b711",
+                  "identifier": "globe",
+                  "label": "Globe",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n8ffdeee0",
+                  "role": "AXImage",
+                  "selected": false,
+                  "text": "Globe",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.49786243229777977
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.33333333333331,
+                    "width": 94.66666666666666,
+                    "x": 149.16666666666669,
+                    "y": 414.0121256510417
+                  },
+                  "hittable": true,
+                  "id": "n37d039f7",
+                  "label": "Hello, world!",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n436859c2",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "Hello, world!",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5706181533646322
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 50.333333333333314,
+                    "width": 176.33333333333331,
+                    "x": 108.33333333333331,
+                    "y": 461
+                  },
+                  "hittable": true,
+                  "id": "n18634e42",
+                  "label": "Show Onboarding",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n18ba444d",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "Show Onboarding",
+                  "traits": "button",
+                  "visible": true
+                }
+              ],
+              "children_ids": [
+                "n8f5115b5",
+                "n2532b711",
+                "n37d039f7",
+                "n18634e42"
+              ],
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 852,
+                "width": 393,
+                "x": 0,
+                "y": 0
+              },
+              "hittable": true,
+              "id": "n9dc373de",
+              "label": "OnboardingDemo",
+              "path_id": "nd99684be",
+              "role": "AXApplication",
+              "selected": false,
+              "text": "OnboardingDemo",
+              "visible": true
+            },
+            "status": "available"
+          },
+          "actionable_topk": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5706181533646322
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 50.333333333333314,
+                "width": 176.33333333333331,
+                "x": 108.33333333333331,
+                "y": 461
+              },
+              "hittable": true,
+              "id": "n18634e42",
+              "label": "Show Onboarding",
+              "parent_id": "n9dc373de",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Show Onboarding",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5004240882103478,
+                "y": 0.0886150234741784
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 20.33333333333333,
+                "width": 144.66666666666669,
+                "x": 124.33333333333331,
+                "y": 65.33333333333333
+              },
+              "hittable": true,
+              "id": "n8f5115b5",
+              "label": "Onboarding Demo",
+              "parent_id": "n9dc373de",
+              "role": "AXHeading",
+              "selected": false,
+              "text": "Onboarding Demo",
+              "traits": "heading",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000016177681,
+                "y": 0.4708528958948938
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 21.666667938232425,
+                "width": 21.666667938232425,
+                "x": 185.66666666666663,
+                "y": 390.33333333333326
+              },
+              "hittable": true,
+              "id": "n2532b711",
+              "identifier": "globe",
+              "label": "Globe",
+              "parent_id": "n9dc373de",
+              "role": "AXImage",
+              "selected": false,
+              "text": "Globe",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.49786243229777977
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 20.33333333333331,
+                "width": 94.66666666666666,
+                "x": 149.16666666666669,
+                "y": 414.0121256510417
+              },
+              "hittable": true,
+              "id": "n37d039f7",
+              "label": "Hello, world!",
+              "parent_id": "n9dc373de",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "Hello, world!",
+              "visible": true
+            }
+          ],
+          "app_bundle_id": "me.axelrivera.OnboardingDemo",
+          "ax_quality": "ready",
+          "booted": true,
+          "eyes_unusable": false,
+          "frame": {
+            "fps": 47.079737028252566,
+            "h": 2556,
+            "id": 2563,
+            "imports_ok": true,
+            "w": 1179
+          },
+          "observe_ms": 0.0006670000000000001,
+          "overlay": "none",
+          "path": "lighd",
+          "phase": "ready",
+          "scene": {
+            "bundle_id": "me.axelrivera.OnboardingDemo",
+            "keyboard_visible": false,
+            "screen_title": "Onboarding Demo",
+            "surface": "app"
+          },
+          "schema_version": 2,
+          "settled": true,
+          "simulator_app_running": false,
+          "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+        },
+        "ok": true,
+        "overlay": "none",
+        "phase": "ready",
+        "surface": "app"
+      },
+      "foreground_ok": true,
+      "attempt": 1,
+      "keys": [
+        "Globe",
+        "Hello, world!",
+        "Onboarding Demo",
+        "Show Onboarding",
+        "globe",
+        "n18634e42",
+        "n37d039f7",
+        "n8f5115b5"
+      ]
+    },
+    "setup_trace": [
+      {
+        "phase": "setup",
+        "step": 1,
+        "action": "tap",
+        "label": "Show Onboarding",
+        "ok": true,
+        "fault": "ok"
+      }
+    ],
+    "preconditions": {
+      "ok": true,
+      "must_see": {
+        "Get Started": true,
+        "Welcome to MyApp": true
+      },
+      "must_not_see": {},
+      "keys_sample": [
+        "Discover amazing features and personalize your experience with our intuitive app.",
+        "Favourite",
+        "Get Started",
+        "Globe",
+        "Hello, world!",
+        "Onboarding Demo",
+        "Show Onboarding",
+        "Welcome to MyApp",
+        "globe",
+        "n02a042e5",
+        "n086e9eb9",
+        "n18634e42",
+        "n1f678aeb",
+        "n37d039f7",
+        "n8f5115b5",
+        "star.circle.fill"
+      ]
+    }
+  },
+  "final_state": "verified",
+  "verified": true,
+  "claim_pass": true,
+  "false_success": false,
+  "verification_reason": "verified",
+  "verification_evidence": {
+    "homeTitle": true,
+    "onboardingOverlay": false,
+    "post": {
+      "ok": true,
+      "must_see": {
+        "Hello, world!": true,
+        "Show Onboarding": true
+      },
+      "must_not_see": {
+        "Get Started": true,
+        "Welcome to MyApp": true,
+        "Finish Onboarding": true
+      },
+      "keys_sample": [
+        "Globe",
+        "Hello, world!",
+        "Onboarding Demo",
+        "Show Onboarding",
+        "globe",
+        "n18634e42",
+        "n37d039f7",
+        "n8f5115b5"
+      ]
+    },
+    "legacy_weak_pass": true
+  },
+  "legacy_weak_pass": null,
+  "exercise_executed": [
+    {
+      "phase": "exercise",
+      "step": 1,
+      "action": "tap",
+      "label": "Get Started",
+      "ok": true,
+      "fault": "ok"
+    },
+    {
+      "phase": "exercise",
+      "step": 2,
+      "action": "tap",
+      "label": "Finish Onboarding",
+      "ok": true,
+      "fault": "ok"
+    }
+  ],
+  "model": "gpt-5-nano",
+  "wall_time_ms": 204048,
+  "llm_tokens": 73143,
+  "tokens": {
+    "in": 58822,
+    "out": 14321,
+    "total": 73143
+  },
+  "steps_used": 12,
+  "strict_verify": {
+    "verified": true,
+    "reason": "verified",
+    "false_success": false,
+    "evidence": {
+      "homeTitle": true,
+      "onboardingOverlay": false,
+      "post": {
+        "ok": true,
+        "must_see": {
+          "Hello, world!": true,
+          "Show Onboarding": true
+        },
+        "must_not_see": {
+          "Get Started": true,
+          "Welcome to MyApp": true,
+          "Finish Onboarding": true
+        },
+        "keys_sample": [
+          "Globe",
+          "Hello, world!",
+          "Onboarding Demo",
+          "Show Onboarding",
+          "globe",
+          "n18634e42",
+          "n37d039f7",
+          "n8f5115b5"
+        ]
+      },
+      "legacy_weak_pass": true
+    },
+    "setup_trace": [
+      {
+        "phase": "setup",
+        "step": 1,
+        "action": "tap",
+        "label": "Show Onboarding",
+        "ok": true,
+        "fault": "ok"
+      }
+    ],
+    "exercise_trace": [
+      {
+        "phase": "exercise",
+        "step": 1,
+        "action": "tap",
+        "label": "Get Started",
+        "ok": true,
+        "fault": "ok"
+      },
+      {
+        "phase": "exercise",
+        "step": 2,
+        "action": "tap",
+        "label": "Finish Onboarding",
+        "ok": true,
+        "fault": "ok"
+      }
+    ],
+    "preconditions": {
+      "ok": true,
+      "must_see": {
+        "Get Started": true,
+        "Welcome to MyApp": true
+      },
+      "must_not_see": {},
+      "keys_sample": [
+        "Discover amazing features and personalize your experience with our intuitive app.",
+        "Favourite",
+        "Get Started",
+        "Globe",
+        "Hello, world!",
+        "Onboarding Demo",
+        "Show Onboarding",
+        "Welcome to MyApp",
+        "globe",
+        "n02a042e5",
+        "n086e9eb9",
+        "n18634e42",
+        "n1f678aeb",
+        "n37d039f7",
+        "n8f5115b5",
+        "star.circle.fill"
+      ]
+    }
+  },
+  "agent_actions": [
+    {
+      "step": 0,
+      "action": null,
+      "ok": true
+    },
+    {
+      "step": 1,
+      "action": "bootstrap_app",
+      "ok": true
+    },
+    {
+      "step": 2,
+      "action": "read_file",
+      "ok": true
+    },
+    {
+      "step": 3,
+      "action": "read_file",
+      "ok": true
+    },
+    {
+      "step": 4,
+      "action": "read_file",
+      "ok": true
+    },
+    {
+      "step": 5,
+      "action": "write_file",
+      "ok": true
+    },
+    {
+      "step": 6,
+      "action": "read_file",
+      "ok": true
+    },
+    {
+      "step": 7,
+      "action": "build_app",
+      "ok": true
+    },
+    {
+      "step": 8,
+      "action": "bootstrap_app",
+      "ok": true
+    },
+    {
+      "step": 9,
+      "action": "vision_tap",
+      "ok": true
+    },
+    {
+      "step": 10,
+      "action": "verify",
+      "ok": true
+    },
+    {
+      "step": 10,
+      "action": null,
+      "ok": null
+    }
+  ],
+  "faults": [],
+  "code_changes": [
+    {
+      "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift",
+      "bytes": 4562,
+      "preview": "//\n//  OnboardingView.swift\n//  OnboardingDemo\n//\n//  Created by Axel Rivera on 6/25/25.\n//\n\nimport SwiftUI\nimport CoreLocation\n\n// DEMO NOTE: This enum defines the onboarding flow sequence\n// Customize these pages based on your app's needs. Popular onboarding pages include:\n//\n// Permission Pages (ask when the feature provides clear value):\n// - .notifications (push notification permissions)\n// -"
+    }
+  ],
+  "build_attempts": 1,
+  "verification_attempts": 1,
+  "human_interventions": 0,
+  "perception_channels": {
+    "ax": 0,
+    "vision": 0,
+    "none": 0,
+    "vision_escalations": 0
+  },
+  "trace": [
+    {
+      "step": 0,
+      "phase": "initial_state",
+      "result": {
+        "ok": true,
+        "reason": "initial_state_ready",
+        "bootstrap": {
+          "ok": true,
+          "data": {
+            "capability": "run_app",
+            "detail": {
+              "app_ready": true,
+              "attempt": "1",
+              "bundle_id": "me.axelrivera.OnboardingDemo",
+              "install": true,
+              "wait_id": null,
+              "wait_label": "Show Onboarding"
+            },
+            "fault": "ok",
+            "observe": {
+              "accessibility_tree": {
+                "element_count": 5,
+                "nodes": [
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 852,
+                      "width": 393,
+                      "x": 0,
+                      "y": 0
+                    },
+                    "hittable": true,
+                    "id": "n9dc373de",
+                    "label": "OnboardingDemo",
+                    "path_id": "nd99684be",
+                    "role": "AXApplication",
+                    "selected": false,
+                    "text": "OnboardingDemo",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5004240882103478,
+                      "y": 0.0886150234741784
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 20.33333333333333,
+                      "width": 144.66666666666669,
+                      "x": 124.33333333333331,
+                      "y": 65.33333333333333
+                    },
+                    "hittable": true,
+                    "id": "n8f5115b5",
+                    "label": "Onboarding Demo",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n04b05d02",
+                    "role": "AXHeading",
+                    "selected": false,
+                    "text": "Onboarding Demo",
+                    "traits": "heading",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5000000016177681,
+                      "y": 0.4708528958948938
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 21.666667938232425,
+                      "width": 21.666667938232425,
+                      "x": 185.66666666666663,
+                      "y": 390.33333333333326
+                    },
+                    "hittable": true,
+                    "id": "n2532b711",
+                    "identifier": "globe",
+                    "label": "Globe",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n8ffdeee0",
+                    "role": "AXImage",
+                    "selected": false,
+                    "text": "Globe",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.49786243229777977
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 20.33333333333331,
+                      "width": 94.66666666666666,
+                      "x": 149.16666666666669,
+                      "y": 414.0121256510417
+                    },
+                    "hittable": true,
+                    "id": "n37d039f7",
+                    "label": "Hello, world!",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n436859c2",
+                    "role": "AXStaticText",
+                    "selected": false,
+                    "text": "Hello, world!",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.5706181533646322
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 50.333333333333314,
+                      "width": 176.33333333333331,
+                      "x": 108.33333333333331,
+                      "y": 461
+                    },
+                    "hittable": true,
+                    "id": "n18634e42",
+                    "label": "Show Onboarding",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n18ba444d",
+                    "role": "AXButton",
+                    "selected": false,
+                    "text": "Show Onboarding",
+                    "traits": "button",
+                    "visible": true
+                  }
+                ],
+                "point_size": [
+                  393.0,
+                  852.0
+                ],
+                "root": {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5
+                  },
+                  "children": [
+                    {
+                      "center_norm": {
+                        "x": 0.5004240882103478,
+                        "y": 0.0886150234741784
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 20.33333333333333,
+                        "width": 144.66666666666669,
+                        "x": 124.33333333333331,
+                        "y": 65.33333333333333
+                      },
+                      "hittable": true,
+                      "id": "n8f5115b5",
+                      "label": "Onboarding Demo",
+                      "parent_id": "n9dc373de",
+                      "path_id": "n04b05d02",
+                      "role": "AXHeading",
+                      "selected": false,
+                      "text": "Onboarding Demo",
+                      "traits": "heading",
+                      "visible": true
+                    },
+                    {
+                      "center_norm": {
+                        "x": 0.5000000016177681,
+                        "y": 0.4708528958948938
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 21.666667938232425,
+                        "width": 21.666667938232425,
+                        "x": 185.66666666666663,
+                        "y": 390.33333333333326
+                      },
+                      "hittable": true,
+                      "id": "n2532b711",
+                      "identifier": "globe",
+                      "label": "Globe",
+                      "parent_id": "n9dc373de",
+                      "path_id": "n8ffdeee0",
+                      "role": "AXImage",
+                      "selected": false,
+                      "text": "Globe",
+                      "visible": true
+                    },
+                    {
+                      "center_norm": {
+                        "x": 0.5,
+                        "y": 0.49786243229777977
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 20.33333333333331,
+                        "width": 94.66666666666666,
+                        "x": 149.16666666666669,
+                        "y": 414.0121256510417
+                      },
+                      "hittable": true,
+                      "id": "n37d039f7",
+                      "label": "Hello, world!",
+                      "parent_id": "n9dc373de",
+                      "path_id": "n436859c2",
+                      "role": "AXStaticText",
+                      "selected": false,
+                      "text": "Hello, world!",
+                      "visible": true
+                    },
+                    {
+                      "center_norm": {
+                        "x": 0.5,
+                        "y": 0.5706181533646322
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 50.333333333333314,
+                        "width": 176.33333333333331,
+                        "x": 108.33333333333331,
+                        "y": 461
+                      },
+                      "hittable": true,
+                      "id": "n18634e42",
+                      "label": "Show Onboarding",
+                      "parent_id": "n9dc373de",
+                      "path_id": "n18ba444d",
+                      "role": "AXButton",
+                      "selected": false,
+                      "text": "Show Onboarding",
+                      "traits": "button",
+                      "visible": true
+                    }
+                  ],
+                  "children_ids": [
+                    "n8f5115b5",
+                    "n2532b711",
+                    "n37d039f7",
+                    "n18634e42"
+                  ],
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 852,
+                    "width": 393,
+                    "x": 0,
+                    "y": 0
+                  },
+                  "hittable": true,
+                  "id": "n9dc373de",
+                  "label": "OnboardingDemo",
+                  "path_id": "nd99684be",
+                  "role": "AXApplication",
+                  "selected": false,
+                  "text": "OnboardingDemo",
+                  "visible": true
+                },
+                "status": "available"
+              },
+              "actionable_topk": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5706181533646322
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 50.333333333333314,
+                    "width": 176.33333333333331,
+                    "x": 108.33333333333331,
+                    "y": 461
+                  },
+                  "hittable": true,
+                  "id": "n18634e42",
+                  "label": "Show Onboarding",
+                  "parent_id": "n9dc373de",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "Show Onboarding",
+                  "traits": "button",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5004240882103478,
+                    "y": 0.0886150234741784
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.33333333333333,
+                    "width": 144.66666666666669,
+                    "x": 124.33333333333331,
+                    "y": 65.33333333333333
+                  },
+                  "hittable": true,
+                  "id": "n8f5115b5",
+                  "label": "Onboarding Demo",
+                  "parent_id": "n9dc373de",
+                  "role": "AXHeading",
+                  "selected": false,
+                  "text": "Onboarding Demo",
+                  "traits": "heading",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000016177681,
+                    "y": 0.4708528958948938
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 21.666667938232425,
+                    "width": 21.666667938232425,
+                    "x": 185.66666666666663,
+                    "y": 390.33333333333326
+                  },
+                  "hittable": true,
+                  "id": "n2532b711",
+                  "identifier": "globe",
+                  "label": "Globe",
+                  "parent_id": "n9dc373de",
+                  "role": "AXImage",
+                  "selected": false,
+                  "text": "Globe",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.49786243229777977
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.33333333333331,
+                    "width": 94.66666666666666,
+                    "x": 149.16666666666669,
+                    "y": 414.0121256510417
+                  },
+                  "hittable": true,
+                  "id": "n37d039f7",
+                  "label": "Hello, world!",
+                  "parent_id": "n9dc373de",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "Hello, world!",
+                  "visible": true
+                }
+              ],
+              "app_bundle_id": "me.axelrivera.OnboardingDemo",
+              "ax_quality": "ready",
+              "booted": true,
+              "eyes_unusable": false,
+              "frame": {
+                "fps": 47.079737028252566,
+                "h": 2556,
+                "id": 2563,
+                "imports_ok": true,
+                "w": 1179
+              },
+              "observe_ms": 0.0006670000000000001,
+              "overlay": "none",
+              "path": "lighd",
+              "phase": "ready",
+              "scene": {
+                "bundle_id": "me.axelrivera.OnboardingDemo",
+                "keyboard_visible": false,
+                "screen_title": "Onboarding Demo",
+                "surface": "app"
+              },
+              "schema_version": 2,
+              "settled": true,
+              "simulator_app_running": false,
+              "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+            },
+            "ok": true,
+            "overlay": "none",
+            "phase": "ready",
+            "surface": "app"
+          },
+          "foreground_ok": true,
+          "attempt": 1,
+          "keys": [
+            "Globe",
+            "Hello, world!",
+            "Onboarding Demo",
+            "Show Onboarding",
+            "globe",
+            "n18634e42",
+            "n37d039f7",
+            "n8f5115b5"
+          ]
+        },
+        "setup_trace": [
+          {
+            "phase": "setup",
+            "step": 1,
+            "action": "tap",
+            "label": "Show Onboarding",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "preconditions": {
+          "ok": true,
+          "must_see": {
+            "Get Started": true,
+            "Welcome to MyApp": true
+          },
+          "must_not_see": {},
+          "keys_sample": [
+            "Discover amazing features and personalize your experience with our intuitive app.",
+            "Favourite",
+            "Get Started",
+            "Globe",
+            "Hello, world!",
+            "Onboarding Demo",
+            "Show Onboarding",
+            "Welcome to MyApp",
+            "globe",
+            "n02a042e5",
+            "n086e9eb9",
+            "n18634e42",
+            "n1f678aeb",
+            "n37d039f7",
+            "n8f5115b5",
+            "star.circle.fill"
+          ]
+        }
+      }
+    },
+    {
+      "step": 1,
+      "action": {
+        "action": "bootstrap_app"
+      },
+      "result": {
+        "ok": true,
+        "data": {
+          "capability": "run_app",
+          "detail": {
+            "app_ready": true,
+            "attempt": "1",
+            "bundle_id": "me.axelrivera.OnboardingDemo",
+            "install": true,
+            "wait_id": null,
+            "wait_label": null
+          },
+          "fault": "ok",
+          "observe": {
+            "accessibility_tree": {
+              "element_count": 5,
+              "nodes": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 852,
+                    "width": 393,
+                    "x": 0,
+                    "y": 0
+                  },
+                  "hittable": true,
+                  "id": "n9dc373de",
+                  "label": "OnboardingDemo",
+                  "path_id": "nd99684be",
+                  "role": "AXApplication",
+                  "selected": false,
+                  "text": "OnboardingDemo",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5004240882103478,
+                    "y": 0.0886150234741784
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.33333333333333,
+                    "width": 144.66666666666669,
+                    "x": 124.33333333333331,
+                    "y": 65.33333333333333
+                  },
+                  "hittable": true,
+                  "id": "n8f5115b5",
+                  "label": "Onboarding Demo",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n04b05d02",
+                  "role": "AXHeading",
+                  "selected": false,
+                  "text": "Onboarding Demo",
+                  "traits": "heading",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000016177681,
+                    "y": 0.4708528958948938
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 21.666667938232425,
+                    "width": 21.666667938232425,
+                    "x": 185.66666666666663,
+                    "y": 390.33333333333326
+                  },
+                  "hittable": true,
+                  "id": "n2532b711",
+                  "identifier": "globe",
+                  "label": "Globe",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n8ffdeee0",
+                  "role": "AXImage",
+                  "selected": false,
+                  "text": "Globe",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.49786243229777977
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.33333333333331,
+                    "width": 94.66666666666666,
+                    "x": 149.16666666666669,
+                    "y": 414.0121256510417
+                  },
+                  "hittable": true,
+                  "id": "n37d039f7",
+                  "label": "Hello, world!",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n436859c2",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "Hello, world!",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5706181533646322
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 50.333333333333314,
+                    "width": 176.33333333333331,
+                    "x": 108.33333333333331,
+                    "y": 461
+                  },
+                  "hittable": true,
+                  "id": "n18634e42",
+                  "label": "Show Onboarding",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n18ba444d",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "Show Onboarding",
+                  "traits": "button",
+                  "visible": true
+                }
+              ],
+              "point_size": [
+                393.0,
+                852.0
+              ],
+              "root": {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "children": [
+                  {
+                    "center_norm": {
+                      "x": 0.5004240882103478,
+                      "y": 0.0886150234741784
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 20.33333333333333,
+                      "width": 144.66666666666669,
+                      "x": 124.33333333333331,
+                      "y": 65.33333333333333
+                    },
+                    "hittable": true,
+                    "id": "n8f5115b5",
+                    "label": "Onboarding Demo",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n04b05d02",
+                    "role": "AXHeading",
+                    "selected": false,
+                    "text": "Onboarding Demo",
+                    "traits": "heading",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5000000016177681,
+                      "y": 0.4708528958948938
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 21.666667938232425,
+                      "width": 21.666667938232425,
+                      "x": 185.66666666666663,
+                      "y": 390.33333333333326
+                    },
+                    "hittable": true,
+                    "id": "n2532b711",
+                    "identifier": "globe",
+                    "label": "Globe",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n8ffdeee0",
+                    "role": "AXImage",
+                    "selected": false,
+                    "text": "Globe",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.49786243229777977
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 20.33333333333331,
+                      "width": 94.66666666666666,
+                      "x": 149.16666666666669,
+                      "y": 414.0121256510417
+                    },
+                    "hittable": true,
+                    "id": "n37d039f7",
+                    "label": "Hello, world!",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n436859c2",
+                    "role": "AXStaticText",
+                    "selected": false,
+                    "text": "Hello, world!",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.5706181533646322
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 50.333333333333314,
+                      "width": 176.33333333333331,
+                      "x": 108.33333333333331,
+                      "y": 461
+                    },
+                    "hittable": true,
+                    "id": "n18634e42",
+                    "label": "Show Onboarding",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n18ba444d",
+                    "role": "AXButton",
+                    "selected": false,
+                    "text": "Show Onboarding",
+                    "traits": "button",
+                    "visible": true
+                  }
+                ],
+                "children_ids": [
+                  "n8f5115b5",
+                  "n2532b711",
+                  "n37d039f7",
+                  "n18634e42"
+                ],
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 852,
+                  "width": 393,
+                  "x": 0,
+                  "y": 0
+                },
+                "hittable": true,
+                "id": "n9dc373de",
+                "label": "OnboardingDemo",
+                "path_id": "nd99684be",
+                "role": "AXApplication",
+                "selected": false,
+                "text": "OnboardingDemo",
+                "visible": true
+              },
+              "status": "available"
+            },
+            "actionable_topk": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5706181533646322
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 50.333333333333314,
+                  "width": 176.33333333333331,
+                  "x": 108.33333333333331,
+                  "y": 461
+                },
+                "hittable": true,
+                "id": "n18634e42",
+                "label": "Show Onboarding",
+                "parent_id": "n9dc373de",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Show Onboarding",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5004240882103478,
+                  "y": 0.0886150234741784
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.33333333333333,
+                  "width": 144.66666666666669,
+                  "x": 124.33333333333331,
+                  "y": 65.33333333333333
+                },
+                "hittable": true,
+                "id": "n8f5115b5",
+                "label": "Onboarding Demo",
+                "parent_id": "n9dc373de",
+                "role": "AXHeading",
+                "selected": false,
+                "text": "Onboarding Demo",
+                "traits": "heading",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000016177681,
+                  "y": 0.4708528958948938
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 21.666667938232425,
+                  "width": 21.666667938232425,
+                  "x": 185.66666666666663,
+                  "y": 390.33333333333326
+                },
+                "hittable": true,
+                "id": "n2532b711",
+                "identifier": "globe",
+                "label": "Globe",
+                "parent_id": "n9dc373de",
+                "role": "AXImage",
+                "selected": false,
+                "text": "Globe",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.49786243229777977
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.33333333333331,
+                  "width": 94.66666666666666,
+                  "x": 149.16666666666669,
+                  "y": 414.0121256510417
+                },
+                "hittable": true,
+                "id": "n37d039f7",
+                "label": "Hello, world!",
+                "parent_id": "n9dc373de",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Hello, world!",
+                "visible": true
+              }
+            ],
+            "app_bundle_id": "me.axelrivera.OnboardingDemo",
+            "ax_quality": "ready",
+            "booted": true,
+            "eyes_unusable": false,
+            "frame": {
+              "fps": 49.34217188198856,
+              "h": 2556,
+              "id": 3548,
+              "imports_ok": true,
+              "w": 1179
+            },
+            "observe_ms": 0.000542,
+            "overlay": "none",
+            "path": "lighd",
+            "phase": "ready",
+            "scene": {
+              "bundle_id": "me.axelrivera.OnboardingDemo",
+              "keyboard_visible": false,
+              "screen_title": "Onboarding Demo",
+              "surface": "app"
+            },
+            "schema_version": 2,
+            "settled": true,
+            "simulator_app_running": false,
+            "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+          },
+          "ok": true,
+          "overlay": "none",
+          "phase": "ready",
+          "surface": "app"
+        },
+        "foreground_ok": true,
+        "attempt": 1
+      }
+    },
+    {
+      "step": 2,
+      "action": {
+        "action": "read_file",
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Main/OnboardingDemoApp.swift"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Main/OnboardingDemoApp.swift",
+        "content": "//\n//  OnboardingDemoApp.swift\n//  OnboardingDemo\n//\n//  Created by Axel Rivera on 6/25/25.\n//\n\nimport SwiftUI\n\n@main\nstruct OnboardingDemoApp: App {\n    var body: some Scene {\n        WindowGroup {\n            ContentView()\n        }\n    }\n}\n"
+      }
+    },
+    {
+      "step": 3,
+      "action": {
+        "action": "read_file",
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/ContentView.swift"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/ContentView.swift",
+        "content": "//\n//  ContentView.swift\n//  OnboardingDemo\n//\n//  Created by Axel Rivera on 6/25/25.\n//\n\nimport SwiftUI\n\n// DEMO NOTE: Using a simple @State/@Binding for onboarding visibility\n// Persisting the onboarding state (whether user has completed it) is outside the scope of this demo\n//\n// Production Best Practices:\n// 1. Use a shared Observable ViewModel to handle app-wide data and state:\n//    @Observable class AppDataViewModel {\n//        var hasCompletedOnboarding: Bool = UserDefaults.standard.bool(forKey: \"hasCompletedOnboarding\")\n//        var userPreferences: UserPreferences = UserPreferences.loadFromDefaults()\n//        var locationPermissionStatus: CLAuthorizationStatus = .notDetermined\n//\n//        var shouldShowOnboarding: Bool { !hasCompletedOnboarding }\n//\n//        func completeOnboarding(with preferences: UserPreferences) {\n//            hasCompletedOnboarding = true\n//            userPreferences = preferences\n//            saveToUserDefaults()\n//        }\n//    }\n//\n// 2. Inject this ViewModel throughout your app for consistent state management\n// 3. Handle onboarding completion alongside other app initialization logic\n// 4. Consider versioning for major updates that require re-onboarding\n// 5. Allow users to reset/replay onboarding from Settings if beneficial\n\nstruct ContentView: View {\n    @State var isOnboardingVisible: Bool = false\n    \n    var body: some View {\n        MainView(isOnboardingVisible: $isOnboardingVisible)\n            .overlay {\n                // Using .overlay is the best approach for onboarding screens because:\n                // 1. Preserves the main app view hierarchy - no complex navigation logic needed\n                // 2. Provides seamless animations when showing/hiding onboarding\n                // 3. Maintains existing app state underneath - users don't lose their place\n                // 4. Easy to dismiss with simple state changes and animations\n                // 5. Works well with safe areas and device orientations\n                // 6. Allows the onboarding to be a completely separate view hierarchy\n                //\n                // Alternative approaches and their drawbacks:\n                // - NavigationStack push: Creates back button, feels like regular navigation\n                // - Sheet presentation: Swipe-to-dismiss conflicts with onboarding flow control\n                // - fullScreenCover: Good alternative, but less flexible for custom animations\n                // - Conditional view replacement: Destroys and recreates main view unnecessarily\n                \n                if isOnboardingVisible {\n                    OnboardingView(isOnboardingVisible: $isOnboardingVisible)\n                }\n            }\n    }\n}\n\nextension ContentView {\n\n    func showOnboarding() {\n        isOnboardingVisible.toggle()\n    }\n    \n}\n\n#Preview {\n    @Previewable @State var isOnboardingVisible = false\n    \n    ContentView(isOnboardingVisible: isOnboardingVisible)\n}\n"
+      }
+    },
+    {
+      "step": 4,
+      "action": {
+        "action": "read_file",
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift",
+        "content": "//\n//  OnboardingView.swift\n//  OnboardingDemo\n//\n//  Created by Axel Rivera on 6/25/25.\n//\n\nimport SwiftUI\nimport CoreLocation\n\n// DEMO NOTE: This enum defines the onboarding flow sequence\n// Customize these pages based on your app's needs. Popular onboarding pages include:\n//\n// Permission Pages (ask when the feature provides clear value):\n// - .notifications (push notification permissions)\n// - .location (location services for maps, weather, nearby services)\n// - .health (for fitness, health tracking apps)\n//\n// User Setup Pages:\n// - .welcome (app introduction and value proposition)\n// - .profile (name, avatar, basic info)\n// - .preferences (display settings, content preferences)\n// - .interests (content categories, topics of interest)\n// - .goals (fitness goals, learning objectives, etc.)\n// - .experience (skill level, usage patterns)\n//\n// Business/Monetization Pages:\n// - .subscription (premium features, pricing plans)\n// - .freeTrial (trial signup, feature preview)\n// - .paywall (premium upgrade before core features)\n//\n// Completion Pages:\n// - .tutorial (quick feature walkthrough)\n// - .completion (success state, next steps)\n//\n// Best practices: Keep onboarding short (3-5 pages max), ask for permissions\n// only when the benefit is clear, and always allow skipping non-essential steps\n\nenum OnboardingPage: String, Identifiable, CaseIterable {\n    case welcome\n    case location\n    case userInput\n    \n    var id: String { rawValue}\n    \n    static var first: Self = .welcome\n}\n\nstruct OnboardingView: View {\n    @Binding var isOnboardingVisible: Bool\n    \n    private let pages = OnboardingPage.allCases\n    \n    @State private var position: ScrollPosition = .init(idType: OnboardingPage.ID.self)\n    \n    var body: some View {\n        ScrollView(.horizontal) {\n            LazyHStack(spacing: 0) {\n                ForEach(pages) { page in\n                    switch page {\n                    case .welcome:\n                        WelcomePage(onComplete: welcomeComplete)\n                    case .location:\n                        LocationPage(onComplete: locationComplete)\n                    case .userInput:\n                        UserInputPage(onComplete: userInputComplete)\n                    }\n                }\n                .containerRelativeFrame([.horizontal])\n            }\n            .scrollTargetLayout()\n        }\n        .scrollPosition($position)\n        .scrollTargetBehavior(.viewAligned)\n        .scrollIndicators(.hidden)\n        .scrollDisabled(true)\n        .frame(maxWidth: .infinity, maxHeight: .infinity)\n        .background(Color(.systemBackground))\n        .onAppear {\n            // Ensure the onboarding starts at the first page.\n            // If not set explicitly, position may be undefined.\n            position.scrollTo(id: OnboardingPage.first.id)\n        }\n    }\n}\n\nextension OnboardingView {\n    \n    func welcomeComplete() {\n        scrollToPage(.location)\n    }\n    \n    func locationComplete(isAuthorized: Bool) {\n        // If user authorized location access, you can now fetch their current location\n        // and process any relevant data for your app (weather, nearby services, etc.)\n        // Example:\n        // if isAuthorized {\n        //     let locationManager = CLLocationManager()\n        //     locationManager.requestLocation() // Get current location\n        //     // Process location data for personalized content\n        // }\n        \n        scrollToPage(.userInput)\n    }\n    \n    func userInputComplete(temperatureUnit: UserInputPage.TemperatureUnit) {\n        // Save the selected preferences to UserDefaults for persistent storage\n        // These preferences should be accessible throughout the app and changeable in Settings\n        // Example:\n        // UserDefaults.standard.set(temperatureUnit.rawValue, forKey: \"temperatureUnit\")\n        // UserDefaults.standard.set(true, forKey: \"hasCompletedOnboarding\")\n        // \n        // For more complex preferences, consider using a PreferencesManager:\n        // PreferencesManager.shared.temperatureUnit = temperatureUnit\n        // PreferencesManager.shared.hasCompletedOnboarding = true\n        \n        // Regression: onboarding overlay never dismisses after finish.\n        _ = temperatureUnit\n    }\n    \n    private func scrollToPage(_ page: OnboardingPage) {\n        withAnimation {\n            position.scrollTo(id: page.id)\n        }\n    }\n    \n}\n\n\n#Preview {\n    @Previewable @State var onboardingVisible = true\n    \n    OnboardingView(isOnboardingVisible: $onboardingVisible)\n}\n"
+      }
+    },
+    {
+      "step": 5,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift",
+        "content": "//\n//  OnboardingView.swift\n//  OnboardingDemo\n//\n//  Created by Axel Rivera on 6/25/25.\n//\n\nimport SwiftUI\nimport CoreLocation\n\n// DEMO NOTE: This enum defines the onboarding flow sequence\n// Customize these pages based on your app's needs. Popular onboarding pages include:\n//\n// Permission Pages (ask when the feature provides clear value):\n// - .notifications (push notification permissions)\n// - .location (location services for maps, weather, nearby services)\n// - .health (for fitness, health tracking apps)\n//\n// User Setup Pages:\n// - .welcome (app introduction and value proposition)\n// - .profile (name, avatar, basic info)\n// - .preferences (display settings, content preferences)\n// - .interests (content categories, topics of interest)\n// - .goals (fitness goals, learning objectives, etc.)\n// - .experience (skill level, usage patterns)\n//\n// Business/Monetization Pages:\n// - .subscription (premium features, pricing plans)\n// - .freeTrial (trial signup, feature preview)\n// - .paywall (premium upgrade before core features)\n//\n// Completion Pages:\n// - .tutorial (quick feature walkthrough)\n// - .completion (success state, next steps)\n//\n// Best practices: Keep onboarding short (3-5 pages max), ask for permissions\n// only when the benefit is clear, and always allow skipping non-essential steps\n\nenum OnboardingPage: String, Identifiable, CaseIterable {\n    case welcome\n    case location\n    case userInput\n    \n    var id: String { rawValue}\n    \n    static var first: Self = .welcome\n}\n\nstruct OnboardingView: View {\n    @Binding var isOnboardingVisible: Bool\n    \n    private let pages = OnboardingPage.allCases\n    \n    @State private var position: ScrollPosition = .init(idType: OnboardingPage.ID.self)\n    \n    var body: some View {\n        ScrollView(.horizontal) {\n            LazyHStack(spacing: 0) {\n                ForEach(pages) { page in\n                    switch page {\n                    case .welcome:\n                        WelcomePage(onComplete: welcomeComplete)\n                    case .location:\n                        LocationPage(onComplete: locationComplete)\n                    case .userInput:\n                        UserInputPage(onComplete: userInputComplete)\n                    }\n                }\n                .containerRelativeFrame([.horizontal])\n            }\n            .scrollTargetLayout()\n        }\n        .scrollPosition($position)\n        .scrollTargetBehavior(.viewAligned)\n        .scrollIndicators(.hidden)\n        .scrollDisabled(true)\n        .frame(maxWidth: .infinity, maxHeight: .infinity)\n        .background(Color(.systemBackground))\n        .onAppear {\n            // Ensure the onboarding starts at the first page.\n            // If not set explicitly, position may be undefined.\n            position.scrollTo(id: OnboardingPage.first.id)\n        }\n    }\n}\n\nextension OnboardingView {\n    \n    func welcomeComplete() {\n        scrollToPage(.location)\n    }\n    \n    func locationComplete(isAuthorized: Bool) {\n        // If user authorized location access, you can now fetch their current location\n        // and process any relevant data for your app (weather, nearby services, etc.)\n        // Example:\n        // if isAuthorized {\n        //     let locationManager = CLLocationManager()\n        //     locationManager.requestLocation() // Get current location\n        //     // Process location data for personalized content\n        // }\n        \n        scrollToPage(.userInput)\n    }\n    \n    func userInputComplete(temperatureUnit: UserInputPage.TemperatureUnit) {\n        // Save the selected preferences to UserDefaults for persistent storage\n        // These preferences should be accessible throughout the app and changeable in Settings\n        // Example:\n        // UserDefaults.standard.set(temperatureUnit.rawValue, forKey: \"temperatureUnit\")\n        // UserDefaults.standard.set(true, forKey: \"hasCompletedOnboarding\")\n        // \n        // For more complex preferences, consider using a PreferencesManager:\n        // PreferencesManager.shared.temperatureUnit = temperatureUnit\n        // PreferencesManager.shared.hasCompletedOnboarding = true\n        \n        // Dismiss onboarding overlay on completion\n        isOnboardingVisible = false\n        _ = temperatureUnit\n    }\n    \n    private func scrollToPage(_ page: OnboardingPage) {\n        withAnimation {\n            position.scrollTo(id: page.id)\n        }\n    }\n    \n}\n\n\n#Preview {\n    @Previewable @State var onboardingVisible = true\n    \n    OnboardingView(isOnboardingVisible: $onboardingVisible)\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift",
+        "bytes": 4562,
+        "preview": "//\n//  OnboardingView.swift\n//  OnboardingDemo\n//\n//  Created by Axel Rivera on 6/25/25.\n//\n\nimport SwiftUI\nimport CoreLocation\n\n// DEMO NOTE: This enum defines the onboarding flow sequence\n// Customize these pages based on your app's needs. Popular onboarding pages include:\n//\n// Permission Pages (ask when the feature provides clear value):\n// - .notifications (push notification permissions)\n// -"
+      }
+    },
+    {
+      "step": 6,
+      "action": {
+        "action": "read_file",
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/UserInputPage.swift"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/UserInputPage.swift",
+        "content": "//\n//  UserInputPage.swift\n//  OnboardingDemo\n//\n//  Created by Axel Rivera on 6/25/25.\n//\n\nimport SwiftUI\n\n// DEMO NOTE: This page demonstrates collecting user preferences during onboarding\n// Temperature unit is just one example - developers can customize this to capture\n// any preferences that significantly impact the initial user experience, such as:\n// - Investment risk tolerance (conservative, moderate, aggressive)\n// - Workout intensity level (beginner, intermediate, advanced)\n// - Content maturity rating (family-friendly, teen, mature)\n// - Trading experience level (novice, experienced, professional)\n// - Dietary restrictions (vegetarian, vegan, gluten-free, keto)\n// - Gaming difficulty preference (casual, normal, hardcore)\n// - Learning style (visual, auditory, hands-on)\n// - Budget range for recommendations ($, $$, $$$)\n// - Professional role (developer, designer, manager, student)\n// - Notification frequency (minimal, balanced, everything)\n//\n// Important: Users should always be able to change these preferences later in Settings\n\nstruct UserInputPage: View {\n    @State private var selectedTemperatureUnit: TemperatureUnit = .celsius\n    \n    var onComplete: ((_ unit: TemperatureUnit) -> Void)?\n    \n    // Example preference enum - replace with preferences relevant to your app\n    enum TemperatureUnit: String, CaseIterable {\n        case fahrenheit = \"fahrenheit\"\n        case celsius = \"celcius\"\n        \n        \n        var name: String {\n            switch self {\n            case .fahrenheit: \"Fahrenheit\"\n            case .celsius: \"Celsius\"\n            }\n        }\n        \n        var symbol: String {\n            switch self {\n            case .fahrenheit: \"\u00b0F\"\n            case .celsius: \"\u00b0C\"\n            }\n        }\n        \n        var nameAndSymbol: String { \"\\(name) (\\(symbol))\" }\n    }\n    \n    var body: some View {\n        VStack(spacing: 30) {\n            Spacer()\n            \n            // Temperature Icon\n            Image(systemName: \"thermometer.variable.and.figure\")\n                .font(.system(size: 120))\n                .foregroundColor(.orange)\n            \n            VStack(spacing: 15) {\n                Text(\"Temperature Preference\")\n                    .font(.largeTitle)\n                    .fontWeight(.bold)\n                    .multilineTextAlignment(.center)\n                \n                Text(\"Choose your preferred temperature unit for a better experience.\")\n                    .font(.body)\n                    .foregroundColor(.secondary)\n                    .multilineTextAlignment(.center)\n            }\n            \n            // Temperature Unit Selection\n            VStack(spacing: 12) {\n                ForEach(TemperatureUnit.allCases, id: \\.self) { unit in\n                    Button(action: {\n                        withAnimation(.easeInOut(duration: 0.2)) {\n                            selectedTemperatureUnit = unit\n                        }\n                    }) {\n                        HStack {\n                            Text(unit.nameAndSymbol)\n                                .font(.headline)\n                                .foregroundColor(selectedTemperatureUnit == unit ? .white : .primary)\n                            \n                            Spacer()\n                            \n                            if selectedTemperatureUnit == unit {\n                                Image(systemName: \"checkmark.circle.fill\")\n                                    .foregroundColor(.white)\n                                    .font(.title2)\n                            }\n                        }\n                        .padding()\n                        .background(\n                            RoundedRectangle(cornerRadius: 12)\n                                .fill(selectedTemperatureUnit == unit ? Color.orange : Color(.systemGray6))\n                        )\n                        .overlay(\n                            RoundedRectangle(cornerRadius: 12)\n                                .stroke(selectedTemperatureUnit == unit ? Color.orange : Color.clear, lineWidth: 2)\n                        )\n                    }\n                    .buttonStyle(PlainButtonStyle())\n                }\n            }\n            \n            Spacer()\n            \n            VStack {\n                Button(action: { onComplete?(selectedTemperatureUnit) }) {\n                    Text(\"Finish Onboarding\")\n                        .font(.headline)\n                        .frame(maxWidth: .infinity)\n                }\n                .buttonStyle(.borderedProminent)\n                .controlSize(.large)\n                .tint(.orange)\n            }\n        }\n        .padding(.horizontal)\n    }\n}\n\n#Preview {\n    UserInputPage()\n}\n"
+      }
+    },
+    {
+      "step": 7,
+      "action": {
+        "action": "build_app"
+      },
+      "result": {
+        "ok": true,
+        "ms": 29638,
+        "tail": "utable /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/OnboardingDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/OnboardingDemo.app/OnboardingDemo.debug.dylib --scan-folder /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/OnboardingDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/OnboardingDemo.app/Frameworks --scan-folder /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/OnboardingDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/OnboardingDemo.app/PlugIns --scan-folder /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/OnboardingDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/OnboardingDemo.app/SystemExtensions --scan-folder /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/OnboardingDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/OnboardingDemo.app/Extensions --platform iphonesimulator --toolchain /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain --destination /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/OnboardingDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/OnboardingDemo.app/Frameworks --strip-bitcode --strip-bitcode-tool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/bitcode_strip --emit-dependency-info /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/OnboardingDemo/build/DerivedData/Build/Intermediates.noindex/OnboardingDemo.build/Debug-iphonesimulator/OnboardingDemo.build/SwiftStdLibToolInputDependencies.dep --filter-for-swift-os\nIgnoring --strip-bitcode because --sign was not passed\n\n** BUILD SUCCEEDED **\n\n\u2713 /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/OnboardingDemo/build/OnboardingDemo.app\n"
+      }
+    },
+    {
+      "step": 8,
+      "action": {
+        "action": "bootstrap_app"
+      },
+      "result": {
+        "ok": true,
+        "data": {
+          "capability": "run_app",
+          "detail": {
+            "app_ready": true,
+            "attempt": "1",
+            "bundle_id": "me.axelrivera.OnboardingDemo",
+            "install": true,
+            "wait_id": null,
+            "wait_label": null
+          },
+          "fault": "ok",
+          "observe": {
+            "accessibility_tree": {
+              "element_count": 5,
+              "nodes": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 852,
+                    "width": 393,
+                    "x": 0,
+                    "y": 0
+                  },
+                  "hittable": true,
+                  "id": "n9dc373de",
+                  "label": "OnboardingDemo",
+                  "path_id": "nd99684be",
+                  "role": "AXApplication",
+                  "selected": false,
+                  "text": "OnboardingDemo",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5004240882103478,
+                    "y": 0.0886150234741784
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.33333333333333,
+                    "width": 144.66666666666669,
+                    "x": 124.33333333333331,
+                    "y": 65.33333333333333
+                  },
+                  "hittable": true,
+                  "id": "n8f5115b5",
+                  "label": "Onboarding Demo",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n04b05d02",
+                  "role": "AXHeading",
+                  "selected": false,
+                  "text": "Onboarding Demo",
+                  "traits": "heading",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000016177681,
+                    "y": 0.4708528958948938
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 21.666667938232425,
+                    "width": 21.666667938232425,
+                    "x": 185.66666666666663,
+                    "y": 390.33333333333326
+                  },
+                  "hittable": true,
+                  "id": "n2532b711",
+                  "identifier": "globe",
+                  "label": "Globe",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n8ffdeee0",
+                  "role": "AXImage",
+                  "selected": false,
+                  "text": "Globe",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.49786243229777977
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.33333333333331,
+                    "width": 94.66666666666666,
+                    "x": 149.16666666666669,
+                    "y": 414.0121256510417
+                  },
+                  "hittable": true,
+                  "id": "n37d039f7",
+                  "label": "Hello, world!",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n436859c2",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "Hello, world!",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5706181533646322
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 50.333333333333314,
+                    "width": 176.33333333333331,
+                    "x": 108.33333333333331,
+                    "y": 461
+                  },
+                  "hittable": true,
+                  "id": "n18634e42",
+                  "label": "Show Onboarding",
+                  "parent_id": "n9dc373de",
+                  "path_id": "n18ba444d",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "Show Onboarding",
+                  "traits": "button",
+                  "visible": true
+                }
+              ],
+              "point_size": [
+                393.0,
+                852.0
+              ],
+              "root": {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "children": [
+                  {
+                    "center_norm": {
+                      "x": 0.5004240882103478,
+                      "y": 0.0886150234741784
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 20.33333333333333,
+                      "width": 144.66666666666669,
+                      "x": 124.33333333333331,
+                      "y": 65.33333333333333
+                    },
+                    "hittable": true,
+                    "id": "n8f5115b5",
+                    "label": "Onboarding Demo",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n04b05d02",
+                    "role": "AXHeading",
+                    "selected": false,
+                    "text": "Onboarding Demo",
+                    "traits": "heading",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5000000016177681,
+                      "y": 0.4708528958948938
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 21.666667938232425,
+                      "width": 21.666667938232425,
+                      "x": 185.66666666666663,
+                      "y": 390.33333333333326
+                    },
+                    "hittable": true,
+                    "id": "n2532b711",
+                    "identifier": "globe",
+                    "label": "Globe",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n8ffdeee0",
+                    "role": "AXImage",
+                    "selected": false,
+                    "text": "Globe",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.49786243229777977
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 20.33333333333331,
+                      "width": 94.66666666666666,
+                      "x": 149.16666666666669,
+                      "y": 414.0121256510417
+                    },
+                    "hittable": true,
+                    "id": "n37d039f7",
+                    "label": "Hello, world!",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n436859c2",
+                    "role": "AXStaticText",
+                    "selected": false,
+                    "text": "Hello, world!",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.5706181533646322
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 50.333333333333314,
+                      "width": 176.33333333333331,
+                      "x": 108.33333333333331,
+                      "y": 461
+                    },
+                    "hittable": true,
+                    "id": "n18634e42",
+                    "label": "Show Onboarding",
+                    "parent_id": "n9dc373de",
+                    "path_id": "n18ba444d",
+                    "role": "AXButton",
+                    "selected": false,
+                    "text": "Show Onboarding",
+                    "traits": "button",
+                    "visible": true
+                  }
+                ],
+                "children_ids": [
+                  "n8f5115b5",
+                  "n2532b711",
+                  "n37d039f7",
+                  "n18634e42"
+                ],
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 852,
+                  "width": 393,
+                  "x": 0,
+                  "y": 0
+                },
+                "hittable": true,
+                "id": "n9dc373de",
+                "label": "OnboardingDemo",
+                "path_id": "nd99684be",
+                "role": "AXApplication",
+                "selected": false,
+                "text": "OnboardingDemo",
+                "visible": true
+              },
+              "status": "available"
+            },
+            "actionable_topk": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5706181533646322
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 50.333333333333314,
+                  "width": 176.33333333333331,
+                  "x": 108.33333333333331,
+                  "y": 461
+                },
+                "hittable": true,
+                "id": "n18634e42",
+                "label": "Show Onboarding",
+                "parent_id": "n9dc373de",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Show Onboarding",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5004240882103478,
+                  "y": 0.0886150234741784
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.33333333333333,
+                  "width": 144.66666666666669,
+                  "x": 124.33333333333331,
+                  "y": 65.33333333333333
+                },
+                "hittable": true,
+                "id": "n8f5115b5",
+                "label": "Onboarding Demo",
+                "parent_id": "n9dc373de",
+                "role": "AXHeading",
+                "selected": false,
+                "text": "Onboarding Demo",
+                "traits": "heading",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000016177681,
+                  "y": 0.4708528958948938
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 21.666667938232425,
+                  "width": 21.666667938232425,
+                  "x": 185.66666666666663,
+                  "y": 390.33333333333326
+                },
+                "hittable": true,
+                "id": "n2532b711",
+                "identifier": "globe",
+                "label": "Globe",
+                "parent_id": "n9dc373de",
+                "role": "AXImage",
+                "selected": false,
+                "text": "Globe",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.49786243229777977
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.33333333333331,
+                  "width": 94.66666666666666,
+                  "x": 149.16666666666669,
+                  "y": 414.0121256510417
+                },
+                "hittable": true,
+                "id": "n37d039f7",
+                "label": "Hello, world!",
+                "parent_id": "n9dc373de",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Hello, world!",
+                "visible": true
+              }
+            ],
+            "app_bundle_id": "me.axelrivera.OnboardingDemo",
+            "ax_quality": "ready",
+            "booted": true,
+            "eyes_unusable": false,
+            "frame": {
+              "fps": 48.23779259376134,
+              "h": 2556,
+              "id": 9000,
+              "imports_ok": true,
+              "w": 1179
+            },
+            "observe_ms": 0.000417,
+            "overlay": "none",
+            "path": "lighd",
+            "phase": "ready",
+            "scene": {
+              "bundle_id": "me.axelrivera.OnboardingDemo",
+              "keyboard_visible": false,
+              "screen_title": "Onboarding Demo",
+              "surface": "app"
+            },
+            "schema_version": 2,
+            "settled": true,
+            "simulator_app_running": false,
+            "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+          },
+          "ok": true,
+          "overlay": "none",
+          "phase": "ready",
+          "surface": "app"
+        },
+        "foreground_ok": true,
+        "attempt": 1
+      }
+    },
+    {
+      "step": 9,
+      "action": {
+        "action": "vision_tap",
+        "x": 196,
+        "y": 486
+      },
+      "result": {
+        "ok": true,
+        "data": {
+          "ok": true,
+          "path": "lighd",
+          "x": 196.0,
+          "y": 486.0
+        }
+      }
+    },
+    {
+      "step": 10,
+      "action": {
+        "action": "verify"
+      },
+      "result": {
+        "ok": true,
+        "verified": true,
+        "reason": "verified",
+        "false_success": false,
+        "evidence": {
+          "homeTitle": true,
+          "onboardingOverlay": false,
+          "post": {
+            "ok": true,
+            "must_see": {
+              "Hello, world!": true,
+              "Show Onboarding": true
+            },
+            "must_not_see": {
+              "Get Started": true,
+              "Welcome to MyApp": true,
+              "Finish Onboarding": true
+            },
+            "keys_sample": [
+              "Globe",
+              "Hello, world!",
+              "Onboarding Demo",
+              "Show Onboarding",
+              "globe",
+              "n18634e42",
+              "n37d039f7",
+              "n8f5115b5"
+            ]
+          },
+          "legacy_weak_pass": true
+        },
+        "setup_trace": [
+          {
+            "phase": "setup",
+            "step": 1,
+            "action": "tap",
+            "label": "Show Onboarding",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "exercise_trace": [
+          {
+            "phase": "exercise",
+            "step": 1,
+            "action": "tap",
+            "label": "Get Started",
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 2,
+            "action": "tap",
+            "label": "Finish Onboarding",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "preconditions": {
+          "ok": true,
+          "must_see": {
+            "Get Started": true,
+            "Welcome to MyApp": true
+          },
+          "must_not_see": {},
+          "keys_sample": [
+            "Discover amazing features and personalize your experience with our intuitive app.",
+            "Favourite",
+            "Get Started",
+            "Globe",
+            "Hello, world!",
+            "Onboarding Demo",
+            "Show Onboarding",
+            "Welcome to MyApp",
+            "globe",
+            "n02a042e5",
+            "n086e9eb9",
+            "n18634e42",
+            "n1f678aeb",
+            "n37d039f7",
+            "n8f5115b5",
+            "star.circle.fill"
+          ]
+        }
+      }
+    },
+    {
+      "step": 10,
+      "strict_verify": {
+        "verified": true,
+        "reason": "verified",
+        "false_success": false,
+        "evidence": {
+          "homeTitle": true,
+          "onboardingOverlay": false,
+          "post": {
+            "ok": true,
+            "must_see": {
+              "Hello, world!": true,
+              "Show Onboarding": true
+            },
+            "must_not_see": {
+              "Get Started": true,
+              "Welcome to MyApp": true,
+              "Finish Onboarding": true
+            },
+            "keys_sample": [
+              "Globe",
+              "Hello, world!",
+              "Onboarding Demo",
+              "Show Onboarding",
+              "globe",
+              "n18634e42",
+              "n37d039f7",
+              "n8f5115b5"
+            ]
+          },
+          "legacy_weak_pass": true
+        },
+        "setup_trace": [
+          {
+            "phase": "setup",
+            "step": 1,
+            "action": "tap",
+            "label": "Show Onboarding",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "exercise_trace": [
+          {
+            "phase": "exercise",
+            "step": 1,
+            "action": "tap",
+            "label": "Get Started",
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 2,
+            "action": "tap",
+            "label": "Finish Onboarding",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "preconditions": {
+          "ok": true,
+          "must_see": {
+            "Get Started": true,
+            "Welcome to MyApp": true
+          },
+          "must_not_see": {},
+          "keys_sample": [
+            "Discover amazing features and personalize your experience with our intuitive app.",
+            "Favourite",
+            "Get Started",
+            "Globe",
+            "Hello, world!",
+            "Onboarding Demo",
+            "Show Onboarding",
+            "Welcome to MyApp",
+            "globe",
+            "n02a042e5",
+            "n086e9eb9",
+            "n18634e42",
+            "n1f678aeb",
+            "n37d039f7",
+            "n8f5115b5",
+            "star.circle.fill"
+          ]
+        }
+      }
+    }
+  ],
+  "source_restored": true,
+  "task_file": "fixtures/frozen/tasks/onboarding-home-broken/task.json"
+}

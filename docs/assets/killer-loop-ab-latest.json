@@ -1,0 +1,75 @@
+{
+  "gate": "killer_loop_ab",
+  "protocol_version": 2,
+  "task": "onboarding-home-broken",
+  "task_file": "fixtures/frozen/tasks/onboarding-home-broken/task.json",
+  "runs": {
+    "ligh": {
+      "pass": true,
+      "verified": true,
+      "claim_pass": true,
+      "false_success": false,
+      "legacy_weak_pass": null,
+      "verification_reason": "verified",
+      "final_state": "verified",
+      "build_attempts": 1,
+      "verification_attempts": 1,
+      "perception_channels": {
+        "ax": 0,
+        "vision": 0,
+        "none": 0,
+        "vision_escalations": 0
+      },
+      "faults": 1,
+      "llm_tokens": 64427,
+      "wall_time_ms": 176691,
+      "human_interventions": 0,
+      "artifact": "/Users/mattiamarino/Desktop/light-simulatior-ios/docs/assets/killer-loop-ligh-latest.json"
+    },
+    "baseline": {
+      "pass": true,
+      "verified": true,
+      "claim_pass": true,
+      "false_success": false,
+      "legacy_weak_pass": null,
+      "verification_reason": "verified",
+      "final_state": "verified",
+      "build_attempts": 1,
+      "verification_attempts": 1,
+      "perception_channels": {
+        "ax": 0,
+        "vision": 0,
+        "none": 0,
+        "vision_escalations": 0
+      },
+      "faults": 0,
+      "llm_tokens": 73143,
+      "wall_time_ms": 204048,
+      "human_interventions": 0,
+      "artifact": "/Users/mattiamarino/Desktop/light-simulatior-ios/docs/assets/killer-loop-baseline-latest.json"
+    },
+    "hybrid": {
+      "pass": false,
+      "verified": false,
+      "claim_pass": false,
+      "false_success": true,
+      "legacy_weak_pass": true,
+      "verification_reason": "postcondition_not_satisfied",
+      "final_state": "failed",
+      "build_attempts": 5,
+      "verification_attempts": 0,
+      "perception_channels": {
+        "ax": 0,
+        "vision": 0,
+        "none": 0,
+        "vision_escalations": 0
+      },
+      "faults": 0,
+      "llm_tokens": 402308,
+      "wall_time_ms": 333614,
+      "human_interventions": 0,
+      "artifact": "/Users/mattiamarino/Desktop/light-simulatior-ios/docs/assets/killer-loop-hybrid-latest.json"
+    }
+  },
+  "interpretation": "Publish even if all pass or all fail \u2014 comparison is the signal."
+}

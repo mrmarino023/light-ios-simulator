@@ -50,27 +50,28 @@ fn ensure_app_foreground(
     timeout_ms: u64,
 ) -> CapabilityResult {
     let app_label = app_label_from_path(app);
-    let markers: Vec<&str> = [entry_id, entry_label]
-        .into_iter()
-        .flatten()
-        .collect();
+    let _ = timeout_ms;
 
     for attempt in 1..=5u32 {
         let snap = settle_eyes(build, settle_ms);
-        let view = perceive_from_snap(&snap);
-        let keys = affordance_keys(&view);
-
-        if markers.iter().any(|m| keys.contains(*m)) {
+        let trust = crate::capabilities::confirm_app_ready(
+            &snap,
+            bundle_id,
+            &app_label,
+            entry_label,
+            entry_id,
+        );
+        if trust.ok {
             return CapabilityResult::success(
-                phase_of(&snap),
-                surface_of(&snap),
+                trust.phase,
+                trust.surface.clone(),
                 "ensure_foreground",
-                json!({ "attempt": attempt, "via": "entry_marker" }),
-                Some(snap),
+                json!({ "attempt": attempt, "via": "app_ready", "detail": trust.detail }),
+                trust.observe,
             );
         }
 
-        if on_springboard(&view, &app_label) {
+        if only_springboard_with_icon(&snap, &app_label) {
             let udid = match state.lock().unwrap().current_udid() {
                 Ok(u) => u,
                 Err(e) => {
@@ -100,36 +101,53 @@ fn ensure_app_foreground(
             continue;
         }
 
-        if snap
-            .scene
-            .as_ref()
-            .and_then(|s| s.bundle_id.as_deref())
-            == Some(bundle_id)
-        {
-            return CapabilityResult::success(
-                phase_of(&snap),
-                surface_of(&snap),
-                "ensure_foreground",
-                json!({ "attempt": attempt, "via": "bundle_id" }),
-                Some(snap),
-            );
+        if trust.fault == FaultClass::AppNotForeground {
+            let udid = match state.lock().unwrap().current_udid() {
+                Ok(u) => u,
+                Err(e) => {
+                    return CapabilityResult::fail(
+                        FaultClass::Infra,
+                        SessionPhase::Dead,
+                        None,
+                        "ensure_foreground",
+                        json!({ "error": e }),
+                        Some(snap),
+                    );
+                }
+            };
+            let _ = ligh_sim::Simctl::run(&["launch", &udid, bundle_id]);
+            thread::sleep(Duration::from_millis(1500));
+            continue;
         }
     }
 
     let snap = settle_eyes(build, settle_ms);
     CapabilityResult::fail(
-        FaultClass::TargetMissing,
+        FaultClass::AppNotForeground,
         phase_of(&snap),
         surface_of(&snap),
         "ensure_foreground",
         json!({
-            "error": "app never foregrounded",
+            "reason": "app_not_foreground",
             "app_label": app_label,
             "entry_id": entry_id,
             "entry_label": entry_label,
         }),
         Some(snap),
     )
+}
+
+fn only_springboard_with_icon(snap: &ObserveSnapshot, app_label: &str) -> bool {
+    crate::capabilities::confirm_app_ready(snap, "", app_label, None, None).fault
+        == FaultClass::AppNotForeground
+        && snap
+            .accessibility_tree
+            .nodes()
+            .iter()
+            .any(|n| {
+                n.get("label").and_then(|v| v.as_str()) == Some(app_label)
+                    || n.get("identifier").and_then(|v| v.as_str()) == Some(app_label)
+            })
 }
 
 pub(crate) fn graph_file(workspace: Option<&Path>) -> PathBuf {

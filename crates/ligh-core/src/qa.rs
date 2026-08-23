@@ -476,6 +476,20 @@ pub fn evaluate_attempt(
 
     if !motor_ok {
         intent_met = false;
+        // Overlay/modal opens: target label often stays in tree while fingerprint changes.
+        if intent == "tap" && fp_changed {
+            if target_label
+                .map(|lab| node_has_label_contains(pre_nodes, lab))
+                .unwrap_or(false)
+            {
+                intent_met = true;
+            } else if target_id
+                .map(|id| node_has_id(pre_nodes, id))
+                .unwrap_or(false)
+            {
+                intent_met = true;
+            }
+        }
     }
 
     if post.eyes_unusable {

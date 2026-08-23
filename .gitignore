@@ -14,16 +14,17 @@ fixtures/**/build/
 .ligh/
 **/xcuserdata/
 
-# Local-only — strategy, internal status, experiments (do not commit)
+# Local-only — strategy / discovery docs (do not commit)
 /PITCH.md
 /ROADMAP.md
 /docs/HONEST.md
 /docs/KILLER_LOOP.md
 /docs/CUSTOMER_DISCOVERY.md
 /docs/AGENTIC_BASELINE.md
-/docs/assets/killer-loop-*.json
-/fixtures/frozen/
-/scripts/gate-killer-loop*.sh
-/scripts/autonomous-killer-loop-agent.py
-/scripts/killer_loop_*.py
+
+# Frozen OSS tree is large — keep task defs + build script tracked separately
+/fixtures/frozen/OnboardingDemo/
 /scripts/build-frozen-onboardingdemo.sh
+
+# Scratch / intermediate killer-loop dumps (publish only *-latest.json)
+/docs/assets/killer-loop-*-protocol-v1*.json

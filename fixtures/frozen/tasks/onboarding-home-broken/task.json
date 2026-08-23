@@ -1,0 +1,40 @@
+{
+  "id": "onboarding-home-broken",
+  "app_id": "onboardingdemo",
+  "upstream_url": "https://github.com/axelrivera/OnboardingDemo",
+  "upstream_commit": "0f9882f2bef6e00b6dd980dced1bd6b75a031177",
+  "license": "MIT",
+  "protocol_version": 2,
+  "agent_prompt": "The onboarding flow is broken. After a user finishes onboarding they should reach the app's home screen, but they get stuck on the onboarding overlay. Find the issue in the Swift source, apply a minimal fix (do not rewrite pages/enums), rebuild the app, and verify the fix in the Simulator. The app starts on the home screen — tap 'Show Onboarding' before exercising the flow. Success = home visible AND onboarding overlay gone after Finish.",
+  "source_root": "fixtures/frozen/OnboardingDemo/OnboardingDemo",
+  "build_script": "scripts/build-frozen-onboardingdemo.sh",
+  "app_path": "fixtures/frozen/OnboardingDemo/build/OnboardingDemo.app",
+  "bundle_id": "me.axelrivera.OnboardingDemo",
+  "bug_patch": "fixtures/frozen/tasks/onboarding-home-broken/bug.patch",
+  "initial_state": "broken",
+  "verification": {
+    "initial_setup": [
+      {"action": "tap", "label": "Show Onboarding", "settle_ms": 2000}
+    ],
+    "preconditions": {
+      "must_see_labels": ["Get Started", "Welcome to MyApp"],
+      "must_not_see_labels": []
+    },
+    "exercise": [
+      {"action": "tap", "label": "Get Started", "settle_ms": 2000},
+      {"action": "tap", "label": "Finish Onboarding", "settle_ms": 3500}
+    ],
+    "postconditions": {
+      "must_see_labels": ["Hello, world!", "Show Onboarding"],
+      "must_not_see_labels": ["Get Started", "Welcome to MyApp", "Finish Onboarding"]
+    },
+    "onboarding_overlay_labels": [
+      "Get Started",
+      "Welcome to MyApp",
+      "Finish Onboarding",
+      "Enable Location",
+      "Temperature Preference"
+    ]
+  },
+  "legacy_weak_success_labels": ["Hello, world!"]
+}

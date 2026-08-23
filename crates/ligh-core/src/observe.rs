@@ -352,30 +352,72 @@ pub fn detect_surface(nodes: &[serde_json::Value]) -> &'static str {
         return "settings";
     }
 
-    let app_icons = lower
+    let is_home_icon = |l: &str| {
+        matches!(
+            l,
+            "messaggi"
+                | "messages"
+                | "impostazioni"
+                | "settings"
+                | "safari"
+                | "foto"
+                | "photos"
+                | "mappe"
+                | "maps"
+                | "calendario"
+                | "calendar"
+                | "wallet"
+                | "salute"
+                | "health"
+                | "news"
+                | "fitness"
+                | "watch"
+                | "contatti"
+                | "contacts"
+                | "file"
+                | "files"
+                | "cartella utility"
+                | "utilities"
+                | "utility"
+                | "fotocamera"
+                | "camera"
+                | "orologio"
+                | "clock"
+                | "app store"
+                | "musica"
+                | "music"
+                | "mail"
+                | "telefono"
+                | "phone"
+        )
+    };
+    let app_icons = lower.iter().filter(|l| is_home_icon(l)).count();
+    if app_icons >= 3 {
+        return "springboard";
+    }
+    // Strong pair signal on slim simulators (Fitness + Watch, no spotlight pill).
+    let has = |name: &str| lower.iter().any(|l| l == name);
+    if has("fitness") && has("watch") {
+        return "springboard";
+    }
+    if has("safari") && (has("messaggi") || has("messages")) && app_icons >= 2 {
+        return "springboard";
+    }
+    // Home grid: many hittable icon-sized buttons in the upper screen.
+    let grid_icons = nodes
         .iter()
-        .filter(|l| {
-            matches!(
-                l.as_str(),
-                "messaggi"
-                    | "messages"
-                    | "impostazioni"
-                    | "settings"
-                    | "safari"
-                    | "foto"
-                    | "photos"
-                    | "mappe"
-                    | "maps"
-                    | "calendario"
-                    | "calendar"
-                    | "wallet"
-                    | "salute"
-                    | "health"
-                    | "news"
-            )
+        .filter(|n| {
+            let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+            role.contains("Button")
+                && n.get("hittable").and_then(|v| v.as_bool()).unwrap_or(false)
+                && n.get("frame")
+                    .and_then(|f| f.get("y"))
+                    .and_then(|y| y.as_f64())
+                    .map(|y| y < 650.0)
+                    .unwrap_or(false)
         })
         .count();
-    if app_icons >= 3 {
+    if grid_icons >= 6 {
         return "springboard";
     }
 
@@ -1250,6 +1292,19 @@ mod tests {
             json!({"label":"Impostazioni","role":"AXButton","hittable":true,"enabled":true}),
             json!({"label":"Safari","role":"AXButton","hittable":true,"enabled":true}),
             json!({"label":"Cerca","identifier":"spotlight-pill","value":"Pagina 1 di 2","role":"AXButton","hittable":true,"enabled":true}),
+        ];
+        assert_eq!(detect_surface(&nodes), "springboard");
+    }
+
+    #[test]
+    fn surface_springboard_fitness_watch_no_spotlight() {
+        let nodes = vec![
+            json!({"label":"Fitness","role":"AXButton","hittable":true,"enabled":true,"frame":{"x":29,"y":78,"width":64,"height":86}}),
+            json!({"label":"Watch","role":"AXButton","hittable":true,"enabled":true,"frame":{"x":120,"y":78,"width":64,"height":86}}),
+            json!({"label":"Contatti","role":"AXButton","hittable":true,"enabled":true,"frame":{"x":210,"y":78,"width":64,"height":86}}),
+            json!({"label":"Safari","role":"AXButton","hittable":true,"enabled":true,"frame":{"x":300,"y":78,"width":64,"height":86}}),
+            json!({"label":"Messaggi","role":"AXButton","hittable":true,"enabled":true,"frame":{"x":29,"y":180,"width":64,"height":86}}),
+            json!({"label":"OnboardingDemo","role":"AXButton","hittable":true,"enabled":true,"frame":{"x":120,"y":180,"width":64,"height":86}}),
         ];
         assert_eq!(detect_surface(&nodes), "springboard");
     }

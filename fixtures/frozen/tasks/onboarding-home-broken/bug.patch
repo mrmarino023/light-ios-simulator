@@ -1,0 +1,14 @@
+--- a/fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift
++++ b/fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift
+@@ -114,9 +114,8 @@ extension OnboardingView {
+         // PreferencesManager.shared.temperatureUnit = temperatureUnit
+         // PreferencesManager.shared.hasCompletedOnboarding = true
+         
+-        withAnimation {
+-            isOnboardingVisible = false
+-        }
++        // Regression: onboarding overlay never dismisses after finish.
++        _ = temperatureUnit
+     }
+     
+     private func scrollToPage(_ page: OnboardingPage) {
