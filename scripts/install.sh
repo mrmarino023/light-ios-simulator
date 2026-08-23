@@ -31,7 +31,7 @@ BIN_DIR="${CARGO_HOME:-$HOME/.cargo}/bin"
 mkdir -p "$BIN_DIR"
 
 echo "==> building release (first run can take a few minutes)…"
-cargo build --release --locked
+( unset CARGO_TARGET_DIR; cargo build --release --locked )
 
 echo "==> installing binaries → $BIN_DIR"
 cargo install --path crates/ligh-cli --force --locked --root "${CARGO_HOME:-$HOME/.cargo}"
@@ -56,8 +56,9 @@ command -v ligh >/dev/null && ligh --version || echo "  ligh → $BIN_DIR/ligh"
 command -v lighd >/dev/null && echo "  lighd → $(command -v lighd)" || true
 echo
 echo "Next:"
+echo "  ./scripts/developer-trial.sh   # developer smoke + MCP (start here)"
 echo "  ligh doctor"
 echo "  ligh daemon start"
 echo "  ligh up"
-echo "  ./scripts/demo-type-agent.sh    # Messages typing demo"
+echo "  docs/DEVELOPER_TRIAL.md"
 echo

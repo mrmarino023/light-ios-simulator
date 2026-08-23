@@ -13,7 +13,17 @@ sim_clean_reboot() {
     sleep 2
   fi
   "$ligh" daemon stop 2>/dev/null || true
+  pkill -x lighd 2>/dev/null || true
   sleep 1
+  rm -f "${HOME}/.ligh/lighd.sock"
+  # Prefer freshly built target/release/lighd over stale cargo install.
+  local lighd_sibling
+  lighd_sibling="$(dirname "$ligh")/lighd"
+  if [[ -x "$lighd_sibling" ]] && [[ "$ligh" == *"/target/release/ligh" ]]; then
+    cp "$lighd_sibling" "${CARGO_HOME:-$HOME/.cargo}/bin/lighd" 2>/dev/null || true
+  elif [[ -x "${CARGO_HOME:-$HOME/.cargo}/bin/lighd" ]] && [[ "$ligh" == *"/target/release/ligh" ]]; then
+    cp "${CARGO_HOME:-$HOME/.cargo}/bin/lighd" "$lighd_sibling" 2>/dev/null || true
+  fi
   "$ligh" daemon start
   "$ligh" up --device "${LIGH_DEVICE:-iphone-15-pro}" 2>/dev/null || "$ligh" up
   "$ligh" home >/dev/null 2>&1 || true

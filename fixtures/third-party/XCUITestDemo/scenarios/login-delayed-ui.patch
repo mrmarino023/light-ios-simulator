@@ -1,0 +1,11 @@
+--- a/fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift
++++ b/fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift
+@@ -19,7 +19,7 @@ final class LoginViewModel: ObservableObject {
+         defer { isLoading = false }
+ 
+         let failure = ProcessInfo.processInfo.arguments.contains("--ui_test_login_failure")
+-        try? await Task.sleep(nanoseconds: 300_000_000)
++        try? await Task.sleep(nanoseconds: 18_000_000_000)
+ 
+         if failure {
+             loginError = "Invalid credentials"

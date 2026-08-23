@@ -98,26 +98,57 @@ def compact_eyes(snap: dict[str, Any]) -> dict[str, Any]:
 
 
 def compact_cap(raw: dict[str, Any]) -> dict[str, Any]:
-    """Agent view of a capability result — verified or explicit fault."""
+    """Agent view of a capability result — verified or explicit fault with evidence."""
     if not raw.get("ok"):
         return {
             "ok": False,
             "fault": "infra",
             "error": raw.get("error"),
-            "suggestion": "ligh_ready then retry app-job",
+            "suggestion": "ligh_ready then retry",
         }
     data = raw.get("data")
     if not isinstance(data, dict):
         return {"ok": False, "fault": "infra", "error": "cap returned non-object"}
-    return {
+    detail = data.get("detail")
+    evidence: dict[str, Any] = {}
+    if isinstance(detail, dict):
+        inner = detail.get("detail") if isinstance(detail.get("detail"), dict) else detail
+        if isinstance(inner, dict):
+            for key in ("candidates", "actionable_topk", "scene", "wanted", "error"):
+                if inner.get(key) is not None:
+                    evidence[key] = inner[key]
+    obs = data.get("observe")
+    if isinstance(obs, dict) and not evidence.get("actionable_topk"):
+        top = []
+        for n in (obs.get("actionable_topk") or [])[:15]:
+            top.append(
+                {
+                    "id": n.get("identifier") or n.get("id"),
+                    "label": n.get("label") or n.get("text"),
+                    "role": n.get("role"),
+                    "focused": n.get("focused"),
+                    "hittable": n.get("hittable"),
+                }
+            )
+        if top:
+            evidence["actionable_topk"] = top
+    out: dict[str, Any] = {
         "ok": bool(data.get("ok")),
         "fault": data.get("fault") or ("ok" if data.get("ok") else "fail"),
         "capability": data.get("capability"),
         "phase": data.get("phase"),
         "overlay": data.get("overlay"),
         "surface": data.get("surface"),
-        "detail": data.get("detail"),
+        "detail": detail,
     }
+    if evidence:
+        out["evidence"] = evidence
+    fault = out.get("fault")
+    if fault == "motor_no_effect":
+        out["suggestion"] = "UI unchanged after tap — try ligh_cap_reach or fix affordance; do not retry same tap"
+    elif fault == "target_missing":
+        out["suggestion"] = "read evidence.candidates; use ligh_cap_reach or fix accessibility id"
+    return out
 
 
 def compact_qa_cap(raw: dict[str, Any]) -> dict[str, Any]:
@@ -214,6 +245,40 @@ TOOLS = [
                 "label": {"type": "string"},
                 "id": {"type": "string"},
                 "timeout_ms": {"type": "integer", "default": 8000},
+            },
+        },
+    },
+    {
+        "name": "ligh_key",
+        "description": "Press a named key: return, delete, escape, tab, space, arrows.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"name": {"type": "string", "default": "return"}},
+        },
+    },
+    {
+        "name": "ligh_swipe",
+        "description": "Swipe gesture (normalized 0–1). Explore / scroll when reach is not enough.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "from_x": {"type": "number", "default": 0.5},
+                "from_y": {"type": "number", "default": 0.8},
+                "to_x": {"type": "number", "default": 0.5},
+                "to_y": {"type": "number", "default": 0.2},
+            },
+        },
+    },
+    {
+        "name": "ligh_scroll_until",
+        "description": "Swipe-scroll until label/id is on-screen.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "label": {"type": "string"},
+                "id": {"type": "string"},
+                "max_swipes": {"type": "integer", "default": 8},
+                "timeout_ms": {"type": "integer", "default": 12000},
             },
         },
     },
@@ -380,7 +445,7 @@ TOOLS = [
     },
     {
         "name": "ligh_perceive",
-        "description": "QA layer (preferred): settled world model — fingerprint, typed affordances, blocking overlay. One call replaces raw observe parsing.",
+        "description": "QA layer (preferred): settled world model — fingerprint, typed affordances, blocking overlay.",
         "inputSchema": {
             "type": "object",
             "properties": {"settle_ms": {"type": "integer", "default": 2500}},
@@ -388,7 +453,7 @@ TOOLS = [
     },
     {
         "name": "ligh_attempt",
-        "description": "QA layer (preferred): tap|type|key with built-in verify. Returns intent_met + evidence (fingerprints, delta, hypotheses).",
+        "description": "QA layer: tap|type|key with built-in verify. Returns intent_met + evidence.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -397,10 +462,7 @@ TOOLS = [
                 "id": {"type": "string"},
                 "text": {"type": "string"},
                 "key": {"type": "string"},
-                "expect": {
-                    "type": "object",
-                    "description": "see_id, see_label, surface, fingerprint_changed",
-                },
+                "expect": {"type": "object"},
                 "settle_ms": {"type": "integer", "default": 2500},
                 "timeout_ms": {"type": "integer", "default": 8000},
             },
@@ -423,8 +485,30 @@ TOOLS = [
         },
     },
     {
+        "name": "ligh_cap_reach",
+        "description": "Motor: dismiss overlay, scroll, wait for id/label. Returns candidates on target_missing.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "id": {"type": "string"},
+                "label": {"type": "string"},
+                "max_swipes": {"type": "integer", "default": 12},
+                "settle_ms": {"type": "integer", "default": 2500},
+                "timeout_ms": {"type": "integer", "default": 12000},
+            },
+        },
+    },
+    {
         "name": "ligh_dismiss",
         "description": "QA layer: dismiss keyboard/alert/sheet blocking overlay.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"settle_ms": {"type": "integer", "default": 2500}},
+        },
+    },
+    {
+        "name": "ligh_cap_dismiss_overlay",
+        "description": "Motor: dismiss keyboard/sheet/alert if present.",
         "inputSchema": {
             "type": "object",
             "properties": {"settle_ms": {"type": "integer", "default": 2500}},
@@ -435,7 +519,7 @@ TOOLS = [
         "description": "UX graph: nodes, edges, baselines summary (.ligh/uxgraph.json).",
         "inputSchema": {
             "type": "object",
-            "properties": {"workspace": {"type": "string", "description": "Repo root (default: LIGH_WORKSPACE or cwd)"}},
+            "properties": {"workspace": {"type": "string"}},
         },
     },
     {
@@ -479,8 +563,22 @@ TOOLS = [
         },
     },
     {
+        "name": "ligh_cap_explore",
+        "description": "Motor explore: reach → swipe probes → reach. probes_tried in evidence on fault.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "id": {"type": "string"},
+                "label": {"type": "string"},
+                "max_probes": {"type": "integer", "default": 4},
+                "max_swipes": {"type": "integer", "default": 10},
+                "timeout_ms": {"type": "integer", "default": 18000},
+            },
+        },
+    },
+    {
         "name": "ligh_ux_hint",
-        "description": "UX graph: link screen fingerprint to Swift source file (learns over edits).",
+        "description": "UX graph: link screen fingerprint to Swift source file.",
         "inputSchema": {
             "type": "object",
             "properties": {
@@ -489,6 +587,23 @@ TOOLS = [
                 "workspace": {"type": "string"},
             },
             "required": ["fingerprint", "source_path"],
+        },
+    },
+    {
+        "name": "ligh_cap_app_goal",
+        "description": "Declarative job: setup steps + postconditions (wait_id). Motor expands reach/scroll/dismiss.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "app": {"type": "string"},
+                "bundle_id": {"type": "string"},
+                "setup": {"type": "array", "items": {"type": "object"}, "default": []},
+                "postconditions": {"type": "array", "items": {"type": "object"}},
+                "settle_ms": {"type": "integer", "default": 3500},
+                "timeout_ms": {"type": "integer", "default": 15000},
+                "no_install": {"type": "boolean", "default": False},
+            },
+            "required": ["postconditions"],
         },
     },
 ]
@@ -617,11 +732,7 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         sw = str(args.get("max_swipes") if args.get("max_swipes") is not None else 8)
         scroll = args.get("scroll")
         scroll_flag = "true" if scroll is None or scroll else "false"
-        cmd = [
-            "--json", "cap", "find",
-            "--settle-ms", ms, "--timeout-ms", to,
-            "--max-swipes", sw,
-        ]
+        cmd = ["--json", "cap", "find", "--settle-ms", ms, "--timeout-ms", to, "--max-swipes", sw]
         if scroll is not None:
             cmd += ["--scroll", scroll_flag]
         if args.get("label"):
@@ -634,6 +745,21 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
     if name == "ligh_dismiss":
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
         return compact_qa_cap(ligh("--json", "cap", "dismiss", "--settle-ms", ms))
+    if name == "ligh_cap_reach":
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 12000)
+        sw = str(args.get("max_swipes") if args.get("max_swipes") is not None else 12)
+        cmd = ["--json", "cap", "reach", "--settle-ms", ms, "--timeout-ms", to, "--max-swipes", sw]
+        if args.get("label"):
+            cmd += ["--label", str(args["label"])]
+        elif args.get("id"):
+            cmd += ["--id", str(args["id"])]
+        else:
+            return {"ok": False, "fault": "target_missing", "error": "need id or label"}
+        return compact_cap(ligh(*cmd, timeout=180))
+    if name == "ligh_cap_dismiss_overlay":
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
+        return compact_cap(ligh("--json", "cap", "dismiss-overlay", "--settle-ms", ms))
     if name == "ligh_ux_status":
         cmd = ["--json", "uxgraph", "status"]
         if args.get("workspace"):
@@ -658,14 +784,27 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 8000)
         st = str(args.get("max_steps") if args.get("max_steps") is not None else 6)
         dp = str(args.get("max_depth") if args.get("max_depth") is not None else 3)
-        cmd = [
-            "--json", "uxgraph", "explore",
-            "--settle-ms", ms, "--timeout-ms", to,
-            "--max-steps", st, "--max-depth", dp,
-        ]
+        cmd = ["--json", "uxgraph", "explore", "--settle-ms", ms, "--timeout-ms", to, "--max-steps", st, "--max-depth", dp]
         if args.get("workspace"):
             cmd += ["--workspace", str(args["workspace"])]
         return compact_qa_cap(ligh(*cmd, timeout=180))
+    if name == "ligh_cap_explore":
+        sw = str(args.get("max_swipes") if args.get("max_swipes") is not None else 10)
+        pr = str(args.get("max_probes") if args.get("max_probes") is not None else 4)
+        to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 18000)
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 3500)
+        cmd = ["--json", "cap", "explore", "--max-swipes", sw, "--max-probes", pr, "--settle-ms", ms, "--timeout-ms", to]
+        if args.get("label"):
+            cmd += ["--label", str(args["label"])]
+        elif args.get("id"):
+            cmd += ["--id", str(args["id"])]
+        else:
+            return {"ok": False, "fault": "target_missing", "error": "need id or label"}
+        out = compact_cap(ligh(*cmd, timeout=240))
+        det = out.get("detail") or {}
+        if isinstance(det, dict) and det.get("probes_tried"):
+            out.setdefault("evidence", {})["probes_tried"] = det["probes_tried"]
+        return out
     if name == "ligh_ux_hint":
         fp = str(args.get("fingerprint") or "")
         sp = str(args.get("source_path") or "")
@@ -673,6 +812,27 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         if args.get("workspace"):
             cmd += ["--workspace", str(args["workspace"])]
         return compact_qa_cap(ligh(*cmd))
+    if name == "ligh_cap_app_goal":
+        import json as _json
+        post = args.get("postconditions")
+        if not isinstance(post, list):
+            return {"ok": False, "fault": "infra", "error": "postconditions must be array"}
+        setup = args.get("setup") if isinstance(args.get("setup"), list) else []
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 3500)
+        to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 15000)
+        cmd = [
+            "--json", "cap", "app-goal",
+            "--setup", _json.dumps(setup),
+            "--postconditions", _json.dumps(post),
+            "--settle-ms", ms, "--timeout-ms", to,
+        ]
+        if args.get("app"):
+            cmd += ["--app", str(args["app"])]
+        if args.get("bundle_id"):
+            cmd += ["--bundle-id", str(args["bundle_id"])]
+        if args.get("no_install"):
+            cmd += ["--no-install"]
+        return compact_cap(ligh(*cmd, timeout=300))
     if name == "ligh_observe":
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
         raw = ligh("--json", "observe", "--settle-ms", ms)
@@ -708,6 +868,26 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         else:
             return {"ok": False, "error": "need label or id"}
         return ligh(*cmd)
+    if name == "ligh_key":
+        key = str(args.get("name") or "return")
+        return ligh("--json", "key", "--name", key)
+    if name == "ligh_swipe":
+        fx = str(args.get("from_x", 0.5))
+        fy = str(args.get("from_y", 0.8))
+        tx = str(args.get("to_x", 0.5))
+        ty = str(args.get("to_y", 0.2))
+        return ligh("--json", "swipe", "--from-x", fx, "--from-y", fy, "--to-x", tx, "--to-y", ty)
+    if name == "ligh_scroll_until":
+        sw = str(args.get("max_swipes") if args.get("max_swipes") is not None else 8)
+        to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 12000)
+        cmd = ["--json", "scroll-until", "--max-swipes", sw, "--timeout-ms", to]
+        if args.get("label"):
+            cmd += ["--label", str(args["label"])]
+        elif args.get("id"):
+            cmd += ["--id", str(args["id"])]
+        else:
+            return {"ok": False, "error": "need label or id"}
+        return compact_cap(ligh(*cmd, timeout=180))
     if name == "ligh_run":
         app = str(args.get("app") or "")
         if not app:

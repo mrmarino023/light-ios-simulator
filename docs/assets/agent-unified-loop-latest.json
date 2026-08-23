@@ -1,0 +1,525 @@
+{
+  "gate": "agent_unified_loop",
+  "driver": "scripted",
+  "model": null,
+  "goal": "Verify the Debug app at /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighFixture/build/LighFixture.app (bundle dev.ligh.Fixture): fill name field and reach LighDone screen.",
+  "ok": true,
+  "steps_used": 3,
+  "tokens": {
+    "in": 0,
+    "out": 0
+  },
+  "total_ms": 2228,
+  "trace": [
+    {
+      "action": "<lambda>",
+      "result": {
+        "ok": true,
+        "data": {
+          "capability": "ensure_ready",
+          "detail": {
+            "recovered": false
+          },
+          "fault": "ok",
+          "observe": {
+            "accessibility_tree": {
+              "element_count": 5,
+              "nodes": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 852,
+                    "width": 393,
+                    "x": 0,
+                    "y": 0
+                  },
+                  "hittable": true,
+                  "id": "n70d32821",
+                  "label": "LighFixture",
+                  "path_id": "nbacc2ae1",
+                  "role": "AXApplication",
+                  "selected": false,
+                  "text": "LighFixture",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.14673452078032231,
+                    "y": 0.1428012519561815
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 40.66666666666667,
+                    "width": 83.33333333333333,
+                    "x": 16,
+                    "y": 101.33333333333331
+                  },
+                  "hittable": true,
+                  "id": "nad164350",
+                  "label": "Done",
+                  "parent_id": "n70d32821",
+                  "path_id": "ne598f603",
+                  "role": "AXHeading",
+                  "selected": false,
+                  "text": "Done",
+                  "traits": "heading",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5252347417840375
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 40.666666666666686,
+                    "width": 141.3333333333333,
+                    "x": 125.83333333333334,
+                    "y": 427.16666666666663
+                  },
+                  "hittable": true,
+                  "id": "nf0279bb2",
+                  "identifier": "LighDone",
+                  "label": "LighDone",
+                  "parent_id": "n70d32821",
+                  "path_id": "n5b011c8f",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "LighDone",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.57981220657277
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.33333333333331,
+                    "width": 18.666666666666657,
+                    "x": 187.16666666666669,
+                    "y": 483.83333333333326
+                  },
+                  "hittable": true,
+                  "id": "ne031d565",
+                  "identifier": "LighDoneDetail",
+                  "label": "ok",
+                  "parent_id": "n70d32821",
+                  "path_id": "ndb99b293",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "ok",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5004240882103477,
+                    "y": 0.6224569640062597
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 20.66666666666663,
+                    "width": 83.33333333333331,
+                    "x": 155,
+                    "y": 520
+                  },
+                  "hittable": true,
+                  "id": "n44a73d42",
+                  "identifier": "BackHome",
+                  "label": "BackHome",
+                  "parent_id": "n70d32821",
+                  "path_id": "n7555fb20",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "BackHome",
+                  "traits": "button",
+                  "visible": true
+                }
+              ],
+              "point_size": [
+                393.0,
+                852.0
+              ],
+              "root": {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "children": [
+                  {
+                    "center_norm": {
+                      "x": 0.14673452078032231,
+                      "y": 0.1428012519561815
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 40.66666666666667,
+                      "width": 83.33333333333333,
+                      "x": 16,
+                      "y": 101.33333333333331
+                    },
+                    "hittable": true,
+                    "id": "nad164350",
+                    "label": "Done",
+                    "parent_id": "n70d32821",
+                    "path_id": "ne598f603",
+                    "role": "AXHeading",
+                    "selected": false,
+                    "text": "Done",
+                    "traits": "heading",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.5252347417840375
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 40.666666666666686,
+                      "width": 141.3333333333333,
+                      "x": 125.83333333333334,
+                      "y": 427.16666666666663
+                    },
+                    "hittable": true,
+                    "id": "nf0279bb2",
+                    "identifier": "LighDone",
+                    "label": "LighDone",
+                    "parent_id": "n70d32821",
+                    "path_id": "n5b011c8f",
+                    "role": "AXStaticText",
+                    "selected": false,
+                    "text": "LighDone",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.57981220657277
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 20.33333333333331,
+                      "width": 18.666666666666657,
+                      "x": 187.16666666666669,
+                      "y": 483.83333333333326
+                    },
+                    "hittable": true,
+                    "id": "ne031d565",
+                    "identifier": "LighDoneDetail",
+                    "label": "ok",
+                    "parent_id": "n70d32821",
+                    "path_id": "ndb99b293",
+                    "role": "AXStaticText",
+                    "selected": false,
+                    "text": "ok",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5004240882103477,
+                      "y": 0.6224569640062597
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 20.66666666666663,
+                      "width": 83.33333333333331,
+                      "x": 155,
+                      "y": 520
+                    },
+                    "hittable": true,
+                    "id": "n44a73d42",
+                    "identifier": "BackHome",
+                    "label": "BackHome",
+                    "parent_id": "n70d32821",
+                    "path_id": "n7555fb20",
+                    "role": "AXButton",
+                    "selected": false,
+                    "text": "BackHome",
+                    "traits": "button",
+                    "visible": true
+                  }
+                ],
+                "children_ids": [
+                  "nad164350",
+                  "nf0279bb2",
+                  "ne031d565",
+                  "n44a73d42"
+                ],
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 852,
+                  "width": 393,
+                  "x": 0,
+                  "y": 0
+                },
+                "hittable": true,
+                "id": "n70d32821",
+                "label": "LighFixture",
+                "path_id": "nbacc2ae1",
+                "role": "AXApplication",
+                "selected": false,
+                "text": "LighFixture",
+                "visible": true
+              },
+              "status": "available"
+            },
+            "actionable_topk": [
+              {
+                "center_norm": {
+                  "x": 0.5004240882103477,
+                  "y": 0.6224569640062597
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.66666666666663,
+                  "width": 83.33333333333331,
+                  "x": 155,
+                  "y": 520
+                },
+                "hittable": true,
+                "id": "n44a73d42",
+                "identifier": "BackHome",
+                "label": "BackHome",
+                "parent_id": "n70d32821",
+                "role": "AXButton",
+                "selected": false,
+                "text": "BackHome",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.14673452078032231,
+                  "y": 0.1428012519561815
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.66666666666667,
+                  "width": 83.33333333333333,
+                  "x": 16,
+                  "y": 101.33333333333331
+                },
+                "hittable": true,
+                "id": "nad164350",
+                "label": "Done",
+                "parent_id": "n70d32821",
+                "role": "AXHeading",
+                "selected": false,
+                "text": "Done",
+                "traits": "heading",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5252347417840375
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.666666666666686,
+                  "width": 141.3333333333333,
+                  "x": 125.83333333333334,
+                  "y": 427.16666666666663
+                },
+                "hittable": true,
+                "id": "nf0279bb2",
+                "identifier": "LighDone",
+                "label": "LighDone",
+                "parent_id": "n70d32821",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "LighDone",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.57981220657277
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.33333333333331,
+                  "width": 18.666666666666657,
+                  "x": 187.16666666666669,
+                  "y": 483.83333333333326
+                },
+                "hittable": true,
+                "id": "ne031d565",
+                "identifier": "LighDoneDetail",
+                "label": "ok",
+                "parent_id": "n70d32821",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "ok",
+                "visible": true
+              }
+            ],
+            "app_bundle_id": "dev.ligh.Fixture",
+            "ax_quality": "ready",
+            "booted": true,
+            "eyes_unusable": false,
+            "frame": {
+              "fps": 86.90252973002289,
+              "h": 2556,
+              "id": 415,
+              "imports_ok": true,
+              "w": 1179
+            },
+            "observe_ms": 0.00029099999999999997,
+            "overlay": "none",
+            "path": "lighd",
+            "phase": "ready",
+            "scene": {
+              "bundle_id": "dev.ligh.Fixture",
+              "keyboard_visible": false,
+              "screen_title": "Done",
+              "surface": "app"
+            },
+            "schema_version": 2,
+            "settled": true,
+            "simulator_app_running": false,
+            "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+          },
+          "ok": true,
+          "overlay": "none",
+          "phase": "ready",
+          "surface": "app"
+        }
+      }
+    },
+    {
+      "action": "<lambda>",
+      "result": {
+        "ok": true,
+        "ax_quality": "ready",
+        "settled": true,
+        "phase": "ready",
+        "surface": "app",
+        "keyboard_visible": false,
+        "screen_title": "Done",
+        "eyes_unusable": false,
+        "events": [],
+        "actionable_topk": [
+          {
+            "id": "n44a73d42",
+            "label": "BackHome",
+            "role": "AXButton",
+            "value": null,
+            "focused": false,
+            "hittable": true,
+            "center_norm": {
+              "x": 0.5004240882103477,
+              "y": 0.6224569640062597
+            }
+          },
+          {
+            "id": "nad164350",
+            "label": "Done",
+            "role": "AXHeading",
+            "value": null,
+            "focused": false,
+            "hittable": true,
+            "center_norm": {
+              "x": 0.14673452078032231,
+              "y": 0.1428012519561815
+            }
+          },
+          {
+            "id": "nf0279bb2",
+            "label": "LighDone",
+            "role": "AXStaticText",
+            "value": null,
+            "focused": false,
+            "hittable": true,
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5252347417840375
+            }
+          },
+          {
+            "id": "ne031d565",
+            "label": "ok",
+            "role": "AXStaticText",
+            "value": null,
+            "focused": false,
+            "hittable": true,
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.57981220657277
+            }
+          }
+        ]
+      }
+    },
+    {
+      "action": "app_job",
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "capability": "app_job",
+        "phase": "ready",
+        "overlay": "none",
+        "surface": "app",
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "LighDone"
+          },
+          "motor": "ensure_path",
+          "steps": 5
+        },
+        "evidence": {
+          "actionable_topk": [
+            {
+              "id": "BackHome",
+              "label": "BackHome",
+              "role": "AXButton",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "nad164350",
+              "label": "Done",
+              "role": "AXHeading",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighDone",
+              "label": "LighDone",
+              "role": "AXStaticText",
+              "focused": false,
+              "hittable": true
+            },
+            {
+              "id": "LighDoneDetail",
+              "label": "ok",
+              "role": "AXStaticText",
+              "focused": false,
+              "hittable": true
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

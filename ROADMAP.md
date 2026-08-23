@@ -22,7 +22,9 @@ These answers are **not enough** alone:
 - “LIGH has structured faults” — any backend can wrap errors in JSON
 - “LIGH is Rust” — irrelevant to the buyer
 
-**Only answer that matters:** a coding agent (or developer) gets **materially better** outcomes on **their** app/workflow with LIGH vs the same MCP on Maestro — and can say *why* in one sentence.
+**Only answer that matters:** a coding agent gets **materially better** outcomes on **their** app/workflow with LIGH vs **agentic baseline** (simctl + screenshot + vision / their existing MCP) — and can say *why* in one sentence.
+
+Maestro is a **footnote** (human UI-test workflows), not the primary competitor.
 
 ### Demonstrated (engineering — do not oversell)
 
@@ -39,7 +41,8 @@ These answers are **not enough** alone:
 - Scroll, modals, keyboard, gestures, WebView, permissions, deep links, crashes, multi-screen, large real apps
 - 5 different apps · 5 different workflows (not login-only)
 - **5 external developers** — install, Cursor, their app, minimal hand-holding
-- **Maestro replacement test** — same MCP, same agent, same task; blind preference
+- **Agentic baseline A/B** — same agent, same task: LIGH MCP vs simctl+vision (or their stack); see [`AGENTIC_BASELINE.md`](docs/AGENTIC_BASELINE.md)
+- **Customer discovery** — ~20 targets; one question: *how does your agent interact with Simulator?* — [`CUSTOMER_DISCOVERY.md`](docs/CUSTOMER_DISCOVERY.md)
 - Autonomous matrix at scale (harness exists; **not** the next priority)
 
 ### Stop doing (benchmark trap)
@@ -50,14 +53,18 @@ We have enough numbers on the **ideal** job (launch → type → tap → assert)
 
 ### Next (the benchmark is a human)
 
+See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — motor regression ≠ generalization.
+
 ```text
-① 5 external developers — "install, use with Cursor on your Debug .app" (say little)
+① gate-external-apps.sh — frozen OSS apps, no source edits, publish failures
        ↓
-② Same task: LIGH MCP vs Maestro MCP (identical agent prompt)
+② Customer discovery — "How does your agent interact with iOS Simulator?" (~20 targets)
        ↓
-③ 5 apps × 5 workflows (not designed for LIGH; not login-only)
+③ Agentic baseline A/B — same agent/task/app: LIGH MCP vs simctl+vision (or their MCP)
        ↓
-④ Kill decision
+④ 5 builders (agents / AI dev tools) — repo + 30s demo, not a pitch deck
+       ↓
+⑤ Kill decision
 ```
 
 **Kill criteria:** after 5 apps + 5 developers, if nobody prefers LIGH or can't articulate why → **stop the product thesis**. The experiment succeeded by falsifying itself early.
@@ -125,7 +132,7 @@ Published: [`docs/assets/app-reliability-latest.json`](docs/assets/app-reliabili
        ↓
 ⏭️  STOP adding N=50 / matrix runs until developers speak
        ↓
-→ 5 developers + Maestro A/B + harder apps/workflows
+→ discovery + agentic baseline A/B + 5 builders
        ↓
 → Kill or double down
 ```
@@ -216,10 +223,12 @@ Harness: `./scripts/gate-cold-start.sh` → [`docs/assets/cold-start-latest.json
 
 ## Next (in order)
 
-- [ ] **Developer pack** — install, MCP config, minimal prompt (no benchmark deck)
-- [ ] **5 external developers** — their app; observe where it breaks
-- [ ] **Maestro MCP A/B** — same agent, same task, blind preference
-- [ ] **5 apps × 5 workflows** — not login-only
+- [x] **Developer pack** — install, MCP, prompt ([`DEVELOPER_TRIAL.md`](docs/DEVELOPER_TRIAL.md))
+- [x] **Discovery playbook** — [`CUSTOMER_DISCOVERY.md`](docs/CUSTOMER_DISCOVERY.md)
+- [x] **Agentic baseline protocol** — [`AGENTIC_BASELINE.md`](docs/AGENTIC_BASELINE.md)
+- [ ] **~20 discovery conversations** — watch their stack; don't pitch
+- [ ] **Agentic A/B runs** — publish [`agentic-baseline-latest.json`](docs/assets/agentic-baseline-TEMPLATE.json)
+- [ ] **5 builders** — coding agents / AI dev tools / mobile+AI testing
 - [ ] **Kill decision** — no pull after above → stop product thesis
 - [x] Engineering baseline + rigor N=50 publish + 1× LLM autonomous (published JSON footnotes)
 - [x] ~~N=50 rigor~~ — published; do not re-run without developer signal

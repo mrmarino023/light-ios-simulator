@@ -1,0 +1,16 @@
+{
+  "trial": "developer_smoke",
+  "ok": true,
+  "app_job_ok": true,
+  "agent_loop_ok": true,
+  "fault": "ok",
+  "app": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighFixture/build/LighFixture.app",
+  "bundle_id": "dev.ligh.Fixture",
+  "platform": "macOS-14.6.1-arm64-arm-64bit-Mach-O",
+  "total_ms": 6695,
+  "job_compact": {
+    "ok": true,
+    "fault": "ok",
+    "step": null
+  }
+}

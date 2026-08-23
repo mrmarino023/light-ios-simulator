@@ -259,6 +259,57 @@ pub enum DaemonRequest {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         settle_ms: Option<u64>,
     },
+    /// Host-owned reach: scroll + dismiss overlay + wait for id/label.
+    Reach {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        max_swipes: Option<u32>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+    },
+    /// Clear keyboard/sheet/alert overlay if present (motor FSM).
+    DismissOverlay {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+    },
+    /// Host explore: reach → probe gestures → reach (human recovery).
+    Explore {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        label: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        id: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        max_probes: Option<u32>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        max_swipes: Option<u32>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+    },
+    /// Goal job: setup steps + postconditions (declarative verify).
+    AppGoal {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        app: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        bundle_id: Option<String>,
+        #[serde(default)]
+        setup: Vec<serde_json::Value>,
+        postconditions: Vec<serde_json::Value>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        install: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        launch_args: Option<Vec<String>>,
+    },
     /// UX graph: status (nodes, edges, baselines).
     UxStatus {
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -377,6 +428,19 @@ fn read_timeout_for(req: &DaemonRequest) -> Duration {
             let n = steps.len().max(1) as u64;
             // install/launch + motor steps + settle slack
             Duration::from_millis(per.saturating_mul(n).saturating_add(90_000))
+        }
+        DaemonRequest::AppGoal {
+            timeout_ms,
+            setup,
+            postconditions,
+            ..
+        } => {
+            let per = timeout_ms.unwrap_or(12_000);
+            let n = (setup.len() + postconditions.len()).max(1) as u64;
+            Duration::from_millis(per.saturating_mul(n).saturating_add(120_000))
+        }
+        DaemonRequest::Reach { timeout_ms, .. } => {
+            Duration::from_millis(timeout_ms.unwrap_or(12_000).saturating_add(30_000))
         }
         DaemonRequest::RunApp { timeout_ms, .. } => {
             Duration::from_millis(timeout_ms.unwrap_or(8_000).saturating_add(60_000))

@@ -652,6 +652,152 @@ static char *ax_dump_inner(const char *udid_c, LighHostError *err) {
     return strdup(s.UTF8String);
 }
 
+static id find_element_by_ident(id element, NSString *ident, int depth) {
+    if (depth >= kMaxDepth || !ident.length) return nil;
+    NSString *eid = ax_string(element, @"accessibilityIdentifier");
+    if (!eid.length) eid = ax_string(element, @"identifier");
+    if ([eid isEqualToString:ident]) return element;
+    for (id kid in ax_children(element)) {
+        id found = find_element_by_ident(kid, ident, depth + 1);
+        if (found) return found;
+    }
+    return nil;
+}
+
+static id find_element_by_label(id element, NSString *needle, int depth) {
+    if (depth >= kMaxDepth || !needle.length) return nil;
+    NSString *label = ax_string(element, @"accessibilityLabel");
+    if (!label.length) label = ax_string(element, @"label");
+    if (label.length && [label.lowercaseString containsString:needle.lowercaseString]) {
+        return element;
+    }
+    for (id kid in ax_children(element)) {
+        id found = find_element_by_label(kid, needle, depth + 1);
+        if (found) return found;
+    }
+    return nil;
+}
+
+static BOOL ax_perform_press(id element) {
+    if (!element) return NO;
+    @try {
+        SEL press = NSSelectorFromString(@"accessibilityPerformPress");
+        if ([element respondsToSelector:press]) {
+            NSMethodSignature *sig = [element methodSignatureForSelector:press];
+            if (sig) {
+                NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+                [inv setSelector:press];
+                [inv setTarget:element];
+                [inv invoke];
+                BOOL ok = NO;
+                [inv getReturnValue:&ok];
+                if (ok) return YES;
+            }
+        }
+        SEL activate = NSSelectorFromString(@"accessibilityActivate");
+        if ([element respondsToSelector:activate]) {
+            NSMethodSignature *sig = [element methodSignatureForSelector:activate];
+            if (sig) {
+                NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+                [inv setSelector:activate];
+                [inv setTarget:element];
+                [inv invoke];
+                BOOL ok = NO;
+                [inv getReturnValue:&ok];
+                if (ok) return YES;
+            }
+        }
+    } @catch (NSException *ex) {
+        return NO;
+    }
+    return NO;
+}
+
+bool ligh_host_ax_press(const char *udid_c, const char *target_c, int by_label, LighHostError *err) {
+    @try {
+        if (!target_c || !target_c[0]) {
+            set_err(err, 58, "ax_press: empty target");
+            return false;
+        }
+        if (!ligh_load_private_frameworks(NULL)) {
+            set_err(err, 50, "frameworks not loaded");
+            return false;
+        }
+        if (!ensure_ax_translator()) {
+            set_err(err, 51, "AXPTranslator unavailable");
+            return false;
+        }
+
+        NSString *udid = [NSString stringWithUTF8String:udid_c];
+        id device = resolve_device(udid);
+        if (!device) {
+            set_err(err, 52, "SimDevice not found");
+            return false;
+        }
+
+        NSString *token = [[NSUUID UUID] UUIDString];
+        NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:5.0];
+        [g_dispatcher registerDevice:device token:token deadline:deadline];
+
+        id translation = nil;
+        @try {
+            SEL sel = NSSelectorFromString(@"frontmostApplicationWithDisplayId:bridgeDelegateToken:");
+            IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
+            id (*fn)(id, SEL, uint32_t, id) = (id (*)(id, SEL, uint32_t, id))imp;
+            translation = fn(g_translator, sel, 0, token);
+            if (translation) stamp_token(token, translation);
+        } @catch (NSException *ex) {
+            [g_dispatcher unregisterToken:token];
+            set_err(err, 54, "frontmostApplication threw");
+            return false;
+        }
+
+        if (!translation) {
+            [g_dispatcher unregisterToken:token];
+            set_err(err, 56, "no frontmost translation");
+            return false;
+        }
+
+        id rootElement = nil;
+        @try {
+            SEL sel = NSSelectorFromString(@"macPlatformElementFromTranslation:");
+            IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
+            id (*fn)(id, SEL, id) = (id (*)(id, SEL, id))imp;
+            rootElement = fn(g_translator, sel, translation);
+            if (rootElement) {
+                stamp_element(token, rootElement);
+                stamp_subtree(token, rootElement, 0);
+            }
+        } @catch (NSException *ex) {
+            [g_dispatcher unregisterToken:token];
+            set_err(err, 55, "macPlatformElement threw");
+            return false;
+        }
+
+        if (!rootElement) {
+            [g_dispatcher unregisterToken:token];
+            set_err(err, 56, "no mac platform element");
+            return false;
+        }
+
+        NSString *target = [NSString stringWithUTF8String:target_c];
+        id element = by_label
+            ? find_element_by_label(rootElement, target, 0)
+            : find_element_by_ident(rootElement, target, 0);
+
+        BOOL ok = ax_perform_press(element);
+        [g_dispatcher unregisterToken:token];
+        if (!ok) {
+            set_err(err, 58, "ax_press: perform failed");
+            return false;
+        }
+        return true;
+    } @catch (NSException *ex) {
+        set_err(err, 59, "ax_press exception");
+        return false;
+    }
+}
+
 void ligh_host_ax_free(char *ptr) {
     if (ptr) free(ptr);
 }

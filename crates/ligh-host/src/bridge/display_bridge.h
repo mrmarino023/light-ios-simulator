@@ -61,6 +61,9 @@ bool ligh_host_hid_type(const char *udid, const char *text, LighHostError *err);
 /// Single USB HID keyboard usage (down+up). e.g. 0x2A delete, 0x28 return.
 bool ligh_host_hid_key(const char *udid, uint32_t usage, LighHostError *err);
 
+/// Perform accessibility press/activate on element by identifier or label (headless AX).
+bool ligh_host_ax_press(const char *udid, const char *target, int by_label, LighHostError *err);
+
 /// Dump frontmost-app accessibility tree as JSON (caller frees with ligh_host_ax_free).
 /// Headless — uses AccessibilityPlatformTranslation + SimDevice XPC (no Simulator.app).
 char *ligh_host_ax_dump(const char *udid, LighHostError *err);

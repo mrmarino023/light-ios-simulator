@@ -41,6 +41,8 @@
   <a href="docs/OBSERVE.md"><strong>Observe contract</strong></a> ·
   <a href="docs/STRUCTURED_CONTROL.md"><strong>Structured control</strong></a> ·
   <a href="docs/DEVELOPER_TRIAL.md"><strong>Developer trial</strong></a> ·
+  <a href="docs/AGENT_ENV.md"><strong>Agent env</strong></a> ·
+  <a href="docs/AGENTIC_BASELINE.md"><strong>Agentic baseline</strong></a> ·
   <a href="docs/AGENT.md"><strong>Agent prompt</strong></a> ·
   <a href="ROADMAP.md"><strong>Roadmap</strong></a> ·
   <a href="LICENSE"><strong>MIT License</strong></a>
@@ -76,11 +78,14 @@ cd light-ios-simulator
 Puts `ligh` and `lighd` on your PATH (`~/.cargo/bin`). Then:
 
 ```bash
+unset CARGO_TARGET_DIR && cargo build --release   # avoid stale ligh/lighd (see ROADMAP)
 ./scripts/developer-trial.sh   # recommended — smoke + Cursor MCP snippet
 ligh doctor
 ```
 
-Full guide: [`docs/DEVELOPER_TRIAL.md`](docs/DEVELOPER_TRIAL.md) · agent prompt: [`docs/CURSOR_PROMPT.md`](docs/CURSOR_PROMPT.md)
+**LLM gates** (agentic baseline, unified loop, autonomous agent): copy [`.env.example`](.env.example) → `.env` with your `OPENAI_API_KEY`, or export `LIGH_ENV_FILE=/path/.env`. Gates load repo `.env` automatically via [`scripts/lib/load-openai-env.sh`](scripts/lib/load-openai-env.sh).
+
+Full guide: [`docs/DEVELOPER_TRIAL.md`](docs/DEVELOPER_TRIAL.md) · agent env audit: [`docs/AGENT_ENV.md`](docs/AGENT_ENV.md) · agent prompt: [`docs/CURSOR_PROMPT.md`](docs/CURSOR_PROMPT.md)
 
 ### Homebrew (optional)
 
@@ -130,7 +135,36 @@ Cursor → build .app → app-job → install/launch → ensure_path → act →
 
 **We do not claim:** “faster than Maestro” or “more reliable than Maestro in general.”  
 **We do not claim:** autonomous Cursor can fix arbitrary bugs from a vague prompt (that demo is **not** done yet).  
+**We do not claim:** validated developer demand — see [`docs/CUSTOMER_DISCOVERY.md`](docs/CUSTOMER_DISCOVERY.md).  
 **We do claim:** structured agent control + reproducible gates you can falsify.
+
+### Motor 2.0 (host primitives)
+
+Universal `app-job` steps — same ops for every Debug `.app`:
+
+| Step | Meaning |
+|------|---------|
+| `{"op":"wait","id":"…"}` | Target on a clear path (overlay-aware) |
+| `{"op":"type","text":"…","id":"…"}` | **Focus + type + field-value verify** (not HID ack alone) |
+| `{"op":"tap","id":"…","until_id":"…"}` | Tap then poll until postcondition (async SwiftUI nav) |
+| `{"op":"dismiss_overlay"}` | Keyboard / sheet FSM |
+| `{"op":"reach","id":"…"}` | Scroll + dismiss until target hittable |
+
+Design contract: [`docs/HUMAN_MOTOR.md`](docs/HUMAN_MOTOR.md) · layers: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+### Agent stack gates
+
+```bash
+unset CARGO_TARGET_DIR && cargo build --release -p ligh-cli -p ligh-daemon
+./scripts/gate-agent-environment.sh    # first-loop + MCP + fixture app-job
+./scripts/gate-agent-unified-loop.sh   # scripted loop (+ LLM if OPENAI_API_KEY)
+./scripts/gate-agentic-baseline.sh     # LIGH scripted vs simctl+vision (A/B)
+./scripts/gate-agent-full.sh           # chains the above + external-apps
+```
+
+Requires booted sim + built fixtures; LLM arms need `.env` or `OPENAI_API_KEY`. Evidence: [`docs/assets/agent-environment-latest.json`](docs/assets/agent-environment-latest.json) · [`docs/assets/agentic-baseline-latest.json`](docs/assets/agentic-baseline-latest.json).
+
+**Honest status (2026-08-22):** motor regression on fixtures is strong; **agentic baseline on XCUITestDemo cold-boot is still being hardened** (Motor 2.0). Treat `gate-agentic-baseline.sh` as the falsifier, not a marketing badge.
 
 ### Demonstrated vs not yet
 
@@ -147,6 +181,12 @@ The MCP gate is a **proof-of-mechanism** — the harness scripts the “agent fi
 ```bash
 unset CARGO_TARGET_DIR && cargo build --release   # workspace binaries (see ROADMAP)
 
+# Agent stack (product wedge)
+./scripts/gate-agent-environment.sh
+./scripts/gate-agent-unified-loop.sh
+./scripts/gate-agentic-baseline.sh              # needs OPENAI_API_KEY for vision arm
+./scripts/gate-external-apps.sh
+
 # Motor proof (fixture)
 ./scripts/build-fixture.sh
 LIGH_APP_N=50 ./scripts/gate-app-reliability.sh
@@ -160,12 +200,17 @@ LIGH_APP_N=50 ./scripts/gate-third-party-rigor.sh  # isolated clean arms: LIGH v
 ./scripts/gate-mcp-loop.sh                       # proof-of-mechanism: scripted fault → fix → ok
 LIGH_ENV_FILE=/path/.env ./scripts/gate-autonomous-agent.sh   # 1 hidden bug, LLM
 LIGH_ENV_FILE=/path/.env LIGH_MATRIX_N=5 ./scripts/gate-autonomous-matrix.sh  # 5 bugs × N
+# or: cp .env.example .env && fill OPENAI_API_KEY — gates auto-load repo .env
 
 # Your app
 # LIGH_APP_PATH=…/MyApp.app LIGH_APP_BUNDLE_ID=… \
 #   LIGH_APP_HOME_ID=… LIGH_APP_FIELD_ID=… LIGH_APP_GO_ID=… LIGH_APP_DONE_ID=… \
 #   ./scripts/gate-app-reliability.sh
-ligh cap app-job /path/to/MyApp.app --bundle-id com.you.app --steps '[...]'
+ligh cap app-job /path/to/MyApp.app --bundle-id com.you.app --steps '[
+  {"op":"wait","id":"MyField"},
+  {"op":"type","text":"hello","id":"MyField"},
+  {"op":"tap","id":"Go","until_id":"Done"}
+]'
 ```
 
 ### Published evidence (2026-08-22)
@@ -201,7 +246,7 @@ Raw per-iter data: [`third-party-rigor-latest.json`](docs/assets/third-party-rig
 
 **Thesis (not speed):** LIGH gives coding agents a **fast, structured, verifiable** interface to a running Debug `.app`. ~12× p50 vs Maestro on this login job is a footnote.
 
-**Autonomous debugging:** one hidden-bug LLM pass (build error + recovery in trace). Next: `./scripts/gate-autonomous-matrix.sh` — 5 bugs × N runs, vague prompt. **Not** sold as general autonomous debugging.
+**Autonomous matrix (5×5):** 5 hidden bugs × N runs, vague prompt *"The login flow is broken."* Agent tools = source + build + LIGH only (no scenario leak). **Publish failures** — e.g. 18/25 tells you where the primitive breaks. See [`autonomous-matrix-latest.json`](docs/assets/autonomous-matrix-latest.json). Not sold as general autonomous debugging.
 
 **Agent control loop (mechanism):** scripted MCP gate shows structured failures can be consumed and retried — [`mcp-loop-latest.json`](docs/assets/mcp-loop-latest.json).
 
@@ -363,7 +408,19 @@ DIY wins a lab night. LIGH is **deterministic, falsifiable, and agent-native** f
 **Preferred (product):**
 
 ```text
-ligh_cap_app_job(app, steps=[wait/tap/type…])  →  { ok, fault, detail }
+ligh_cap_app_job(app, steps=[wait/type/tap…])  →  { ok, fault, detail }
+```
+
+Example login job (XCUITestDemo):
+
+```json
+[
+  {"op":"wait","id":"usernameTextField"},
+  {"op":"type","text":"alice","id":"usernameTextField"},
+  {"op":"type","text":"secret","id":"passwordSecureField"},
+  {"op":"dismiss_overlay"},
+  {"op":"tap","id":"loginButton","until_id":"homeTitle"}
+]
 ```
 
 **Lower level (escape hatch):**
@@ -423,11 +480,12 @@ MCP wrappers belong **on top of** `lighd`, not instead of it. Contributions welc
 | 3 | Structured observe (frame + AX) | ✅ |
 | 4 | Input (tap / swipe / home / type / `--label` / `--id`) | 🟡 |
 | 5 | **`app-job` capability + MCP** | ✅ |
-| 6 | Streaming (poll + stats; binary stream next) | 🟡 |
-| 7 | Deterministic CLI (`--json`, exit codes) | ✅ |
-| 8 | App-job reliability gates + Maestro bakeoff | ✅ |
+| 6 | **Agent stack gates** (env, unified loop, agentic baseline) | 🟡 |
+| 7 | Streaming (poll + stats; binary stream next) | 🟡 |
+| 8 | Deterministic CLI (`--json`, exit codes) | ✅ |
+| 9 | App-job reliability gates + Maestro bakeoff | ✅ |
 
-🟡 = SpringBoard + Settings loops work; AX can be empty mid-transition (use `wait`); tap hold ~32 ms. Not “excellent input.”
+🟡 = SpringBoard + Settings loops work; SwiftUI text fields need Motor 2.0 `type`+`id`; cold-boot AX can be flaky (run `agent-first-loop.sh` or `ligh ready` first). Not “excellent input” on every app.
 
 ---
 
@@ -440,6 +498,7 @@ MCP wrappers belong **on top of** `lighd`, not instead of it. Contributions welc
 | `ligh daemon start\|status\|stop` | Persistent host |
 | `ligh gui` / `gui --verify` | Metal window |
 | `ligh cap app-job` | **Product:** install → motor steps → verify |
+| `ligh cap app-goal` / `reach` / `explore` | Declarative goals + host probes |
 | `ligh cap run-app` / `ligh run` | Install / launch `.app` |
 | `ligh wait --label` / `exists --label` | AX barriers |
 | `ligh tap --label` / `--x --y` | Tap (label waits) |
@@ -504,7 +563,7 @@ flowchart TB
 | `ligh-sim` | simctl helpers, bench |
 | `ligh-core` | Session, presets, RPC types |
 
-More: [ARCHITECTURE.md](ARCHITECTURE.md) · [docs/OBSERVE.md](docs/OBSERVE.md) · [docs/STRUCTURED_CONTROL.md](docs/STRUCTURED_CONTROL.md) · [docs/AGENT.md](docs/AGENT.md) · [docs/XCODE.md](docs/XCODE.md) · [ROADMAP.md](ROADMAP.md) · [CONTRIBUTING.md](CONTRIBUTING.md)
+More: [ARCHITECTURE.md](docs/ARCHITECTURE.md) · [docs/HUMAN_MOTOR.md](docs/HUMAN_MOTOR.md) · [docs/AGENT_ENV.md](docs/AGENT_ENV.md) · [docs/AGENTIC_BASELINE.md](docs/AGENTIC_BASELINE.md) · [docs/CUSTOMER_DISCOVERY.md](docs/CUSTOMER_DISCOVERY.md) · [docs/OBSERVE.md](docs/OBSERVE.md) · [docs/STRUCTURED_CONTROL.md](docs/STRUCTURED_CONTROL.md) · [docs/AGENT.md](docs/AGENT.md) · [docs/XCODE.md](docs/XCODE.md) · [ROADMAP.md](ROADMAP.md) · [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ---
 

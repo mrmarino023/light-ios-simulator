@@ -567,6 +567,51 @@ impl AxDump {
         let dump = Self::dump(udid)?;
         Ok(ligh_core::find_id_in_dump(&dump, id).is_some())
     }
+
+    pub fn hittable_id(udid: &str, id: &str) -> Result<bool, LighError> {
+        let dump = Self::dump(udid)?;
+        Ok(ligh_core::find_hittable_id_in_dump(&dump, id).is_some())
+    }
+
+    pub fn hittable_label(udid: &str, label: &str) -> Result<bool, LighError> {
+        let dump = Self::dump(udid)?;
+        Ok(ligh_core::find_hittable_label_in_dump(&dump, label).is_some())
+    }
+
+    /// Native accessibility press — reliable for SwiftUI sheets where HID coords miss.
+    pub fn press_id(udid: &str, id: &str) -> Result<(), LighError> {
+        let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
+        let c_id = CString::new(id).map_err(|e| LighError::Simctl(e.to_string()))?;
+        let mut err = ffi::LighHostError {
+            message: std::ptr::null(),
+            code: 0,
+        };
+        let ok = unsafe {
+            ffi::ligh_host_ax_press(c_udid.as_ptr(), c_id.as_ptr(), 0, &mut err)
+        };
+        if ok {
+            Ok(())
+        } else {
+            Err(host_err(&err, "ligh_host_ax_press"))
+        }
+    }
+
+    pub fn press_label(udid: &str, label: &str) -> Result<(), LighError> {
+        let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
+        let c_lab = CString::new(label).map_err(|e| LighError::Simctl(e.to_string()))?;
+        let mut err = ffi::LighHostError {
+            message: std::ptr::null(),
+            code: 0,
+        };
+        let ok = unsafe {
+            ffi::ligh_host_ax_press(c_udid.as_ptr(), c_lab.as_ptr(), 1, &mut err)
+        };
+        if ok {
+            Ok(())
+        } else {
+            Err(host_err(&err, "ligh_host_ax_press"))
+        }
+    }
 }
 
 #[cfg(test)]

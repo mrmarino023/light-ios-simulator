@@ -1,0 +1,5 @@
+--- a/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift
++++ b/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift
+@@ -71,1 +71,1 @@
+-                .accessibilityIdentifier("homeTitle")
++                .accessibilityIdentifier("homeTitleTypo")

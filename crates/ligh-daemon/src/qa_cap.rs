@@ -14,7 +14,7 @@ use crate::capabilities::{ensure_ready, phase_of, settle_eyes, surface_of};
 use crate::ux_cap::{ux_persist_attempt, ux_persist_perceive};
 use crate::DaemonState;
 
-fn perceive_from_snap(snap: &ObserveSnapshot) -> PerceiveView {
+pub(crate) fn perceive_from_snap(snap: &ObserveSnapshot) -> PerceiveView {
     build_perceive(snap, &snap.events)
 }
 
@@ -73,10 +73,10 @@ pub(crate) fn cap_attempt(
         .unwrap_or_else(|| settle_eyes(build, settle_ms));
 
     let motor = match intent {
-        "tap" => crate::motor::motor_tap(build, state, label, id, settle_ms, timeout_ms),
+        "tap" => crate::motor::motor_tap(build, state, label, id, settle_ms, timeout_ms, None, None),
         "type" => {
             let t = text.unwrap_or("");
-            crate::motor::motor_type(build, state, t, settle_ms)
+            crate::motor::motor_type(build, state, t, label, id, settle_ms, timeout_ms)
         }
         "key" => cap_key(build, state, key.unwrap_or("return"), settle_ms),
         other => {
@@ -285,7 +285,7 @@ pub(crate) fn cap_find(
                 SessionPhase::Degraded,
                 None,
                 "find",
-                json!({ "error": e, "swipes": swipes }),
+                json!({ "error": e.to_string(), "swipes": swipes }),
                 Some(build()),
             );
         }
@@ -348,6 +348,7 @@ pub(crate) fn cap_dismiss(
 
     let mut strategy = overlay.as_str();
     let cleared = match overlay {
+        Overlay::None => true,
         Overlay::Keyboard => {
             let _ = HidInput::key_named(&udid, "return");
             std::thread::sleep(Duration::from_millis(60));

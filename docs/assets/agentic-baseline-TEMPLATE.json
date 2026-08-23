@@ -1,0 +1,36 @@
+{
+  "schema": "agentic-baseline-v1",
+  "date": "YYYY-MM-DD",
+  "agent": "cursor",
+  "model": "MODEL_NAME",
+  "app": {
+    "name": "AppName",
+    "bundle_id": "com.example.app",
+    "source": "path/or/upstream-url"
+  },
+  "task": "One sentence task (e.g. login and verify home)",
+  "arms": {
+    "ligh": {
+      "stack": "ligh MCP",
+      "time_to_green_s": null,
+      "tool_calls": null,
+      "human_interventions": 0,
+      "recovery_attempts": 0,
+      "completed": false,
+      "failure_mode": null,
+      "one_sentence": null
+    },
+    "baseline": {
+      "stack": "describe: simctl+screenshot+vision / ios-mcp / …",
+      "time_to_green_s": null,
+      "tool_calls": null,
+      "human_interventions": 0,
+      "recovery_attempts": 0,
+      "completed": false,
+      "failure_mode": null,
+      "one_sentence": null
+    }
+  },
+  "preference": null,
+  "notes": null
+}

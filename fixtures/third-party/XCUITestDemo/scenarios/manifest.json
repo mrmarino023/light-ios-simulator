@@ -1,0 +1,37 @@
+{
+  "app": "XCUITestDemo",
+  "acceptance": "alice/secret login → homeTitle",
+  "design": "Scenarios chosen for fault diversity, not LIGH win rate. Harness never leaks scenario id to the LLM.",
+  "scenarios": [
+    {
+      "id": "a11y_login_typo",
+      "patch": "login-a11y-typo.patch",
+      "hint_for_humans": "loginButton identifier typo",
+      "agent_skill": "find accessibility identifier mismatch"
+    },
+    {
+      "id": "a11y_home_typo",
+      "patch": "home-a11y-typo.patch",
+      "hint_for_humans": "homeTitle identifier typo after successful login",
+      "agent_skill": "wrong postcondition / assertion target"
+    },
+    {
+      "id": "login_button_disabled",
+      "patch": "login-button-disabled.patch",
+      "hint_for_humans": "Login button always disabled — expect wrong_fix / max_steps often",
+      "agent_skill": "non-actionable control (hard)"
+    },
+    {
+      "id": "login_never_navigates",
+      "patch": "login-never-navigates.patch",
+      "hint_for_humans": "credentials accepted but isLoggedIn stays false",
+      "agent_skill": "wrong navigation / state machine"
+    },
+    {
+      "id": "login_delayed_ui",
+      "patch": "login-delayed-ui.patch",
+      "hint_for_humans": "18s artificial delay before home appears",
+      "agent_skill": "timing / excessive delay in ViewModel"
+    }
+  ]
+}

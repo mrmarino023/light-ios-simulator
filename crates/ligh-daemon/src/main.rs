@@ -3,6 +3,7 @@
 //! Socket: `~/.ligh/lighd.sock`  (JSON-lines protocol, see ARCHITECTURE.md)
 
 mod capabilities;
+mod cognition;
 mod motor;
 mod qa_cap;
 mod ux_cap;
@@ -14,9 +15,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use ligh_core::{
-    default_sock_path, diff_sense_events, AccessibilityTree, DaemonRequest, DaemonResponse,
-    DevicePreset, FeatureRequirements, FrameMeta, LighConfig, ObserveSnapshot, SenseEvent,
-    SessionState,
+    default_sock_path, diff_sense_events, parse_expectation, AccessibilityTree, DaemonRequest,
+    DaemonResponse, DevicePreset, FeatureRequirements, FrameMeta, LighConfig, ObserveSnapshot,
+    SenseEvent, SessionState,
 };
 use ligh_gpu::{HeadlessCompositor, Screenshot};
 use ligh_host::{AxDump, HidInput, HostSession};
@@ -1018,6 +1019,44 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             cap_response(r)
         }
 
+        DaemonRequest::Reach {
+            label,
+            id,
+            max_swipes,
+            settle_ms,
+            timeout_ms,
+        } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let timeout = timeout_ms.unwrap_or(12000);
+            let max = max_swipes.unwrap_or(12);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = crate::motor::motor_reach(
+                &build,
+                state,
+                label.as_deref(),
+                id.as_deref(),
+                max,
+                settle,
+                timeout,
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::DismissOverlay { settle_ms } => {
+            let settle = settle_ms.unwrap_or(2500);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = crate::motor::motor_dismiss_overlay(&build, state, settle);
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
         DaemonRequest::UxStatus { workspace } => {
             let ws = workspace.as_deref().map(std::path::Path::new);
             cap_response(ux_cap::cap_ux_status(ws))
@@ -1077,6 +1116,36 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             cap_response(r)
         }
 
+        DaemonRequest::Explore {
+            label,
+            id,
+            max_probes,
+            max_swipes,
+            settle_ms,
+            timeout_ms,
+        } => {
+            let settle = settle_ms.unwrap_or(3500);
+            let timeout = timeout_ms.unwrap_or(18000);
+            let probes = max_probes.unwrap_or(4);
+            let swipes = max_swipes.unwrap_or(10);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = crate::motor::motor_explore(
+                &build,
+                state,
+                label.as_deref(),
+                id.as_deref(),
+                probes,
+                swipes,
+                settle,
+                timeout,
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
         DaemonRequest::UxHint {
             fingerprint,
             source_path,
@@ -1084,6 +1153,39 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
         } => {
             let ws = workspace.as_deref().map(std::path::Path::new);
             cap_response(ux_cap::cap_ux_hint(ws, &fingerprint, &source_path))
+        }
+
+        DaemonRequest::AppGoal {
+            app,
+            bundle_id,
+            setup,
+            postconditions,
+            settle_ms,
+            timeout_ms,
+            install,
+            launch_args,
+        } => {
+            let settle = settle_ms.unwrap_or(3500);
+            let timeout = timeout_ms.unwrap_or(15000);
+            let do_install = install.unwrap_or(true);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = capabilities::app_goal(
+                &build,
+                state,
+                app.as_deref(),
+                bundle_id.as_deref(),
+                &setup,
+                &postconditions,
+                settle,
+                timeout,
+                do_install,
+                launch_args.as_deref(),
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
         }
 
         DaemonRequest::StreamStats => {

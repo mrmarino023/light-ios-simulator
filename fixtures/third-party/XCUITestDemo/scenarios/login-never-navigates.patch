@@ -1,0 +1,11 @@
+--- a/fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift
++++ b/fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift
+@@ -25,7 +25,7 @@ final class LoginViewModel: ObservableObject {
+             loginError = "Invalid credentials"
+         } else {
+             loginError = nil
+-            isLoggedIn = true
++            isLoggedIn = false
+         }
+     }
+ }

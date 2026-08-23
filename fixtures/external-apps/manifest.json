@@ -1,0 +1,35 @@
+{
+  "gate": "external_apps",
+  "claim": "Apps we do not author and do not modify. Failures are signal — publish them.",
+  "rules": [
+    "No app source edits in this gate",
+    "Workflows use accessibility ids from upstream or ligh_observe discovery",
+    "Pass rate is the metric — not latency"
+  ],
+  "apps": [
+    {
+      "id": "xcuitestdemo",
+      "label": "XCUITestDemo (OSS)",
+      "source": "https://github.com/himalimarasinghe/XCUITestDemo",
+      "bundle_id": "com.himali.XCUITestDemo",
+      "build": "./scripts/build-xcuitestdemo.sh",
+      "frozen": true,
+      "workflows": [
+        {
+          "id": "login",
+          "skill": "form login",
+          "steps": [
+            {"op": "wait", "id": "usernameTextField"},
+            {"op": "tap", "id": "usernameTextField"},
+            {"op": "type", "text": "alice"},
+            {"op": "tap", "id": "passwordSecureField"},
+            {"op": "type", "text": "secret"},
+            {"op": "dismiss_overlay"},
+            {"op": "tap", "id": "loginButton"},
+            {"op": "wait", "id": "homeTitle"}
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -85,6 +85,8 @@ pub enum FaultClass {
     Timeout,
     /// Target exists but an overlay prevents a clear path and could not be cleared.
     Blocked,
+    /// HID/AX reported success but observable UI state did not change.
+    MotorNoEffect,
     Model,
 }
 
@@ -97,6 +99,7 @@ impl FaultClass {
             Self::TargetMissing => "target_missing",
             Self::WrongSurface => "wrong_surface",
             Self::MotorRejected => "motor_rejected",
+            Self::MotorNoEffect => "motor_no_effect",
             Self::Timeout => "timeout",
             Self::Blocked => "blocked",
             Self::Model => "model",

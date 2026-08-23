@@ -381,6 +381,62 @@ enum CapCommands {
         #[arg(long, default_value_t = 2500)]
         settle_ms: u64,
     },
+    /// Host-owned reach: dismiss overlay, scroll, wait for id/label.
+    Reach {
+        #[arg(long)]
+        label: Option<String>,
+        #[arg(long)]
+        id: Option<String>,
+        #[arg(long, default_value_t = 12)]
+        max_swipes: u32,
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 12000)]
+        timeout_ms: u64,
+    },
+    /// Dismiss keyboard/sheet/alert overlay if present.
+    #[command(name = "dismiss-overlay")]
+    DismissOverlay {
+        #[arg(long, default_value_t = 2500)]
+        settle_ms: u64,
+    },
+    /// Host explore: reach → probe gestures → reach (human recovery).
+    Explore {
+        #[arg(long)]
+        label: Option<String>,
+        #[arg(long)]
+        id: Option<String>,
+        #[arg(long, default_value_t = 4)]
+        max_probes: u32,
+        #[arg(long, default_value_t = 10)]
+        max_swipes: u32,
+        #[arg(long, default_value_t = 3500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 18000)]
+        timeout_ms: u64,
+    },
+    /// Declarative goal: setup steps + postconditions JSON.
+    #[command(name = "app-goal")]
+    AppGoal {
+        #[arg(long)]
+        app: Option<String>,
+        #[arg(long)]
+        bundle_id: Option<String>,
+        /// JSON array of setup motor steps.
+        #[arg(long, default_value = "[]")]
+        setup: String,
+        /// JSON array of postconditions: {wait_id|wait_label, timeout_ms?, max_swipes?}.
+        #[arg(long)]
+        postconditions: String,
+        #[arg(long, default_value_t = 3500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 15000)]
+        timeout_ms: u64,
+        #[arg(long, default_value_t = false)]
+        no_install: bool,
+        #[arg(long = "launch-arg")]
+        launch_args: Vec<String>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -1310,6 +1366,66 @@ fn main() -> anyhow::Result<()> {
                 },
                 CapCommands::Dismiss { settle_ms } => DaemonRequest::Dismiss {
                     settle_ms: Some(settle_ms),
+                },
+                CapCommands::Reach {
+                    label,
+                    id,
+                    max_swipes,
+                    settle_ms,
+                    timeout_ms,
+                } => DaemonRequest::Reach {
+                    label,
+                    id,
+                    max_swipes: Some(max_swipes),
+                    settle_ms: Some(settle_ms),
+                    timeout_ms: Some(timeout_ms),
+                },
+                CapCommands::DismissOverlay { settle_ms } => DaemonRequest::DismissOverlay {
+                    settle_ms: Some(settle_ms),
+                },
+                CapCommands::Explore {
+                    label,
+                    id,
+                    max_probes,
+                    max_swipes,
+                    settle_ms,
+                    timeout_ms,
+                } => DaemonRequest::Explore {
+                    label,
+                    id,
+                    max_probes: Some(max_probes),
+                    max_swipes: Some(max_swipes),
+                    settle_ms: Some(settle_ms),
+                    timeout_ms: Some(timeout_ms),
+                },
+                CapCommands::AppGoal {
+                    app,
+                    bundle_id,
+                    setup,
+                    postconditions,
+                    settle_ms,
+                    timeout_ms,
+                    no_install,
+                    launch_args,
+                } => {
+                    let setup_p: Vec<serde_json::Value> =
+                        serde_json::from_str(&setup).map_err(|e| anyhow::anyhow!("--setup JSON: {e}"))?;
+                    let post_p: Vec<serde_json::Value> = serde_json::from_str(&postconditions)
+                        .map_err(|e| anyhow::anyhow!("--postconditions JSON: {e}"))?;
+                    DaemonRequest::AppGoal {
+                        app,
+                        bundle_id,
+                        setup: setup_p,
+                        postconditions: post_p,
+                        settle_ms: Some(settle_ms),
+                        timeout_ms: Some(timeout_ms),
+                        install: Some(!no_install),
+                        launch_args: if launch_args.is_empty() {
+                            None
+                        } else {
+                            Some(launch_args)
+                        },
+                    }
                 },
             };
             let resp = client.call(&req)?;

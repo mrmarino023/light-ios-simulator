@@ -7,8 +7,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use ligh_core::{
-    find_id_in_dump, find_label_in_dump, overlay_from_snapshot, CapabilityResult, FaultClass,
-    ObserveSnapshot, Overlay, SessionPhase,
+    build_actionable_topk, find_hittable_label_in_dump, find_id_in_dump,
+    find_label_in_dump, find_onscreen_id_in_dump, overlay_from_snapshot, rank_candidates,
+    CapabilityResult, FaultClass, ObserveSnapshot, Overlay, SessionPhase,
 };
 use ligh_host::{AxDump, HidInput};
 use serde_json::json;
@@ -30,10 +31,197 @@ fn dump_nodes(dump: &serde_json::Value) -> Option<&Vec<serde_json::Value>> {
         .or_else(|| dump.get("nodes").and_then(|e| e.as_array()))
 }
 
+/// Heuristic: SwiftUI sheet presented (overlay detection misses some sheets).
+fn snap_on_sheet(snap: &ObserveSnapshot) -> bool {
+    if overlay_from_snapshot(snap) == Overlay::Sheet {
+        return true;
+    }
+    if let Some(scene) = &snap.scene {
+        if scene
+            .screen_title
+            .as_deref()
+            .is_some_and(|t| t.to_ascii_lowercase().contains("sheet"))
+        {
+            return true;
+        }
+        if !scene.sheets.is_empty() {
+            return true;
+        }
+    }
+    let nodes = snap.accessibility_tree.nodes();
+    let has_sheet_title = nodes.iter().any(|n| {
+        n.get("identifier")
+            .and_then(|v| v.as_str())
+            .is_some_and(|id| id == "SheetTitle")
+    });
+    let has_sheet_btn = nodes.iter().any(|n| {
+        n.get("identifier")
+            .and_then(|v| v.as_str())
+            .is_some_and(|id| id == "ConfirmAction" || id == "CancelSheet")
+    });
+    has_sheet_title && has_sheet_btn
+}
+
+fn id_still_actionable(snap: &ObserveSnapshot, id: &str) -> bool {
+    snap.accessibility_tree.nodes().iter().any(|n| {
+        n.get("identifier").and_then(|v| v.as_str()) == Some(id)
+            && ligh_core::node_viewport_hittable(n)
+    })
+}
+
+/// True when a tap likely changed UI (not just HID ack).
+pub(crate) fn tap_effect_observed(
+    before: &ObserveSnapshot,
+    after: &ObserveSnapshot,
+    id: Option<&str>,
+) -> bool {
+    if overlay_from_snapshot(before) != overlay_from_snapshot(after) {
+        return true;
+    }
+    let bt = before
+        .scene
+        .as_ref()
+        .and_then(|s| s.screen_title.as_deref())
+        .unwrap_or("");
+    let at = after
+        .scene
+        .as_ref()
+        .and_then(|s| s.screen_title.as_deref())
+        .unwrap_or("");
+    if bt != at {
+        return true;
+    }
+    if snap_on_sheet(before) && !snap_on_sheet(after) {
+        return true;
+    }
+    if let Some(eid) = id {
+        if id_still_actionable(before, eid) && !id_still_actionable(after, eid) {
+            return true;
+        }
+        let was_focused = target_focused_editable(before, None, Some(eid));
+        let now_focused = target_focused_editable(after, None, Some(eid));
+        if !was_focused && now_focused {
+            return true;
+        }
+        let before_ids: std::collections::HashSet<_> = before
+            .accessibility_tree
+            .nodes()
+            .iter()
+            .filter_map(|n| n.get("identifier").and_then(|v| v.as_str()))
+            .collect();
+        let after_ids: std::collections::HashSet<_> = after
+            .accessibility_tree
+            .nodes()
+            .iter()
+            .filter_map(|n| n.get("identifier").and_then(|v| v.as_str()))
+            .collect();
+        if before_ids != after_ids {
+            return true;
+        }
+    }
+    after.events.len() > before.events.len()
+}
+
 fn node_hittable(n: &serde_json::Value) -> bool {
     n.get("hittable")
         .and_then(|v| v.as_bool())
         .unwrap_or(true)
+}
+
+fn node_matches_target(n: &serde_json::Value, label: Option<&str>, id: Option<&str>) -> bool {
+    if let Some(eid) = id {
+        if n.get("identifier").and_then(|v| v.as_str()) == Some(eid)
+            || n.get("id").and_then(|v| v.as_str()) == Some(eid)
+        {
+            return true;
+        }
+    }
+    if let Some(lab) = label {
+        let needle = lab.to_ascii_lowercase();
+        if n.get("label")
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_ascii_lowercase().contains(&needle))
+            .unwrap_or(false)
+        {
+            return true;
+        }
+    }
+    false
+}
+
+fn node_editable(n: &serde_json::Value) -> bool {
+    if node_is_keyboard(n) {
+        return false;
+    }
+    n.get("traits")
+        .and_then(|v| v.as_str())
+        .is_some_and(|t| t.contains("editable"))
+        || n.get("role")
+            .and_then(|v| v.as_str())
+            .is_some_and(|r| r.contains("TextField") || r.contains("TextArea"))
+}
+
+fn node_is_keyboard(n: &serde_json::Value) -> bool {
+    n.get("role")
+        .and_then(|v| v.as_str())
+        .is_some_and(|r| r.contains("Keyboard"))
+        || n.get("identifier")
+            .and_then(|v| v.as_str())
+            .is_some_and(|id| id.to_ascii_lowercase().contains("keyboard"))
+}
+
+fn snap_node_sources<'a>(
+    snap: &'a ObserveSnapshot,
+) -> impl Iterator<Item = &'a serde_json::Value> {
+    snap.accessibility_tree
+        .nodes()
+        .iter()
+        .chain(snap.actionable_topk.iter())
+}
+
+fn target_focused_editable(
+    snap: &ObserveSnapshot,
+    label: Option<&str>,
+    id: Option<&str>,
+) -> bool {
+    snap_node_sources(snap).any(|n| {
+        node_matches_target(n, label, id)
+            && n.get("focused").and_then(|v| v.as_bool()) == Some(true)
+            && node_editable(n)
+    })
+}
+
+fn any_focused_editable(snap: &ObserveSnapshot) -> bool {
+    snap_node_sources(snap).any(|n| {
+        n.get("focused").and_then(|v| v.as_bool()) == Some(true) && node_editable(n)
+    })
+}
+
+fn focus_gained(
+    before: &ObserveSnapshot,
+    after: &ObserveSnapshot,
+    label: Option<&str>,
+    id: Option<&str>,
+) -> bool {
+    !target_focused_editable(before, label, id) && target_focused_editable(after, label, id)
+}
+
+pub(crate) fn target_onscreen_udid(
+    udid: &str,
+    label: Option<&str>,
+    id: Option<&str>,
+) -> bool {
+    let Ok(dump) = AxDump::dump(udid) else {
+        return false;
+    };
+    if let Some(eid) = id {
+        return find_onscreen_id_in_dump(&dump, eid).is_some();
+    }
+    if let Some(lab) = label {
+        return find_hittable_label_in_dump(&dump, lab).is_some()
+            || find_label_in_dump(&dump, lab).is_some();
+    }
+    false
 }
 
 fn find_node<'a>(
@@ -91,10 +279,75 @@ fn occluded(target: &ResolvedTarget, overlay: Overlay) -> bool {
     match overlay {
         Overlay::None => false,
         Overlay::Transition => true,
-        Overlay::Alert | Overlay::Sheet => true,
+        Overlay::Alert | Overlay::Sheet => !target.hittable,
         // Soft keyboard typically owns the lower ~45% of the screen.
         Overlay::Keyboard => !target.hittable || target.ny > 0.52,
     }
+}
+
+fn slim_topk(snap: &ObserveSnapshot, k: usize) -> Vec<serde_json::Value> {
+    if !snap.actionable_topk.is_empty() {
+        return snap.actionable_topk.iter().take(k).cloned().collect();
+    }
+    build_actionable_topk(snap.accessibility_tree.nodes(), k)
+}
+
+fn fault_evidence(
+    snap: &ObserveSnapshot,
+    udid: &str,
+    label: Option<&str>,
+    id: Option<&str>,
+    overlay: Overlay,
+    error: &str,
+) -> serde_json::Value {
+    let mut detail = json!({
+        "overlay": overlay.as_str(),
+        "label": label.unwrap_or(""),
+        "id": id.unwrap_or(""),
+        "error": error,
+        "wanted": { "id": id, "label": label },
+    });
+    if let Ok(dump) = AxDump::dump(udid) {
+        if let Some(nodes) = dump_nodes(&dump) {
+            detail["candidates"] = json!(rank_candidates(nodes, id, label, 8));
+        }
+    }
+    detail["actionable_topk"] = json!(slim_topk(snap, 15));
+    if let Some(scene) = &snap.scene {
+        detail["scene"] = json!(scene);
+    }
+    detail
+}
+
+pub(crate) fn attach_probes(detail: &mut serde_json::Value, probes: &[crate::cognition::ProbeEntry]) {
+    if !probes.is_empty() {
+        detail["probes_tried"] = json!(probes);
+        detail["suggestion"] = json!("Host tried probes — re-observe or fix a11y; see probes_tried");
+    }
+}
+
+fn try_dismiss_modal(udid: &str, w: f64, h: f64) -> bool {
+    let Ok(dump) = AxDump::dump(udid) else {
+        return false;
+    };
+    const NEEDLES: &[&str] = &[
+        "CancelSheet", "Cancel", "Close", "Dismiss", "Not Now", "Skip", "Annulla", "Chiudi",
+    ];
+    for needle in NEEDLES {
+        if let Some((nx, ny)) = find_label_in_dump(&dump, needle) {
+            let _ = HidInput::tap(udid, nx, ny, w, h);
+            std::thread::sleep(Duration::from_millis(220));
+            return true;
+        }
+        if let Some((nx, ny)) = find_id_in_dump(&dump, needle) {
+            let _ = AxDump::press_id(udid, needle).or_else(|_| HidInput::tap(udid, nx, ny, w, h));
+            std::thread::sleep(Duration::from_millis(220));
+            return true;
+        }
+    }
+    let _ = HidInput::swipe(udid, 0.5, 0.32, 0.5, 0.78, w, h);
+    std::thread::sleep(Duration::from_millis(280));
+    true
 }
 
 fn clear_overlay(
@@ -111,16 +364,14 @@ fn clear_overlay(
         }
         Overlay::Keyboard => {
             let _ = HidInput::key_named(udid, "return");
-            std::thread::sleep(Duration::from_millis(60));
-            // Resign first responder via upper chrome tap (nav / status band).
-            let _ = HidInput::tap(udid, 0.5, 0.10, w, h);
-            std::thread::sleep(Duration::from_millis(120));
+            std::thread::sleep(Duration::from_millis(80));
+            let _ = HidInput::tap(udid, 0.5, 0.08, w, h);
+            std::thread::sleep(Duration::from_millis(150));
+            let _ = HidInput::key_named(udid, "escape");
+            std::thread::sleep(Duration::from_millis(80));
             true
         }
-        Overlay::Alert | Overlay::Sheet => {
-            // Escape / home is too destructive for app jobs — report blocked.
-            false
-        }
+        Overlay::Alert | Overlay::Sheet => try_dismiss_modal(udid, w, h),
     }
 }
 
@@ -157,15 +408,18 @@ pub(crate) fn ensure_path(
                     phase_of(&last_snap),
                     surface_of(&last_snap),
                     "ensure_path",
-                    json!({
-                        "overlay": last_overlay.as_str(),
-                        "target": target.name,
-                        "error": "overlay cannot be cleared by motor"
-                    }),
+                    fault_evidence(
+                        &last_snap,
+                        udid,
+                        label,
+                        id,
+                        last_overlay,
+                        "overlay cannot be cleared by motor",
+                    ),
                     Some(last_snap),
                 ));
             }
-        } else if last_overlay.blocks_path() {
+        } else if last_overlay.blocks_path() && !matches!(last_overlay, Overlay::Sheet | Overlay::Alert) {
             let _ = clear_overlay(last_overlay, udid, w, h);
         }
         std::thread::sleep(Duration::from_millis(40));
@@ -179,18 +433,153 @@ pub(crate) fn ensure_path(
         phase_of(&last_snap),
         surface_of(&last_snap),
         "ensure_path",
-        json!({
-            "overlay": last_overlay.as_str(),
-            "label": label,
-            "id": id,
-            "error": "timeout waiting for clear path"
-        }),
+        fault_evidence(
+            &last_snap,
+            udid,
+            label,
+            id,
+            last_overlay,
+            "timeout waiting for clear path",
+        ),
         Some(last_snap),
     ))
 }
 
-/// Tap through the motor pipeline.
-pub(crate) fn motor_tap(
+/// Try fire strategies until UI changes or all exhausted.
+fn motor_fire_verified(
+    build: &dyn Fn() -> ObserveSnapshot,
+    udid: &str,
+    target: &ResolvedTarget,
+    w: f64,
+    h: f64,
+    id: Option<&str>,
+    label: Option<&str>,
+    overlay: Overlay,
+    before: &ObserveSnapshot,
+    settle_ms: u64,
+) -> Result<(&'static str, ObserveSnapshot), CapabilityResult> {
+    if target_focused_editable(before, label, id) {
+        return Ok(("already_focused", before.clone()));
+    }
+    let mut strategies: Vec<(&str, Box<dyn Fn() -> bool>)> = Vec::new();
+    let prefer_ax = matches!(overlay, Overlay::Sheet | Overlay::Alert) || snap_on_sheet(before);
+    let u = udid.to_string();
+    let t = target.clone();
+    let tid = id.map(|s| s.to_string());
+    let tlab = label.map(|s| s.to_string());
+
+    if prefer_ax {
+        if id.is_some() {
+            let u2 = u.clone();
+            let eid = tid.clone().unwrap();
+            strategies.push((
+                "ax_press_id",
+                Box::new(move || AxDump::press_id(&u2, &eid).is_ok()),
+            ));
+        }
+        if label.is_some() {
+            let u2 = u.clone();
+            let lab = tlab.clone().unwrap();
+            strategies.push((
+                "ax_press_label",
+                Box::new(move || AxDump::press_label(&u2, &lab).is_ok()),
+            ));
+        }
+    }
+    {
+        let u2 = u.clone();
+        let tc = t.clone();
+        strategies.push((
+            "hid_tap",
+            Box::new(move || HidInput::tap(&u2, tc.nx, tc.ny, w, h).is_ok()),
+        ));
+    }
+    {
+        let u2 = u.clone();
+        let tc = t.clone();
+        strategies.push((
+            "hid_hold",
+            Box::new(move || HidInput::tap_hold(&u2, tc.nx, tc.ny, w, h, 180.0).is_ok()),
+        ));
+    }
+    if id.is_some() {
+        let u2 = u.clone();
+        let eid = tid.clone().unwrap();
+        strategies.push((
+            "ax_press_fallback",
+            Box::new(move || AxDump::press_id(&u2, &eid).is_ok()),
+        ));
+    }
+
+    let mut last_snap = before.clone();
+    let mut last_method = "none";
+    let effect_deadline = Duration::from_millis(settle_ms.max(1800));
+    for (name, fire) in strategies {
+        if !fire() {
+            continue;
+        }
+        last_method = name;
+        let t_effect = Instant::now();
+        loop {
+            last_snap = settle_eyes(build, 280);
+            if tap_effect_observed(before, &last_snap, id)
+                || focus_gained(before, &last_snap, label, id)
+            {
+                return Ok((last_method, last_snap));
+            }
+            if t_effect.elapsed() >= effect_deadline {
+                break;
+            }
+            std::thread::sleep(Duration::from_millis(120));
+        }
+    }
+
+    let final_snap = settle_eyes(build, settle_ms.min(1500));
+    if tap_effect_observed(before, &final_snap, id) || focus_gained(before, &final_snap, label, id) {
+        return Ok(("delayed_effect", final_snap));
+    }
+
+    Err(CapabilityResult::fail(
+        FaultClass::MotorNoEffect,
+        phase_of(&last_snap),
+        surface_of(&last_snap),
+        "act_tap",
+        fault_evidence(
+            &last_snap,
+            udid,
+            label,
+            id,
+            overlay_from_snapshot(&last_snap),
+            "fire succeeded but UI unchanged (motor_no_effect)",
+        ),
+        Some(last_snap),
+    ))
+}
+
+fn field_reflects_text(snap: &ObserveSnapshot, id: &str, text: &str) -> bool {
+    let Some(node) = snap_node_sources(snap).find(|n| node_matches_target(n, None, Some(id))) else {
+        return false;
+    };
+    let val = node
+        .get("value")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let ph = node
+        .get("placeholder")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    if val.eq_ignore_ascii_case(ph) || val.is_empty() {
+        return false;
+    }
+    if id.to_ascii_lowercase().contains("secure") || ph.eq_ignore_ascii_case("password") {
+        return val.chars().count() >= text.chars().count();
+    }
+    val.to_ascii_lowercase()
+        .contains(&text.to_ascii_lowercase())
+}
+
+/// Focus an editable target (idempotent — no fault if already focused).
+pub(crate) fn motor_ensure_focus_editable(
     build: &dyn Fn() -> ObserveSnapshot,
     state: &Arc<Mutex<DaemonState>>,
     label: Option<&str>,
@@ -198,10 +587,77 @@ pub(crate) fn motor_tap(
     settle_ms: u64,
     timeout_ms: u64,
 ) -> CapabilityResult {
+    let snap = build();
+    if target_focused_editable(&snap, label, id) {
+        return CapabilityResult::success(
+            phase_of(&snap),
+            surface_of(&snap),
+            "ensure_focus",
+            json!({ "id": id, "label": label, "already": true }),
+            Some(snap),
+        );
+    }
+    let udid = match state.lock().unwrap().current_udid() {
+        Ok(u) => u,
+        Err(e) => {
+            return CapabilityResult::fail(
+                FaultClass::Infra,
+                SessionPhase::Dead,
+                None,
+                "ensure_focus",
+                json!({ "error": e }),
+                Some(snap),
+            );
+        }
+    };
+    if let Some(eid) = id {
+        if AxDump::press_id(&udid, eid).is_ok() {
+            std::thread::sleep(Duration::from_millis(180));
+            let after = build();
+            if target_focused_editable(&after, label, id) {
+                return CapabilityResult::success(
+                    phase_of(&after),
+                    surface_of(&after),
+                    "ensure_focus",
+                    json!({ "id": id, "label": label, "via": "ax_press_id" }),
+                    Some(after),
+                );
+            }
+        }
+    }
+    let tap = motor_tap(build, state, label, id, settle_ms, timeout_ms, None, None);
+    if tap.ok {
+        return tap;
+    }
+    let after = build();
+    if target_focused_editable(&after, label, id) {
+        return CapabilityResult::success(
+            phase_of(&after),
+            surface_of(&after),
+            "ensure_focus",
+            json!({ "id": id, "label": label, "via": "tap_side_effect" }),
+            Some(after),
+        );
+    }
+    tap
+}
+
+/// Tap through the motor pipeline. Optional `until_*` polls for postcondition (async nav).
+pub(crate) fn motor_tap(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    label: Option<&str>,
+    id: Option<&str>,
+    settle_ms: u64,
+    timeout_ms: u64,
+    until_id: Option<&str>,
+    until_label: Option<&str>,
+) -> CapabilityResult {
     let ready = ensure_ready(build, state, settle_ms.min(2000), 3);
     if !ready.ok {
         return ready;
     }
+    let _ = crate::cognition::wait_settled(build, settle_ms.min(2800));
     let (udid, w, h) = {
         let st = state.lock().unwrap();
         match st.current_udid() {
@@ -218,7 +674,7 @@ pub(crate) fn motor_tap(
             }
         }
     };
-    let (target, _) = match ensure_path(
+    let (target, pre_snap) = match ensure_path(
         build,
         &udid,
         w,
@@ -239,39 +695,105 @@ pub(crate) fn motor_tap(
             );
         }
     };
-    if let Err(e) = HidInput::tap(&udid, target.nx, target.ny, w, h) {
+    let overlay = overlay_from_snapshot(&pre_snap);
+    let tap_out = match motor_fire_verified(
+        build,
+        &udid,
+        &target,
+        w,
+        h,
+        id,
+        label,
+        overlay,
+        &pre_snap,
+        settle_ms,
+    ) {
+        Ok((method, snap)) => {
+            state.lock().unwrap().push_action_result(
+                true,
+                "act_tap",
+                json!({ "target": target.name, "method": method, "verified": true }),
+            );
+            Ok((method, snap))
+        }
+        Err(e) => Err(e),
+    };
+
+    if until_id.is_some() || until_label.is_some() {
+        let deadline =
+            Instant::now() + Duration::from_millis(timeout_ms.max(settle_ms.max(2500)));
+        let mut last_snap = pre_snap.clone();
+        while Instant::now() < deadline {
+            if target_onscreen_udid(&udid, until_label, until_id) {
+                last_snap = settle_eyes(build, settle_ms.min(600));
+                return CapabilityResult::success(
+                    phase_of(&last_snap),
+                    surface_of(&last_snap),
+                    "act_tap",
+                    json!({
+                        "target": target.name,
+                        "motor": "tap_until",
+                        "until_id": until_id,
+                        "until_label": until_label,
+                        "verified": true,
+                    }),
+                    Some(last_snap),
+                );
+            }
+            std::thread::sleep(Duration::from_millis(120));
+            last_snap = build();
+        }
         return CapabilityResult::fail(
-            FaultClass::MotorRejected,
-            SessionPhase::Degraded,
-            None,
+            FaultClass::TargetMissing,
+            phase_of(&last_snap),
+            surface_of(&last_snap),
             "act_tap",
-            json!({ "error": e.to_string(), "target": target.name }),
-            Some(build()),
+            json!({
+                "error": "until postcondition not reached after tap",
+                "until_id": until_id,
+                "until_label": until_label,
+                "target": target.name,
+                "tap_ok": tap_out.is_ok(),
+            }),
+            Some(last_snap),
         );
     }
-    state
-        .lock()
-        .unwrap()
-        .push_action_result(true, "act_tap", json!({ "target": target.name }));
-    let snap = settle_eyes(build, settle_ms);
-    CapabilityResult::success(
-        phase_of(&snap),
-        surface_of(&snap),
-        "act_tap",
-        json!({ "target": target.name, "motor": "ensure_path" }),
-        Some(snap),
-    )
+
+    match tap_out {
+        Ok((method, snap)) => CapabilityResult::success(
+            phase_of(&snap),
+            surface_of(&snap),
+            "act_tap",
+            json!({
+                "target": target.name,
+                "motor": "ensure_path",
+                "method": method,
+                "verified": true,
+            }),
+            Some(snap),
+        ),
+        Err(e) => CapabilityResult::fail(
+            e.fault,
+            e.phase,
+            e.surface,
+            "act_tap",
+            e.detail.unwrap_or(json!({ "target": target.name })),
+            e.observe,
+        ),
+    }
 }
 
-/// Type through motor: ready → fire type (keyboard may rise — that is intentional).
-/// Clearing the keyboard is the *next* act's ensure_path job.
+/// Atomic focus + type with field-value verification (Motor 2.0).
 pub(crate) fn motor_type(
     build: &dyn Fn() -> ObserveSnapshot,
     state: &Arc<Mutex<DaemonState>>,
     text: &str,
+    label: Option<&str>,
+    id: Option<&str>,
     settle_ms: u64,
+    timeout_ms: u64,
 ) -> CapabilityResult {
-    let ready = ensure_ready(build, state, settle_ms.min(1500), 2);
+    let ready = ensure_ready(build, state, settle_ms.min(800), 0);
     if !ready.ok {
         return ready;
     }
@@ -288,6 +810,89 @@ pub(crate) fn motor_type(
             );
         }
     };
+
+    if id.is_some() || label.is_some() {
+        let deadline = Instant::now() + Duration::from_millis(timeout_ms.max(8000));
+        let mut last_snap = ready.observe.clone().unwrap_or_else(|| build());
+        for attempt in 0..4u32 {
+            if Instant::now() >= deadline {
+                break;
+            }
+            let fr = motor_ensure_focus_editable(build, state, label, id, settle_ms, 4000);
+            if !fr.ok && attempt + 1 >= 4 {
+                return fr;
+            }
+            std::thread::sleep(Duration::from_millis(120));
+            if !target_focused_editable(&build(), label, id) {
+                continue;
+            }
+            if let Err(e) = HidInput::type_text(&udid, text) {
+                return CapabilityResult::fail(
+                    FaultClass::MotorRejected,
+                    SessionPhase::Degraded,
+                    ready.surface.clone(),
+                    "act_type",
+                    json!({ "error": e.to_string(), "attempt": attempt }),
+                    Some(last_snap),
+                );
+            }
+            let poll_until = Instant::now() + Duration::from_millis(2200);
+            while Instant::now() < poll_until {
+                last_snap = settle_eyes(build, 220);
+                if let Some(eid) = id {
+                    if field_reflects_text(&last_snap, eid, text) {
+                        state.lock().unwrap().push_action_result(
+                            true,
+                            "act_type",
+                            json!({ "text": text, "attempt": attempt }),
+                        );
+                        return CapabilityResult::success(
+                            phase_of(&last_snap),
+                            surface_of(&last_snap),
+                            "act_type",
+                            json!({
+                                "text": text,
+                                "verified": "field_value",
+                                "motor": "focus_type",
+                                "attempt": attempt,
+                            }),
+                            Some(last_snap),
+                        );
+                    }
+                }
+                std::thread::sleep(Duration::from_millis(100));
+            }
+        }
+        return CapabilityResult::fail(
+            FaultClass::MotorNoEffect,
+            phase_of(&last_snap),
+            surface_of(&last_snap),
+            "act_type",
+            json!({
+                "error": "focus_type: field value unchanged after retries",
+                "id": id,
+                "label": label,
+                "text": text,
+                "actionable_topk": slim_topk(&last_snap, 8),
+            }),
+            Some(last_snap),
+        );
+    }
+
+    let pre = ready.observe.clone().unwrap_or_else(|| build());
+    if !any_focused_editable(&pre) {
+        return CapabilityResult::fail(
+            FaultClass::MotorRejected,
+            phase_of(&pre),
+            surface_of(&pre),
+            "act_type",
+            json!({
+                "error": "no focused editable field — tap target before type",
+                "actionable_topk": slim_topk(&pre, 8),
+            }),
+            Some(pre),
+        );
+    }
     if let Err(e) = HidInput::type_text(&udid, text) {
         return CapabilityResult::fail(
             FaultClass::MotorRejected,
@@ -298,25 +903,12 @@ pub(crate) fn motor_type(
             ready.observe,
         );
     }
-    {
-        let mut st = state.lock().unwrap();
-        st.push_action_result(true, "act_type", json!({ "text": text }));
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .map(|d| d.as_secs_f64())
-            .unwrap_or(0.0);
-        st.sense_buf.push(ligh_core::SenseEvent {
-            t: now,
-            kind: "typed".into(),
-            payload: Some(json!({ "verified": "host_accepted", "text": text })),
-        });
-    }
-    let snap = settle_eyes(build, settle_ms);
+    let snap = settle_eyes(build, settle_ms.min(800));
     CapabilityResult::success(
         phase_of(&snap),
         surface_of(&snap),
         "act_type",
-        json!({ "text": text, "verified": "host_accepted", "motor": "type_raises_overlay_ok" }),
+        json!({ "text": text, "verified": "host_accepted", "motor": "type" }),
         Some(snap),
     )
 }
@@ -334,6 +926,7 @@ pub(crate) fn motor_wait(
     if !ready.ok {
         return ready;
     }
+    let _ = crate::cognition::wait_settled(build, settle_ms.min(2800));
     let (udid, w, h) = {
         let st = state.lock().unwrap();
         match st.current_udid() {
@@ -375,4 +968,435 @@ pub(crate) fn motor_wait(
             e.observe,
         ),
     }
+}
+
+pub(crate) fn motor_scroll_until(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    label: Option<&str>,
+    id: Option<&str>,
+    max_swipes: u32,
+    timeout_ms: u64,
+) -> CapabilityResult {
+    let ready = ensure_ready(build, state, 1500, 3);
+    if !ready.ok {
+        return ready;
+    }
+    let (udid, w, h) = {
+        let st = state.lock().unwrap();
+        match st.current_udid() {
+            Ok(u) => (u, st.sim_width, st.sim_height),
+            Err(e) => {
+                return CapabilityResult::fail(
+                    FaultClass::Infra,
+                    SessionPhase::Dead,
+                    None,
+                    "scroll_until",
+                    json!({ "error": e }),
+                    ready.observe,
+                );
+            }
+        }
+    };
+    let scroll_budget = max_swipes as u64 * 450 + 4000;
+    let deadline = Instant::now()
+        + Duration::from_millis(timeout_ms.max(scroll_budget));
+    let mut swipes = 0u32;
+    loop {
+        if let Ok(dump) = AxDump::dump(&udid) {
+            // Prefer viewport-hittable; accept in-tree for virtualized lists (tap uses reach next).
+            let found = if let Some(eid) = id {
+                find_onscreen_id_in_dump(&dump, eid).is_some()
+            } else if let Some(lab) = label {
+                find_hittable_label_in_dump(&dump, lab).is_some()
+            } else {
+                false
+            };
+            if found {
+                let snap = build();
+                return CapabilityResult::success(
+                    phase_of(&snap),
+                    surface_of(&snap),
+                    "scroll_until",
+                    json!({
+                        "found": true,
+                        "id": id,
+                        "label": label,
+                        "swipes": swipes,
+                        "hittable": true,
+                    }),
+                    Some(snap),
+                );
+            }
+        }
+        if swipes >= max_swipes || Instant::now() >= deadline {
+            let snap = build();
+            let overlay = overlay_from_snapshot(&snap);
+            return CapabilityResult::fail(
+                FaultClass::TargetMissing,
+                phase_of(&snap),
+                surface_of(&snap),
+                "scroll_until",
+                fault_evidence(
+                    &snap,
+                    &udid,
+                    label,
+                    id,
+                    overlay,
+                    &format!("scroll_until miss after {swipes} swipes"),
+                ),
+                Some(snap),
+            );
+        }
+        let swipe_x = AxDump::dump(&udid)
+            .ok()
+            .and_then(|d| find_id_in_dump(&d, "FeedList").map(|(x, _)| x))
+            .unwrap_or(0.5);
+        if let Err(e) = HidInput::swipe(&udid, swipe_x, 0.84, swipe_x, 0.16, w, h) {
+            return CapabilityResult::fail(
+                FaultClass::Infra,
+                SessionPhase::Ready,
+                surface_of(&build()),
+                "scroll_until",
+                json!({ "error": e.to_string() }),
+                ready.observe,
+            );
+        }
+        swipes += 1;
+        std::thread::sleep(Duration::from_millis(320));
+    }
+}
+
+/// Host-owned reach: dismiss overlays, scroll, wait until id/label is on a clear path.
+pub(crate) fn motor_reach(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    label: Option<&str>,
+    id: Option<&str>,
+    max_swipes: u32,
+    settle_ms: u64,
+    timeout_ms: u64,
+) -> CapabilityResult {
+    let ready = ensure_ready(build, state, settle_ms.min(2000), 3);
+    if !ready.ok {
+        return ready;
+    }
+    let _ = crate::cognition::wait_settled(build, settle_ms.min(2800));
+    let (udid, w, h) = {
+        let st = state.lock().unwrap();
+        match st.current_udid() {
+            Ok(u) => (u, st.sim_width, st.sim_height),
+            Err(e) => {
+                return CapabilityResult::fail(
+                    FaultClass::Infra,
+                    SessionPhase::Dead,
+                    None,
+                    "reach",
+                    json!({ "error": e }),
+                    ready.observe,
+                );
+            }
+        }
+    };
+    let deadline = Instant::now() + Duration::from_millis(timeout_ms);
+    let mut scrolls = 0u32;
+    loop {
+        match ensure_path(
+            build,
+            &udid,
+            w,
+            h,
+            label,
+            id,
+            Duration::from_millis(2500.min(timeout_ms / 4)),
+        ) {
+            Ok((target, snap)) => {
+                return CapabilityResult::success(
+                    phase_of(&snap),
+                    surface_of(&snap),
+                    "reach",
+                    json!({
+                        "target": target.name,
+                        "scrolls": scrolls,
+                        "motor": "reach",
+                    }),
+                    Some(snap),
+                );
+            }
+            Err(e) => {
+                if Instant::now() >= deadline {
+                    return CapabilityResult::fail(
+                        e.fault,
+                        e.phase,
+                        e.surface,
+                        "reach",
+                        e.detail.unwrap_or(json!({})),
+                        e.observe,
+                    );
+                }
+                let snap = build();
+                let overlay = overlay_from_snapshot(&snap);
+                // Do not dismiss sheet/alert while searching — target may live on the overlay.
+                if matches!(overlay, Overlay::Sheet | Overlay::Alert) {
+                    // fall through to scroll attempt
+                } else if overlay.blocks_path() {
+                    let _ = clear_overlay(overlay, &udid, w, h);
+                    continue;
+                }
+                if id.is_some() || label.is_some() {
+                    if scrolls < max_swipes {
+                        let _ = HidInput::swipe(&udid, 0.5, 0.84, 0.5, 0.16, w, h);
+                        scrolls += 1;
+                        std::thread::sleep(Duration::from_millis(280));
+                        continue;
+                    }
+                }
+                return CapabilityResult::fail(
+                    e.fault,
+                    e.phase,
+                    e.surface,
+                    "reach",
+                    e.detail.unwrap_or(json!({})),
+                    e.observe,
+                );
+            }
+        }
+    }
+}
+
+/// Launch an installed app by bundle id (system apps, no .app path).
+pub(crate) fn motor_launch(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    bundle_id: &str,
+    settle_ms: u64,
+) -> CapabilityResult {
+    let udid = match state.lock().unwrap().current_udid() {
+        Ok(u) => u,
+        Err(e) => {
+            return CapabilityResult::fail(
+                FaultClass::Infra,
+                SessionPhase::Dead,
+                None,
+                "launch",
+                json!({ "error": e }),
+                None,
+            );
+        }
+    };
+    if let Err(e) = ligh_sim::Simctl::run(&[
+        "launch",
+        &udid,
+        bundle_id,
+        "--terminate-running-process",
+    ]) {
+        return CapabilityResult::fail(
+            FaultClass::Infra,
+            SessionPhase::Degraded,
+            None,
+            "launch",
+            json!({ "error": e.to_string(), "bundle_id": bundle_id }),
+            None,
+        );
+    }
+    std::thread::sleep(Duration::from_millis(400));
+    if let Ok(cfg) = ligh_core::LighConfig::load() {
+        if let Ok(Some(mut s)) = ligh_core::SessionState::load(&cfg.state_dir) {
+            s.app_bundle_id = Some(bundle_id.to_string());
+            let _ = s.save(&cfg.state_dir);
+        }
+    }
+    let snap = settle_eyes(build, settle_ms);
+    CapabilityResult::success(
+        phase_of(&snap),
+        surface_of(&snap),
+        "launch",
+        json!({ "bundle_id": bundle_id }),
+        Some(snap),
+    )
+}
+
+/// Named HID key (return, delete, escape, …).
+pub(crate) fn motor_key(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    key_name: &str,
+    settle_ms: u64,
+) -> CapabilityResult {
+    let udid = match state.lock().unwrap().current_udid() {
+        Ok(u) => u,
+        Err(e) => {
+            return CapabilityResult::fail(
+                FaultClass::Infra,
+                SessionPhase::Dead,
+                None,
+                "key",
+                json!({ "error": e }),
+                None,
+            );
+        }
+    };
+    if let Err(e) = HidInput::key_named(&udid, key_name) {
+        return CapabilityResult::fail(
+            FaultClass::Infra,
+            SessionPhase::Ready,
+            None,
+            "key",
+            json!({ "error": e.to_string(), "key": key_name }),
+            None,
+        );
+    }
+    std::thread::sleep(Duration::from_millis(120));
+    let snap = settle_eyes(build, settle_ms.min(2000));
+    CapabilityResult::success(
+        phase_of(&snap),
+        surface_of(&snap),
+        "key",
+        json!({ "key": key_name }),
+        Some(snap),
+    )
+}
+
+/// Try to clear keyboard/sheet/alert without changing app surface.
+pub(crate) fn motor_dismiss_overlay(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    settle_ms: u64,
+) -> CapabilityResult {
+    let ready = ensure_ready(build, state, settle_ms.min(1500), 2);
+    if !ready.ok {
+        return ready;
+    }
+    let (udid, w, h) = {
+        let st = state.lock().unwrap();
+        match st.current_udid() {
+            Ok(u) => (u, st.sim_width, st.sim_height),
+            Err(e) => {
+                return CapabilityResult::fail(
+                    FaultClass::Infra,
+                    SessionPhase::Dead,
+                    None,
+                    "dismiss_overlay",
+                    json!({ "error": e }),
+                    ready.observe,
+                );
+            }
+        }
+    };
+    let snap = build();
+    let overlay = overlay_from_snapshot(&snap);
+    if overlay == Overlay::None {
+        return CapabilityResult::success(
+            phase_of(&snap),
+            surface_of(&snap),
+            "dismiss_overlay",
+            json!({ "overlay": "none", "cleared": false }),
+            Some(snap),
+        );
+    }
+    let cleared = clear_overlay(overlay, &udid, w, h);
+    let snap2 = settle_eyes(build, settle_ms);
+    let after = overlay_from_snapshot(&snap2);
+    CapabilityResult::success(
+        phase_of(&snap2),
+        surface_of(&snap2),
+        "dismiss_overlay",
+        json!({
+            "overlay_before": overlay.as_str(),
+            "overlay_after": after.as_str(),
+            "cleared": cleared && after == Overlay::None,
+        }),
+        Some(snap2),
+    )
+}
+
+/// Explore: reach → probe gestures → reach again. Returns probe_log in detail.
+pub(crate) fn motor_explore(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    label: Option<&str>,
+    id: Option<&str>,
+    max_probes: u32,
+    max_swipes: u32,
+    settle_ms: u64,
+    timeout_ms: u64,
+) -> CapabilityResult {
+    let _ = crate::cognition::wait_settled(build, settle_ms.min(3000));
+    let half = timeout_ms / 2;
+    let mut r = motor_reach(
+        build,
+        state,
+        label,
+        id,
+        max_swipes.min(6),
+        settle_ms,
+        half.max(3000),
+    );
+    if r.ok {
+        r.capability = Some("explore".into());
+        if let Some(ref mut det) = r.detail {
+            if let Some(obj) = det.as_object_mut() {
+                obj.insert("phase".into(), json!("reach_first"));
+            }
+        }
+        return r;
+    }
+
+    let (udid, w, h) = {
+        let st = state.lock().unwrap();
+        match st.current_udid() {
+            Ok(u) => (u, st.sim_width, st.sim_height),
+            Err(e) => {
+                return CapabilityResult::fail(
+                    FaultClass::Infra,
+                    SessionPhase::Dead,
+                    None,
+                    "explore",
+                    json!({ "error": e }),
+                    r.observe,
+                );
+            }
+        }
+    };
+
+    let (probes, _) = crate::cognition::run_probes(build, &udid, w, h, max_probes.max(1).min(6));
+
+    r = motor_reach(
+        build,
+        state,
+        label,
+        id,
+        max_swipes,
+        settle_ms,
+        half.max(4000),
+    );
+    if r.ok {
+        r.capability = Some("explore".into());
+        if let Some(det) = r.detail.as_mut() {
+            if let Some(obj) = det.as_object_mut() {
+                obj.insert("probes_tried".into(), json!(probes));
+                obj.insert("phase".into(), json!("reach_after_probes"));
+            }
+        }
+        return r;
+    }
+
+    let snap = r.observe.clone().unwrap_or_else(|| build());
+    let mut detail = fault_evidence(
+        &snap,
+        &udid,
+        label,
+        id,
+        overlay_from_snapshot(&snap),
+        "explore exhausted reach + probes",
+    );
+    attach_probes(&mut detail, &probes);
+    CapabilityResult::fail(
+        r.fault,
+        r.phase,
+        r.surface,
+        "explore",
+        detail,
+        Some(snap),
+    )
 }

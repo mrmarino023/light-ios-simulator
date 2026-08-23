@@ -61,6 +61,12 @@ extern "C" {
         err: *mut LighHostError,
     ) -> bool;
     pub fn ligh_host_ax_dump(udid: *const i8, err: *mut LighHostError) -> *mut i8;
+    pub fn ligh_host_ax_press(
+        udid: *const i8,
+        target: *const i8,
+        by_label: i32,
+        err: *mut LighHostError,
+    ) -> bool;
     pub fn ligh_host_ax_free(ptr: *mut i8);
     pub fn ligh_host_stream_stop();
     pub fn ligh_host_stream_poll();

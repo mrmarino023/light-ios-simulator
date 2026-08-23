@@ -1,6 +1,7 @@
 //! Structured observation snapshot — the agent-facing JSON contract.
 
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 /// Frame statistics from the GPU compositor / IOSurface stream.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -715,6 +716,77 @@ pub fn build_actionable_topk(nodes: &[serde_json::Value], k: usize) -> Vec<serde
         .collect()
 }
 
+fn name_similarity(wanted: &str, candidate: &str) -> f32 {
+    if wanted.is_empty() || candidate.is_empty() {
+        return 0.0;
+    }
+    let w = wanted.to_ascii_lowercase();
+    let c = candidate.to_ascii_lowercase();
+    if w == c {
+        return 1.0;
+    }
+    if c.contains(&w) || w.contains(&c) {
+        return 0.82;
+    }
+    let common = w.chars().zip(c.chars()).take_while(|(a, b)| a == b).count();
+    if common >= 3 {
+        return 0.45 + (common as f32 * 0.05);
+    }
+    0.0
+}
+
+/// Rank AX nodes similar to a wanted id/label — agent fault evidence (no screenshots).
+pub fn rank_candidates(
+    nodes: &[serde_json::Value],
+    wanted_id: Option<&str>,
+    wanted_label: Option<&str>,
+    k: usize,
+) -> Vec<serde_json::Value> {
+    let mut scored: Vec<(f32, &serde_json::Value)> = nodes
+        .iter()
+        .filter_map(|n| {
+            let ident = n
+                .get("identifier")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            let label = n.get("label").and_then(|v| v.as_str()).unwrap_or("");
+            let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+            let mut score = 0.0f32;
+            if let Some(w) = wanted_id {
+                score = score.max(name_similarity(w, ident));
+            }
+            if let Some(w) = wanted_label {
+                score = score.max(name_similarity(w, label) * 0.95);
+            }
+            if score < 0.35 {
+                return None;
+            }
+            if role.to_ascii_lowercase().contains("button")
+                || role.to_ascii_lowercase().contains("textfield")
+                || role.to_ascii_lowercase().contains("secure")
+            {
+                score += 0.05;
+            }
+            Some((score, n))
+        })
+        .collect();
+    scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
+    scored
+        .into_iter()
+        .take(k)
+        .map(|(score, n)| {
+            json!({
+                "score": (score * 100.0).round() / 100.0,
+                "id": n.get("identifier").or_else(|| n.get("id")),
+                "label": n.get("label").or_else(|| n.get("text")),
+                "role": n.get("role"),
+                "focused": n.get("focused"),
+                "hittable": n.get("hittable"),
+            })
+        })
+        .collect()
+}
+
 /// Center of element with exact accessibility `identifier` (preferred) or opaque tree `id`.
 pub fn find_id_center(
     nodes: &[serde_json::Value],
@@ -735,14 +807,82 @@ pub fn find_id_in_dump(dump: &serde_json::Value, id: &str) -> Option<(f64, f64)>
         .get("elements")
         .and_then(|e| e.as_array())
         .or_else(|| dump.get("nodes").and_then(|e| e.as_array()))?;
-    let point_size = dump.get("point_size").and_then(|ps| {
+    let point_size = dump_point_size(dump);
+    find_id_center(nodes, id, point_size)
+}
+
+fn dump_point_size(dump: &serde_json::Value) -> Option<(f64, f64)> {
+    dump.get("point_size").and_then(|ps| {
         if let Some(arr) = ps.as_array() {
             Some((arr.first()?.as_f64()?, arr.get(1)?.as_f64()?))
         } else {
             Some((ps.get("width")?.as_f64()?, ps.get("height")?.as_f64()?))
         }
-    });
-    find_id_center(nodes, id, point_size)
+    })
+}
+
+/// True when node is enabled, marked hittable/visible, and centered in the viewport band.
+pub fn node_viewport_hittable(n: &serde_json::Value) -> bool {
+    let hittable = n.get("hittable").and_then(|v| v.as_bool()).unwrap_or(true);
+    let enabled = n.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true);
+    let visible = n.get("visible").and_then(|v| v.as_bool()).unwrap_or(true);
+    if !hittable || !enabled || !visible {
+        return false;
+    }
+    if let Some(cn) = n.get("center_norm") {
+        if let Some(y) = cn.get("y").and_then(|v| v.as_f64()) {
+            return (0.06..=0.94).contains(&y);
+        }
+    }
+    true
+}
+
+/// Like [`find_id_in_dump`] but requires the element to be viewport-hittable (scroll target).
+pub fn find_hittable_id_in_dump(dump: &serde_json::Value, id: &str) -> Option<(f64, f64)> {
+    let nodes = dump
+        .get("elements")
+        .and_then(|e| e.as_array())
+        .or_else(|| dump.get("nodes").and_then(|e| e.as_array()))?;
+    let point_size = dump_point_size(dump);
+    let el = nodes.iter().find(|n| {
+        (n.get("identifier").and_then(|v| v.as_str()) == Some(id)
+            || n.get("id").and_then(|v| v.as_str()) == Some(id))
+            && node_viewport_hittable(n)
+    })?;
+    node_center(el, point_size)
+}
+
+pub fn find_onscreen_id_in_dump(dump: &serde_json::Value, id: &str) -> Option<(f64, f64)> {
+    if let Some(hit) = find_hittable_id_in_dump(dump, id) {
+        return Some(hit);
+    }
+    let nodes = dump
+        .get("elements")
+        .and_then(|e| e.as_array())
+        .or_else(|| dump.get("nodes").and_then(|e| e.as_array()))?;
+    let point_size = dump_point_size(dump);
+    let el = nodes.iter().find(|n| {
+        (n.get("identifier").and_then(|v| v.as_str()) == Some(id)
+            || n.get("id").and_then(|v| v.as_str()) == Some(id))
+            && n
+                .get("center_norm")
+                .and_then(|c| c.get("y").and_then(|v| v.as_f64()))
+                .is_some_and(|y| (0.04..=0.96).contains(&y))
+    })?;
+    node_center(el, point_size)
+}
+
+pub fn find_hittable_label_in_dump(dump: &serde_json::Value, label: &str) -> Option<(f64, f64)> {
+    let needle = label.to_ascii_lowercase();
+    let nodes = dump
+        .get("elements")
+        .and_then(|e| e.as_array())
+        .or_else(|| dump.get("nodes").and_then(|e| e.as_array()))?;
+    let point_size = dump_point_size(dump);
+    let el = nodes.iter().find(|n| {
+        node_viewport_hittable(n) && node_matches_label(n, &needle)
+    })?;
+    node_center(el, point_size)
 }
 
 pub fn is_editable_role(role: &str) -> bool {

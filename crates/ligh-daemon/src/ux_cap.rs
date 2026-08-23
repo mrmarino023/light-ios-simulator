@@ -115,7 +115,7 @@ pub(crate) fn cap_ux_baseline(
 pub(crate) fn cap_ux_regress(
     workspace: Option<&Path>,
     baseline: &str,
-    build: &dyn Fn() -> ObserveSnapshot>,
+    build: &dyn Fn() -> ObserveSnapshot,
     state: &Arc<Mutex<DaemonState>>,
     settle_ms: u64,
 ) -> CapabilityResult {
@@ -271,7 +271,7 @@ pub(crate) fn cap_ux_explore(
             action: "tap".into(),
             target_label: aff.label.clone(),
             target_id: aff.id.clone(),
-            from_fp,
+            from_fp: from_fp.clone(),
             to_fp: to_fp.clone(),
             intent_met,
             new_screen,

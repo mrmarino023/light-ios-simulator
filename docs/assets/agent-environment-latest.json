@@ -1,0 +1,29 @@
+{
+  "gate": "agent_environment",
+  "claim": "Cursor MCP + universal motor ops usable on this Mac",
+  "ok": true,
+  "checks_pass": 4,
+  "checks_total": 4,
+  "total_ms": 82564,
+  "checks": [
+    {
+      "id": "first_loop",
+      "ok": true
+    },
+    {
+      "id": "mcp_import",
+      "ok": true
+    },
+    {
+      "id": "fixture_app_job",
+      "ok": true
+    },
+    {
+      "id": "safari_app_goal",
+      "ok": true
+    }
+  ],
+  "cursor_mcp": "scripts/print-cursor-mcp.sh",
+  "docs": "docs/AGENT_ENV.md",
+  "note": "Run gate after: unset CARGO_TARGET_DIR && cargo build --release. Stale lighd breaks app-goal ops."
+}

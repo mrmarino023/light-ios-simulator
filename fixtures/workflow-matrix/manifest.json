@@ -1,0 +1,332 @@
+{
+  "claim": "Motor regression only (Ligh* fixtures + one OSS app). NOT a generalization claim — see gate-external-apps.sh.",
+  "tier": "motor_regression",
+  "design": "Exercises motor ops (scroll, onboarding, modal, login, nav). Failures published. Do not tune fixtures to raise pass rate.",
+  "apps": [
+    {
+      "id": "xcuitestdemo",
+      "label": "XCUITestDemo (OSS third-party)",
+      "bundle_id": "com.himali.XCUITestDemo",
+      "app_path_env": "LIGH_XCUITESTDEMO_APP",
+      "build": "./scripts/build-xcuitestdemo.sh",
+      "workflows": [
+        {
+          "id": "login_happy",
+          "skill": "form + assert",
+          "steps": [
+            {"op": "wait", "id": "usernameTextField"},
+            {"op": "tap", "id": "usernameTextField"},
+            {"op": "type", "text": "alice"},
+            {"op": "tap", "id": "passwordSecureField"},
+            {"op": "type", "text": "secret"},
+            {"op": "dismiss_overlay"},
+            {"op": "tap", "id": "loginButton"},
+            {"op": "wait", "id": "homeTitle"}
+          ]
+        },
+        {
+          "id": "login_user_first",
+          "skill": "field focus order",
+          "steps": [
+            {"op": "wait", "id": "loginButton"},
+            {"op": "tap", "id": "usernameTextField"},
+            {"op": "type", "text": "alice"},
+            {"op": "wait", "id": "passwordSecureField"},
+            {"op": "tap", "id": "passwordSecureField"},
+            {"op": "type", "text": "secret"},
+            {"op": "dismiss_overlay"},
+            {"op": "tap", "id": "loginButton"},
+            {"op": "wait", "id": "homeTitle"}
+          ]
+        },
+        {
+          "id": "login_minimal_waits",
+          "skill": "fast path",
+          "steps": [
+            {"op": "wait", "id": "usernameTextField"},
+            {"op": "tap", "id": "usernameTextField"},
+            {"op": "type", "text": "alice"},
+            {"op": "tap", "id": "passwordSecureField"},
+            {"op": "type", "text": "secret"},
+            {"op": "dismiss_overlay"},
+            {"op": "tap", "id": "loginButton"},
+            {"op": "wait", "id": "homeTitle"}
+          ]
+        },
+        {
+          "id": "login_password_then_user",
+          "skill": "reverse field order",
+          "steps": [
+            {"op": "wait", "id": "passwordSecureField"},
+            {"op": "tap", "id": "passwordSecureField"},
+            {"op": "type", "text": "secret"},
+            {"op": "tap", "id": "usernameTextField"},
+            {"op": "type", "text": "alice"},
+            {"op": "tap", "id": "loginButton"},
+            {"op": "wait", "id": "homeTitle"}
+          ]
+        },
+        {
+          "id": "login_home_only_assert",
+          "skill": "postcondition only",
+          "steps": [
+            {"op": "wait", "id": "usernameTextField"},
+            {"op": "tap", "id": "usernameTextField"},
+            {"op": "type", "text": "alice"},
+            {"op": "tap", "id": "passwordSecureField"},
+            {"op": "type", "text": "secret"},
+            {"op": "dismiss_overlay"},
+            {"op": "tap", "id": "loginButton"},
+            {"op": "wait", "id": "homeTitle"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lighfixture",
+      "label": "LighFixture (motor baseline)",
+      "bundle_id": "dev.ligh.Fixture",
+      "build": "./scripts/build-fixture.sh",
+      "workflows": [
+        {
+          "id": "home_to_done",
+          "skill": "navigation push",
+          "steps": [
+            {"op": "wait", "id": "LighHome"},
+            {"op": "tap", "id": "GoNext"},
+            {"op": "wait", "id": "LighDone"}
+          ]
+        },
+        {
+          "id": "type_name_done",
+          "skill": "keyboard + nav",
+          "steps": [
+            {"op": "wait", "id": "NameField"},
+            {"op": "tap", "id": "NameField"},
+            {"op": "type", "text": "agent"},
+            {"op": "tap", "id": "GoNext"},
+            {"op": "wait", "id": "LighDoneDetail"}
+          ]
+        },
+        {
+          "id": "done_and_back",
+          "skill": "back navigation",
+          "steps": [
+            {"op": "wait", "id": "LighHome"},
+            {"op": "tap", "id": "GoNext"},
+            {"op": "wait", "id": "LighDone"},
+            {"op": "tap", "id": "BackHome"},
+            {"op": "wait", "id": "LighHome"}
+          ]
+        },
+        {
+          "id": "empty_name_flow",
+          "skill": "default state",
+          "steps": [
+            {"op": "wait", "id": "GoNext"},
+            {"op": "tap", "id": "GoNext"},
+            {"op": "wait", "id": "LighDone"}
+          ]
+        },
+        {
+          "id": "name_then_back",
+          "skill": "round trip",
+          "steps": [
+            {"op": "wait", "id": "NameField"},
+            {"op": "type", "text": "x"},
+            {"op": "tap", "id": "GoNext"},
+            {"op": "wait", "id": "BackHome"},
+            {"op": "tap", "id": "BackHome"},
+            {"op": "wait", "id": "LighHome"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lighfeed",
+      "label": "LighFeed (scroll + posts)",
+      "bundle_id": "dev.ligh.Feed",
+      "build": "./scripts/build-workflow-app.sh LighFeed",
+      "workflows": [
+        {
+          "id": "scroll_post_20",
+          "skill": "scroll_until + tap (deep list)",
+          "steps": [
+            {"op": "wait", "id": "FeedList"},
+            {"op": "scroll_until", "id": "post-16", "max_swipes": 28},
+            {"op": "tap", "id": "post-16"},
+            {"op": "wait", "id": "PostDetail"}
+          ]
+        },
+        {
+          "id": "scroll_post_15",
+          "skill": "scroll list",
+          "steps": [
+            {"op": "wait", "id": "FeedList"},
+            {"op": "scroll_until", "id": "post-15", "max_swipes": 10},
+            {"op": "tap", "id": "post-15"},
+            {"op": "wait", "id": "PostDetailTitle"}
+          ]
+        },
+        {
+          "id": "tap_post_1",
+          "skill": "no scroll",
+          "steps": [
+            {"op": "wait", "id": "post-1"},
+            {"op": "tap", "id": "post-1"},
+            {"op": "wait", "id": "PostDetail"}
+          ]
+        },
+        {
+          "id": "scroll_post_30",
+          "skill": "deep scroll round-trip",
+          "steps": [
+            {"op": "wait", "id": "FeedList"},
+            {"op": "scroll_until", "id": "post-16", "max_swipes": 28},
+            {"op": "tap", "id": "post-16"},
+            {"op": "wait", "id": "PostDetail"},
+            {"op": "tap", "id": "BackToFeed"},
+            {"op": "wait", "id": "post-1"}
+          ]
+        },
+        {
+          "id": "scroll_detail_back",
+          "skill": "scroll + back",
+          "steps": [
+            {"op": "wait", "id": "FeedList"},
+            {"op": "scroll_until", "id": "post-12", "max_swipes": 8},
+            {"op": "tap", "id": "post-12"},
+            {"op": "wait", "id": "PostDetail"},
+            {"op": "tap", "id": "BackToFeed"},
+            {"op": "wait", "id": "FeedList"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lighonboard",
+      "label": "LighOnboard (multi-step onboarding)",
+      "bundle_id": "dev.ligh.Onboard",
+      "build": "./scripts/build-workflow-app.sh LighOnboard",
+      "workflows": [
+        {
+          "id": "skip_onboarding",
+          "skill": "skip path",
+          "steps": [
+            {"op": "wait", "id": "OnboardWelcome"},
+            {"op": "tap", "id": "OnboardSkip"},
+            {"op": "wait", "id": "HomeReady"}
+          ]
+        },
+        {
+          "id": "full_onboarding",
+          "skill": "multi-step wizard",
+          "steps": [
+            {"op": "wait", "id": "OnboardContinue"},
+            {"op": "tap", "id": "OnboardContinue"},
+            {"op": "wait", "id": "OnboardNameField"},
+            {"op": "tap", "id": "OnboardNameField"},
+            {"op": "type", "text": "dev"},
+            {"op": "tap", "id": "OnboardNext"},
+            {"op": "wait", "id": "OnboardFinish"},
+            {"op": "tap", "id": "OnboardFinish"},
+            {"op": "wait", "id": "HomeReady"}
+          ]
+        },
+        {
+          "id": "continue_to_name",
+          "skill": "partial flow",
+          "steps": [
+            {"op": "wait", "id": "OnboardWelcome"},
+            {"op": "tap", "id": "OnboardContinue"},
+            {"op": "wait", "id": "OnboardNameTitle"}
+          ]
+        },
+        {
+          "id": "name_only",
+          "skill": "form on step 2",
+          "steps": [
+            {"op": "wait", "id": "OnboardContinue"},
+            {"op": "tap", "id": "OnboardContinue"},
+            {"op": "tap", "id": "OnboardNameField"},
+            {"op": "type", "text": "a"},
+            {"op": "wait", "id": "OnboardNext"}
+          ]
+        },
+        {
+          "id": "finish_from_almost",
+          "skill": "late step entry",
+          "steps": [
+            {"op": "wait", "id": "OnboardContinue"},
+            {"op": "tap", "id": "OnboardContinue"},
+            {"op": "tap", "id": "OnboardNext"},
+            {"op": "wait", "id": "OnboardAlmostDone"},
+            {"op": "tap", "id": "OnboardFinish"},
+            {"op": "wait", "id": "HomeReady"}
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lighmodal",
+      "label": "LighModal (sheet / modal)",
+      "bundle_id": "dev.ligh.Modal",
+      "build": "./scripts/build-workflow-app.sh LighModal",
+      "workflows": [
+        {
+          "id": "sheet_confirm",
+          "skill": "modal confirm",
+          "steps": [
+            {"op": "wait", "id": "ModalHome"},
+            {"op": "tap", "id": "OpenSheet"},
+            {"op": "wait", "id": "SheetTitle"},
+            {"op": "tap", "id": "ConfirmAction"},
+            {"op": "wait", "id": "ModalConfirmed"}
+          ]
+        },
+        {
+          "id": "sheet_cancel",
+          "skill": "modal dismiss",
+          "steps": [
+            {"op": "wait", "id": "OpenSheet"},
+            {"op": "tap", "id": "OpenSheet"},
+            {"op": "wait", "id": "CancelSheet"},
+            {"op": "tap", "id": "CancelSheet"},
+            {"op": "wait", "id": "ModalHome"}
+          ]
+        },
+        {
+          "id": "sheet_open_only",
+          "skill": "present sheet",
+          "steps": [
+            {"op": "wait", "id": "ModalHome"},
+            {"op": "tap", "id": "OpenSheet"},
+            {"op": "wait", "id": "SheetTitle"}
+          ]
+        },
+        {
+          "id": "confirm_retry",
+          "skill": "cancel then confirm",
+          "steps": [
+            {"op": "wait", "id": "ModalHome"},
+            {"op": "tap", "id": "OpenSheet"},
+            {"op": "tap", "id": "CancelSheet"},
+            {"op": "wait", "id": "OpenSheet"},
+            {"op": "tap", "id": "OpenSheet"},
+            {"op": "wait", "id": "ConfirmAction"},
+            {"op": "tap", "id": "ConfirmAction"},
+            {"op": "wait", "id": "ModalConfirmed"}
+          ]
+        },
+        {
+          "id": "home_stable",
+          "skill": "no modal",
+          "steps": [
+            {"op": "wait", "id": "ModalHome"},
+            {"op": "wait", "id": "OpenSheet"}
+          ]
+        }
+      ]
+    }
+  ]
+}

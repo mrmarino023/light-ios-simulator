@@ -1,0 +1,27 @@
+{
+  "developer_id": "anonymous-or-github-handle",
+  "date": "YYYY-MM-DD",
+  "app": {
+    "name": "",
+    "bundle_id": "",
+    "has_accessibility_ids": true
+  },
+  "used": {
+    "ligh_mcp": true,
+    "maestro_mcp": false,
+    "cursor_agent": true
+  },
+  "preference": "ligh | maestro | neither | tie",
+  "one_sentence": "Why you would or would not use LIGH for agent iOS verify",
+  "agent_understood_faults": true,
+  "friction": [
+    "install",
+    "simulator",
+    "mcp",
+    "ax_empty",
+    "app_specific",
+    "agent_confusion",
+    "other"
+  ],
+  "notes": ""
+}

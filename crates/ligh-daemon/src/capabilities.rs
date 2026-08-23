@@ -407,7 +407,7 @@ pub(crate) fn act_tap(
     settle_ms: u64,
     timeout_ms: u64,
 ) -> CapabilityResult {
-    crate::motor::motor_tap(build, state, label, id, settle_ms, timeout_ms)
+    crate::motor::motor_tap(build, state, label, id, settle_ms, timeout_ms, None, None)
 }
 
 fn detect_bundle_id(app_path: &std::path::Path) -> Option<String> {
@@ -484,6 +484,59 @@ pub(crate) fn run_app(
             );
         }
     };
+
+    // Relaunch-only: skip terminate/launch if app is foreground and wait chrome is already up.
+    if !install {
+        let snap = build();
+        let front = snap
+            .scene
+            .as_ref()
+            .and_then(|s| s.bundle_id.as_deref());
+        if front == Some(bid.as_str()) {
+            let chrome_ready = match (wait_id.as_ref(), wait_label.as_ref()) {
+                (Some(eid), _) => crate::motor::target_onscreen_udid(&udid, None, Some(eid)),
+                (None, Some(lab)) => crate::motor::target_onscreen_udid(&udid, Some(lab), None),
+                (None, None) => true,
+            };
+            if chrome_ready {
+                if wait_label.is_none() && wait_id.is_none() {
+                    let ready = ensure_ready(build, state, settle_ms, 4);
+                    if ready.ok {
+                        return CapabilityResult::success(
+                            ready.phase,
+                            ready.surface.clone(),
+                            "run_app",
+                            json!({
+                                "bundle_id": bid,
+                                "install": false,
+                                "skipped_relaunch": true,
+                            }),
+                            ready.observe,
+                        );
+                    }
+                } else {
+                    let mut r = crate::motor::motor_wait(
+                        build,
+                        state,
+                        wait_label,
+                        wait_id,
+                        settle_ms,
+                        timeout_ms,
+                    );
+                    if r.ok {
+                        if let Some(detail) = r.detail.as_mut() {
+                            if let Some(obj) = detail.as_object_mut() {
+                                obj.insert("skipped_relaunch".into(), json!(true));
+                                obj.insert("bundle_id".into(), json!(bid));
+                            }
+                        }
+                        r.capability = Some("run_app".into());
+                        return r;
+                    }
+                }
+            }
+        }
+    }
 
     let launch_once = |force_install: bool| -> Result<(), String> {
         if force_install {
@@ -666,7 +719,198 @@ pub(crate) fn act_type(
     text: &str,
     settle_ms: u64,
 ) -> CapabilityResult {
-    crate::motor::motor_type(build, state, text, settle_ms)
+    crate::motor::motor_type(build, state, text, None, None, settle_ms, 12_000)
+}
+
+fn step_labels(step: &serde_json::Value) -> Vec<String> {
+    if let Some(arr) = step.get("labels").and_then(|v| v.as_array()) {
+        return arr
+            .iter()
+            .filter_map(|v| v.as_str().map(String::from))
+            .collect();
+    }
+    step.get("label")
+        .and_then(|v| v.as_str())
+        .map(|s| vec![s.to_string()])
+        .unwrap_or_default()
+}
+
+/// Universal motor step — same ops for app_job, app_goal, and any app (Debug .app or system).
+pub(crate) fn run_motor_step(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    step: &serde_json::Value,
+    settle_ms: u64,
+    timeout_ms: u64,
+) -> CapabilityResult {
+    let op = step.get("op").and_then(|v| v.as_str()).unwrap_or("");
+    match op {
+        "launch" => {
+            let bid = step
+                .get("bundle_id")
+                .and_then(|v| v.as_str())
+                .unwrap_or("");
+            if bid.is_empty() {
+                return CapabilityResult::fail(
+                    FaultClass::Infra,
+                    SessionPhase::Ready,
+                    None,
+                    "launch",
+                    json!({ "error": "bundle_id required" }),
+                    None,
+                );
+            }
+            crate::motor::motor_launch(build, state, bid, settle_ms)
+        }
+        "wait" => {
+            let labels = step_labels(step);
+            if !labels.is_empty() {
+                let mut last = None;
+                for lab in &labels {
+                    let r = crate::motor::motor_wait(
+                        build,
+                        state,
+                        Some(lab.as_str()),
+                        None,
+                        settle_ms,
+                        timeout_ms,
+                    );
+                    if r.ok {
+                        return r;
+                    }
+                    last = Some(r);
+                }
+                return last.unwrap_or_else(|| {
+                    CapabilityResult::fail(
+                        FaultClass::TargetMissing,
+                        SessionPhase::Ready,
+                        None,
+                        "wait",
+                        json!({ "labels": labels }),
+                        None,
+                    )
+                });
+            }
+            crate::motor::motor_wait(
+                build,
+                state,
+                step.get("label").and_then(|v| v.as_str()),
+                step.get("id").and_then(|v| v.as_str()),
+                settle_ms,
+                timeout_ms,
+            )
+        }
+        "tap" => {
+            let until_id = step
+                .get("until_id")
+                .or_else(|| step.get("until"))
+                .and_then(|v| v.as_str());
+            let until_label = step.get("until_label").and_then(|v| v.as_str());
+            let labels = step_labels(step);
+            if !labels.is_empty() {
+                let mut last = None;
+                for lab in &labels {
+                    let r = crate::motor::motor_tap(
+                        build,
+                        state,
+                        Some(lab.as_str()),
+                        None,
+                        settle_ms,
+                        timeout_ms,
+                        until_id,
+                        until_label,
+                    );
+                    if r.ok {
+                        return r;
+                    }
+                    last = Some(r);
+                }
+                return last.unwrap_or_else(|| {
+                    CapabilityResult::fail(
+                        FaultClass::TargetMissing,
+                        SessionPhase::Ready,
+                        None,
+                        "tap",
+                        json!({ "labels": labels }),
+                        None,
+                    )
+                });
+            }
+            crate::motor::motor_tap(
+                build,
+                state,
+                step.get("label").and_then(|v| v.as_str()),
+                step.get("id").and_then(|v| v.as_str()),
+                settle_ms,
+                timeout_ms,
+                until_id,
+                until_label,
+            )
+        }
+        "type" => {
+            let text = step.get("text").and_then(|v| v.as_str()).unwrap_or("");
+            crate::motor::motor_type(
+                build,
+                state,
+                text,
+                step.get("label").and_then(|v| v.as_str()),
+                step.get("id").and_then(|v| v.as_str()),
+                settle_ms,
+                timeout_ms,
+            )
+        }
+        "key" => {
+            let name = step
+                .get("name")
+                .or_else(|| step.get("key"))
+                .and_then(|v| v.as_str())
+                .unwrap_or("return");
+            crate::motor::motor_key(build, state, name, settle_ms)
+        }
+        "scroll_until" => {
+            let max_swipes = step
+                .get("max_swipes")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(8) as u32;
+            crate::motor::motor_scroll_until(
+                build,
+                state,
+                step.get("label").and_then(|v| v.as_str()),
+                step.get("id").and_then(|v| v.as_str()),
+                max_swipes,
+                timeout_ms,
+            )
+        }
+        "dismiss_overlay" => crate::motor::motor_dismiss_overlay(build, state, settle_ms),
+        "explore" => {
+            let max_probes = step
+                .get("max_probes")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(4) as u32;
+            let max_swipes = step
+                .get("max_swipes")
+                .and_then(|v| v.as_u64())
+                .unwrap_or(10) as u32;
+            crate::motor::motor_explore(
+                build,
+                state,
+                step.get("label").and_then(|v| v.as_str()),
+                step.get("id").and_then(|v| v.as_str()),
+                max_probes,
+                max_swipes,
+                settle_ms,
+                timeout_ms,
+            )
+        }
+        _ => CapabilityResult::fail(
+            FaultClass::Infra,
+            SessionPhase::Ready,
+            None,
+            op,
+            json!({ "error": format!("unknown op {op}") }),
+            None,
+        ),
+    }
 }
 
 /// First-class app job: run-app then a sequence of motor steps (one capability).
@@ -727,38 +971,7 @@ pub(crate) fn app_job(
     let mut last = launched;
     for (i, step) in steps.iter().enumerate().skip(start) {
         let op = step.get("op").and_then(|v| v.as_str()).unwrap_or("");
-        let r = match op {
-            "wait" => crate::motor::motor_wait(
-                build,
-                state,
-                step.get("label").and_then(|v| v.as_str()),
-                step.get("id").and_then(|v| v.as_str()),
-                settle_ms,
-                timeout_ms,
-            ),
-            "tap" => crate::motor::motor_tap(
-                build,
-                state,
-                step.get("label").and_then(|v| v.as_str()),
-                step.get("id").and_then(|v| v.as_str()),
-                settle_ms,
-                timeout_ms,
-            ),
-            "type" => {
-                let text = step.get("text").and_then(|v| v.as_str()).unwrap_or("");
-                crate::motor::motor_type(build, state, text, settle_ms)
-            }
-            _ => {
-                return CapabilityResult::fail(
-                    FaultClass::Infra,
-                    SessionPhase::Ready,
-                    last.surface.clone(),
-                    "app_job",
-                    json!({ "step": i, "error": format!("unknown op {op}") }),
-                    last.observe,
-                );
-            }
-        };
+        let r = run_motor_step(build, state, step, settle_ms, timeout_ms);
         if !r.ok {
             return CapabilityResult::fail(
                 r.fault,
@@ -779,6 +992,132 @@ pub(crate) fn app_job(
             "steps": steps.len(),
             "motor": "ensure_path",
             "detail": last.detail,
+        }),
+        last.observe,
+    )
+}
+
+/// Goal-driven job: optional run_app, setup steps, then postconditions (wait_id / wait_label).
+pub(crate) fn app_goal(
+    build: &dyn Fn() -> ObserveSnapshot,
+    state: &Arc<Mutex<DaemonState>>,
+    app: Option<&str>,
+    bundle_id: Option<&str>,
+    setup: &[serde_json::Value],
+    postconditions: &[serde_json::Value],
+    settle_ms: u64,
+    timeout_ms: u64,
+    install: bool,
+    launch_args: Option<&[String]>,
+) -> CapabilityResult {
+    let mut last = if let Some(app_path) = app {
+        let home_id = postconditions
+            .first()
+            .and_then(|p| p.get("wait_id").and_then(|v| v.as_str()));
+        let home_label = postconditions
+            .first()
+            .and_then(|p| p.get("wait_label").and_then(|v| v.as_str()));
+        let launched = run_app(
+            build,
+            state,
+            app_path,
+            bundle_id,
+            home_label,
+            home_id,
+            settle_ms,
+            timeout_ms,
+            install,
+            launch_args,
+        );
+        if !launched.ok {
+            return CapabilityResult::fail(
+                launched.fault,
+                launched.phase,
+                launched.surface,
+                "app_goal",
+                json!({ "phase": "run_app", "detail": launched.detail }),
+                launched.observe,
+            );
+        }
+        launched
+    } else {
+        let ready = ensure_ready(build, state, settle_ms, 3);
+        if !ready.ok {
+            return CapabilityResult::fail(
+                ready.fault,
+                ready.phase,
+                ready.surface,
+                "app_goal",
+                json!({ "phase": "ready", "detail": ready.detail }),
+                ready.observe,
+            );
+        }
+        ready
+    };
+
+    for (i, step) in setup.iter().enumerate() {
+        let op = step.get("op").and_then(|v| v.as_str()).unwrap_or("");
+        let r = run_motor_step(build, state, step, settle_ms, timeout_ms);
+        if !r.ok {
+            return CapabilityResult::fail(
+                r.fault,
+                r.phase,
+                r.surface,
+                "app_goal",
+                json!({ "phase": "setup", "step": i, "op": op, "detail": r.detail }),
+                r.observe,
+            );
+        }
+        last = r;
+    }
+
+    for (i, post) in postconditions.iter().enumerate() {
+        let wait_id = post.get("wait_id").and_then(|v| v.as_str());
+        let wait_label = post.get("wait_label").and_then(|v| v.as_str());
+        let post_timeout = post
+            .get("timeout_ms")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(timeout_ms);
+        let max_swipes = post
+            .get("max_swipes")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(12) as u32;
+        let r = crate::motor::motor_reach(
+            build,
+            state,
+            wait_label,
+            wait_id,
+            max_swipes,
+            settle_ms,
+            post_timeout,
+        );
+        if !r.ok {
+            return CapabilityResult::fail(
+                r.fault,
+                r.phase,
+                r.surface,
+                "app_goal",
+                json!({
+                    "phase": "postcondition",
+                    "index": i,
+                    "wait_id": wait_id,
+                    "wait_label": wait_label,
+                    "detail": r.detail,
+                }),
+                r.observe,
+            );
+        }
+        last = r;
+    }
+
+    CapabilityResult::success(
+        last.phase,
+        last.surface.clone(),
+        "app_goal",
+        json!({
+            "postconditions": postconditions.len(),
+            "setup_steps": setup.len(),
+            "motor": "reach",
         }),
         last.observe,
     )

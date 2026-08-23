@@ -1,0 +1,34 @@
+{
+  "gate": "external_apps",
+  "claim": "Apps we do not author and do not modify. Failures are signal \u2014 publish them.",
+  "rules": [
+    "No app source edits in this gate",
+    "Workflows use accessibility ids from upstream or ligh_observe discovery",
+    "Pass rate is the metric \u2014 not latency"
+  ],
+  "apps": 1,
+  "workflows_total": 1,
+  "workflows_pass": 1,
+  "workflows_fail": 0,
+  "pass_rate": 1.0,
+  "interpretation": "Generalization signal only. Do not tune app source to improve this gate.",
+  "results": [
+    {
+      "app": "xcuitestdemo",
+      "workflow": "login",
+      "skill": "form login",
+      "ok": true,
+      "fault": "ok",
+      "ms": 3362,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "homeTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 8
+      },
+      "frozen": true
+    }
+  ]
+}

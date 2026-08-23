@@ -20,9 +20,11 @@ pub use device::DevicePreset;
 pub use error::{LighError, Result};
 pub use observe::{
     build_actionable_topk, build_scene, detect_surface, diff_sense_events, eyes_ready,
-    find_id_center, find_id_in_dump, find_label_center, find_label_in_dump, is_chrome_node,
-    is_editable_role, is_transition_sparse, AccessibilityTree, FrameMeta, ObserveSnapshot,
-    SceneMeta, SenseEvent, ACTIONABLE_TOPK, OBSERVE_SCHEMA_VERSION,
+    find_hittable_id_in_dump, find_hittable_label_in_dump, find_id_center, find_id_in_dump,
+    find_label_center, find_label_in_dump, find_onscreen_id_in_dump, is_chrome_node,
+    is_editable_role, is_transition_sparse, node_viewport_hittable, rank_candidates,
+    AccessibilityTree, FrameMeta, ObserveSnapshot, SceneMeta, SenseEvent, ACTIONABLE_TOPK,
+    OBSERVE_SCHEMA_VERSION,
 };
 pub use qa::{
     build_perceive, evaluate_attempt, fingerprint_of, infer_affordances, parse_expectation,

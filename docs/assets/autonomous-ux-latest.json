@@ -1,0 +1,861 @@
+{
+  "gate": "autonomous_ux",
+  "claim": "Autonomous QA/UX agent \u2014 no scripted navigation; harness verifies success id",
+  "app": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighOnboard/build/LighOnboard.app",
+  "bundle_id": "dev.ligh.Onboard",
+  "workspace": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighOnboard",
+  "goal": "Complete the onboarding flow until the home-ready screen appears. Use perceive to read ids; attempt with expect after each tap.",
+  "success_id": "HomeReady",
+  "model": "gpt-5-nano",
+  "bootstrap": {
+    "ok": true,
+    "data": {
+      "capability": "run_app",
+      "detail": {
+        "attempt": "1",
+        "bundle_id": "dev.ligh.Onboard",
+        "install": true
+      },
+      "fault": "ok",
+      "observe": {
+        "accessibility_tree": {
+          "element_count": 6,
+          "nodes": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 852,
+                "width": 393,
+                "x": 0,
+                "y": 0
+              },
+              "hittable": true,
+              "id": "n91b0a6ff",
+              "label": "LighOnboard",
+              "path_id": "n286645ff",
+              "role": "AXApplication",
+              "selected": false,
+              "text": "LighOnboard",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.21670907548770135,
+                "y": 0.1428012519561815
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 40.66666666666667,
+                "width": 138.33333333333331,
+                "x": 15.999999999999986,
+                "y": 101.33333333333331
+              },
+              "hittable": true,
+              "id": "nb5a02070",
+              "label": "Onboard",
+              "parent_id": "n91b0a6ff",
+              "path_id": "n1a7f2ac0",
+              "role": "AXHeading",
+              "selected": false,
+              "text": "Onboard",
+              "traits": "heading",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.48865414710485133
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 40.666666666666686,
+                "width": 136.66666666666669,
+                "x": 128.16666666666669,
+                "y": 396
+              },
+              "hittable": true,
+              "id": "n7f6bc5f9",
+              "identifier": "OnboardWelcome",
+              "label": "Welcome",
+              "parent_id": "n91b0a6ff",
+              "path_id": "n6b519436",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "Welcome",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.547926447574335
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 20.33333333333331,
+                "width": 184.3333333333333,
+                "x": 104.33333333333334,
+                "y": 456.66666666666674
+              },
+              "hittable": true,
+              "id": "nf3cd4aa4",
+              "label": "Get started with the app",
+              "parent_id": "n91b0a6ff",
+              "path_id": "n12d68e0f",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "Get started with the app",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5004240882103477,
+                "y": 0.6034820031298905
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34.33333333333337,
+                "width": 92.66666666666666,
+                "x": 150.33333333333331,
+                "y": 497
+              },
+              "hittable": true,
+              "id": "nff60f152",
+              "identifier": "OnboardContinue",
+              "label": "Continue",
+              "parent_id": "n91b0a6ff",
+              "path_id": "nb9d4df59",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Continue",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.659037558685446
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 20.33333333333337,
+                "width": 33,
+                "x": 180,
+                "y": 551.3333333333333
+              },
+              "hittable": true,
+              "id": "n3a6c4604",
+              "identifier": "OnboardSkip",
+              "label": "Skip",
+              "parent_id": "n91b0a6ff",
+              "path_id": "n4d94e7be",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Skip",
+              "traits": "button",
+              "visible": true
+            }
+          ],
+          "point_size": [
+            393.0,
+            852.0
+          ],
+          "root": {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "children": [
+              {
+                "center_norm": {
+                  "x": 0.21670907548770135,
+                  "y": 0.1428012519561815
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.66666666666667,
+                  "width": 138.33333333333331,
+                  "x": 15.999999999999986,
+                  "y": 101.33333333333331
+                },
+                "hittable": true,
+                "id": "nb5a02070",
+                "label": "Onboard",
+                "parent_id": "n91b0a6ff",
+                "path_id": "n1a7f2ac0",
+                "role": "AXHeading",
+                "selected": false,
+                "text": "Onboard",
+                "traits": "heading",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000000000001,
+                  "y": 0.48865414710485133
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.666666666666686,
+                  "width": 136.66666666666669,
+                  "x": 128.16666666666669,
+                  "y": 396
+                },
+                "hittable": true,
+                "id": "n7f6bc5f9",
+                "identifier": "OnboardWelcome",
+                "label": "Welcome",
+                "parent_id": "n91b0a6ff",
+                "path_id": "n6b519436",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Welcome",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.547926447574335
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.33333333333331,
+                  "width": 184.3333333333333,
+                  "x": 104.33333333333334,
+                  "y": 456.66666666666674
+                },
+                "hittable": true,
+                "id": "nf3cd4aa4",
+                "label": "Get started with the app",
+                "parent_id": "n91b0a6ff",
+                "path_id": "n12d68e0f",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Get started with the app",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5004240882103477,
+                  "y": 0.6034820031298905
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34.33333333333337,
+                  "width": 92.66666666666666,
+                  "x": 150.33333333333331,
+                  "y": 497
+                },
+                "hittable": true,
+                "id": "nff60f152",
+                "identifier": "OnboardContinue",
+                "label": "Continue",
+                "parent_id": "n91b0a6ff",
+                "path_id": "nb9d4df59",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Continue",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.659037558685446
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 20.33333333333337,
+                  "width": 33,
+                  "x": 180,
+                  "y": 551.3333333333333
+                },
+                "hittable": true,
+                "id": "n3a6c4604",
+                "identifier": "OnboardSkip",
+                "label": "Skip",
+                "parent_id": "n91b0a6ff",
+                "path_id": "n4d94e7be",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Skip",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "children_ids": [
+              "nb5a02070",
+              "n7f6bc5f9",
+              "nf3cd4aa4",
+              "nff60f152",
+              "n3a6c4604"
+            ],
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 852,
+              "width": 393,
+              "x": 0,
+              "y": 0
+            },
+            "hittable": true,
+            "id": "n91b0a6ff",
+            "label": "LighOnboard",
+            "path_id": "n286645ff",
+            "role": "AXApplication",
+            "selected": false,
+            "text": "LighOnboard",
+            "visible": true
+          },
+          "status": "available"
+        },
+        "actionable_topk": [
+          {
+            "center_norm": {
+              "x": 0.5004240882103477,
+              "y": 0.6034820031298905
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 34.33333333333337,
+              "width": 92.66666666666666,
+              "x": 150.33333333333331,
+              "y": 497
+            },
+            "hittable": true,
+            "id": "nff60f152",
+            "identifier": "OnboardContinue",
+            "label": "Continue",
+            "parent_id": "n91b0a6ff",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Continue",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.659037558685446
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 20.33333333333337,
+              "width": 33,
+              "x": 180,
+              "y": 551.3333333333333
+            },
+            "hittable": true,
+            "id": "n3a6c4604",
+            "identifier": "OnboardSkip",
+            "label": "Skip",
+            "parent_id": "n91b0a6ff",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Skip",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.21670907548770135,
+              "y": 0.1428012519561815
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.66666666666667,
+              "width": 138.33333333333331,
+              "x": 15.999999999999986,
+              "y": 101.33333333333331
+            },
+            "hittable": true,
+            "id": "nb5a02070",
+            "label": "Onboard",
+            "parent_id": "n91b0a6ff",
+            "role": "AXHeading",
+            "selected": false,
+            "text": "Onboard",
+            "traits": "heading",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5000000000000001,
+              "y": 0.48865414710485133
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.666666666666686,
+              "width": 136.66666666666669,
+              "x": 128.16666666666669,
+              "y": 396
+            },
+            "hittable": true,
+            "id": "n7f6bc5f9",
+            "identifier": "OnboardWelcome",
+            "label": "Welcome",
+            "parent_id": "n91b0a6ff",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "Welcome",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.547926447574335
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 20.33333333333331,
+              "width": 184.3333333333333,
+              "x": 104.33333333333334,
+              "y": 456.66666666666674
+            },
+            "hittable": true,
+            "id": "nf3cd4aa4",
+            "label": "Get started with the app",
+            "parent_id": "n91b0a6ff",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "Get started with the app",
+            "visible": true
+          }
+        ],
+        "app_bundle_id": "dev.ligh.Onboard",
+        "ax_quality": "ready",
+        "booted": true,
+        "events": [
+          {
+            "kind": "navigated",
+            "payload": {
+              "from": null,
+              "to": "Onboard"
+            },
+            "t": 1787448300.545404
+          }
+        ],
+        "eyes_unusable": false,
+        "frame": {
+          "fps": 53.76379063605645,
+          "h": 2556,
+          "id": 522,
+          "imports_ok": true,
+          "w": 1179
+        },
+        "observe_ms": 0.000625,
+        "overlay": "none",
+        "path": "lighd",
+        "phase": "ready",
+        "scene": {
+          "bundle_id": "dev.ligh.Onboard",
+          "keyboard_visible": false,
+          "screen_title": "Onboard",
+          "surface": "app"
+        },
+        "schema_version": 2,
+        "settled": true,
+        "simulator_app_running": false,
+        "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+      },
+      "ok": true,
+      "overlay": "none",
+      "phase": "ready",
+      "surface": "app"
+    }
+  },
+  "agent_claimed_done": false,
+  "verified": false,
+  "graph_grew": false,
+  "claim_pass": false,
+  "harness_verify": {
+    "ok": false,
+    "success_id": "HomeReady",
+    "seen_ids": [],
+    "fingerprint": null,
+    "ux_graph": {
+      "node_count": null,
+      "edge_count": null
+    },
+    "perceive_ok": false
+  },
+  "steps_used": 18,
+  "tokens": {
+    "in": 29404,
+    "out": 13355
+  },
+  "total_ms": 81309,
+  "trace": [
+    {
+      "step": 5,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry after sustained faults; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 6,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 7,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 8,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry (step 7) after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 9,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry after fault at step 8; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 10,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry at step 9 after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 11,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry at step 10 after repeated faults; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 12,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry at step 11 after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 13,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry at step 12 after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 14,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry at step 13 after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 15,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry at step 14 after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 16,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry at step 15 after persistent fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 17,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry at step 16 after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    },
+    {
+      "step": 18,
+      "action": {
+        "action": "perceive",
+        "intent": "wait",
+        "id": "",
+        "label": "",
+        "text": "",
+        "key": "",
+        "expect": {},
+        "baseline": "",
+        "fingerprint": "",
+        "source_path": "fixtures/LighOnboard/LighOnboard/ContentView.swift",
+        "summary": "Perception retry at step 17 after fault; read available affordances (ids/labels) before deciding next tap."
+      },
+      "result": {
+        "ok": false,
+        "fault": "fail",
+        "capability": null,
+        "phase": null,
+        "overlay": null,
+        "surface": null,
+        "detail": null
+      }
+    }
+  ],
+  "gate_env": "mac_integration",
+  "app_id": "lighonboard"
+}

@@ -1,0 +1,435 @@
+{
+  "gate": "workflow_matrix",
+  "claim": "5 apps \u00d7 5 workflows \u2014 generalization (scroll, onboarding, modal, login, nav). Not login-only bug matrix.",
+  "apps": 5,
+  "workflows_per_app": 5,
+  "workflows_total": 25,
+  "workflows_pass": 25,
+  "workflows_fail": 0,
+  "pass_rate": 1.0,
+  "by_app": {
+    "xcuitestdemo": {
+      "pass": 5,
+      "total": 5
+    },
+    "lighfixture": {
+      "pass": 5,
+      "total": 5
+    },
+    "lighfeed": {
+      "pass": 5,
+      "total": 5
+    },
+    "lighonboard": {
+      "pass": 5,
+      "total": 5
+    },
+    "lighmodal": {
+      "pass": 5,
+      "total": 5
+    }
+  },
+  "results": [
+    {
+      "app": "xcuitestdemo",
+      "workflow": "login_happy",
+      "skill": "form + assert",
+      "ok": true,
+      "fault": "ok",
+      "ms": 5239,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "homeTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 8
+      }
+    },
+    {
+      "app": "xcuitestdemo",
+      "workflow": "login_user_first",
+      "skill": "field focus order",
+      "ok": true,
+      "fault": "ok",
+      "ms": 3128,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "homeTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 9
+      }
+    },
+    {
+      "app": "xcuitestdemo",
+      "workflow": "login_minimal_waits",
+      "skill": "fast path",
+      "ok": true,
+      "fault": "ok",
+      "ms": 3482,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "homeTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 8
+      }
+    },
+    {
+      "app": "xcuitestdemo",
+      "workflow": "login_password_then_user",
+      "skill": "reverse field order",
+      "ok": true,
+      "fault": "ok",
+      "ms": 2755,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "homeTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 7
+      }
+    },
+    {
+      "app": "xcuitestdemo",
+      "workflow": "login_home_only_assert",
+      "skill": "postcondition only",
+      "ok": true,
+      "fault": "ok",
+      "ms": 2489,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "homeTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 8
+      }
+    },
+    {
+      "app": "lighfixture",
+      "workflow": "home_to_done",
+      "skill": "navigation push",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1693,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "LighDone"
+        },
+        "motor": "ensure_path",
+        "steps": 3
+      }
+    },
+    {
+      "app": "lighfixture",
+      "workflow": "type_name_done",
+      "skill": "keyboard + nav",
+      "ok": true,
+      "fault": "ok",
+      "ms": 2177,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "LighDoneDetail"
+        },
+        "motor": "ensure_path",
+        "steps": 5
+      }
+    },
+    {
+      "app": "lighfixture",
+      "workflow": "done_and_back",
+      "skill": "back navigation",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1553,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "LighHome"
+        },
+        "motor": "ensure_path",
+        "steps": 5
+      }
+    },
+    {
+      "app": "lighfixture",
+      "workflow": "empty_name_flow",
+      "skill": "default state",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1284,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "LighDone"
+        },
+        "motor": "ensure_path",
+        "steps": 3
+      }
+    },
+    {
+      "app": "lighfixture",
+      "workflow": "name_then_back",
+      "skill": "round trip",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1540,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "LighHome"
+        },
+        "motor": "ensure_path",
+        "steps": 6
+      }
+    },
+    {
+      "app": "lighfeed",
+      "workflow": "scroll_post_20",
+      "skill": "scroll_until + tap (deep list)",
+      "ok": true,
+      "fault": "ok",
+      "ms": 2746,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "PostDetail"
+        },
+        "motor": "ensure_path",
+        "steps": 4
+      }
+    },
+    {
+      "app": "lighfeed",
+      "workflow": "scroll_post_15",
+      "skill": "scroll list",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1743,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "PostDetailTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 4
+      }
+    },
+    {
+      "app": "lighfeed",
+      "workflow": "tap_post_1",
+      "skill": "no scroll",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1545,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "PostDetail"
+        },
+        "motor": "ensure_path",
+        "steps": 3
+      }
+    },
+    {
+      "app": "lighfeed",
+      "workflow": "scroll_post_30",
+      "skill": "deep scroll round-trip",
+      "ok": true,
+      "fault": "ok",
+      "ms": 2144,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "post-1"
+        },
+        "motor": "ensure_path",
+        "steps": 6
+      }
+    },
+    {
+      "app": "lighfeed",
+      "workflow": "scroll_detail_back",
+      "skill": "scroll + back",
+      "ok": true,
+      "fault": "ok",
+      "ms": 2139,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "FeedList"
+        },
+        "motor": "ensure_path",
+        "steps": 6
+      }
+    },
+    {
+      "app": "lighonboard",
+      "workflow": "skip_onboarding",
+      "skill": "skip path",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1645,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "HomeReady"
+        },
+        "motor": "ensure_path",
+        "steps": 3
+      }
+    },
+    {
+      "app": "lighonboard",
+      "workflow": "full_onboarding",
+      "skill": "multi-step wizard",
+      "ok": true,
+      "fault": "ok",
+      "ms": 2825,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "HomeReady"
+        },
+        "motor": "ensure_path",
+        "steps": 9
+      }
+    },
+    {
+      "app": "lighonboard",
+      "workflow": "continue_to_name",
+      "skill": "partial flow",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1292,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "OnboardNameTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 3
+      }
+    },
+    {
+      "app": "lighonboard",
+      "workflow": "name_only",
+      "skill": "form on step 2",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1726,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "OnboardNext"
+        },
+        "motor": "ensure_path",
+        "steps": 5
+      }
+    },
+    {
+      "app": "lighonboard",
+      "workflow": "finish_from_almost",
+      "skill": "late step entry",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1731,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "HomeReady"
+        },
+        "motor": "ensure_path",
+        "steps": 6
+      }
+    },
+    {
+      "app": "lighmodal",
+      "workflow": "sheet_confirm",
+      "skill": "modal confirm",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1884,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "ModalConfirmed"
+        },
+        "motor": "ensure_path",
+        "steps": 5
+      }
+    },
+    {
+      "app": "lighmodal",
+      "workflow": "sheet_cancel",
+      "skill": "modal dismiss",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1502,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "ModalHome"
+        },
+        "motor": "ensure_path",
+        "steps": 5
+      }
+    },
+    {
+      "app": "lighmodal",
+      "workflow": "sheet_open_only",
+      "skill": "present sheet",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1278,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "SheetTitle"
+        },
+        "motor": "ensure_path",
+        "steps": 3
+      }
+    },
+    {
+      "app": "lighmodal",
+      "workflow": "confirm_retry",
+      "skill": "cancel then confirm",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1958,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "ModalConfirmed"
+        },
+        "motor": "ensure_path",
+        "steps": 8
+      }
+    },
+    {
+      "app": "lighmodal",
+      "workflow": "home_stable",
+      "skill": "no modal",
+      "ok": true,
+      "fault": "ok",
+      "ms": 1057,
+      "detail": {
+        "detail": {
+          "motor": "ensure_path",
+          "target": "OpenSheet"
+        },
+        "motor": "ensure_path",
+        "steps": 2
+      }
+    }
+  ],
+  "interpretation": "Generalization across apps/workflows. Failures are signal \u2014 publish them."
+}

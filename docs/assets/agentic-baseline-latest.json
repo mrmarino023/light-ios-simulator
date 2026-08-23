@@ -1,0 +1,39 @@
+{
+  "schema": "agentic-baseline-v1",
+  "date": "2026-08-22",
+  "claim": "LIGH structured agent vs simctl+vision baseline \u2014 same task, same app",
+  "agent": "agentic-baseline.py",
+  "model": "gpt-5-mini",
+  "app": {
+    "path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app",
+    "bundle_id": "com.himali.XCUITestDemo"
+  },
+  "task": "Log into the app with username alice and password secret, then verify the home screen is visible.",
+  "arms": {
+    "ligh": {
+      "stack": "ligh structured (scripted app_job)",
+      "completed": false,
+      "time_to_green_s": 28.02,
+      "tool_calls": 1,
+      "human_interventions": 0,
+      "recovery_attempts": 0,
+      "tokens": {
+        "in": 0,
+        "out": 0
+      },
+      "failure_mode": "target_missing",
+      "one_sentence": "Failed: target_missing",
+      "detail": {
+        "ok": false,
+        "fault": "target_missing",
+        "step": 6
+      }
+    },
+    "baseline": {
+      "stack": "simctl+vision",
+      "completed": false,
+      "failure_mode": "OPENAI_API_KEY missing"
+    }
+  },
+  "preference": "neither"
+}
