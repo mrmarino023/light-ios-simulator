@@ -10,7 +10,7 @@ You have a coding agent that edits Swift. You want it to **open the app, try the
 
 We do **not** know if developers prefer this over XCUITest or vision. **That is the only question that matters now.**
 
-**Next milestone:** 5 iOS developers using Cursor (or similar) try LIGH on **their** app without a 1-hour walkthrough. If 3/5 get value, explore further. If most say "I'd just generate XCUITest," stop the product thesis and keep the motor as OSS.
+**Next milestone:** 5 iOS developers, zero hand-holding — see [`ROADMAP.md`](../ROADMAP.md) (priorities 1–5).
 
 ---
 
