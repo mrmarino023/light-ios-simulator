@@ -14,20 +14,20 @@ LIGH’s product wedge for coding agents is not raw `tap`/`observe`. It is **ver
 
 Low-level `ligh_tap` / `ligh_observe` remain for debugging. **Agents should plan with perceive + attempt.**
 
-## Perceive (world model)
+## Perceive (world model + Feel IR)
 
 ```bash
 ligh --json cap perceive --settle-ms 2500
 ```
 
-Returns (inside `detail.perceive`):
+Returns (inside `detail`):
 
-- `ready` / `eyes_unusable`
-- `location.fingerprint` — stable screen hash (no coordinates)
-- `location.surface` / `title` / `bundle_id`
-- `blocking` — keyboard | alert | sheet | transition
-- `affordances[]` — typed: `text_field`, `primary_button`, `nav_back`, …
-- `since_last` — sensation event kinds
+- `perceive` — fingerprint, affordances, blocking (full QA view)
+- `feel` — **Feel IR** (preferred for planning): place + ranked salience + block + delta + `suggest`
+
+Feel IR is a **live frame**, not UX-graph memory. Host planners use it; do not treat it as LLM long-term memory.
+
+Also: `ready` / `eyes_unusable`, `location.fingerprint`, typed `affordances[]`, `since_last`.
 
 ## Attempt (act + verify)
 
@@ -52,12 +52,13 @@ Expect JSON keys: `see_id`, `see_label`, `surface`, `fingerprint_changed`.
 ## Agent loop (thin)
 
 ```text
-ligh_perceive
-  → pick affordance
-ligh_attempt(intent=tap, id=…, expect={see_id:…})
-  → if !intent_met: read evidence.hypotheses → fix Swift → rebuild
-  → repeat
+ligh_perceive → read feel.salience / feel.suggest
+  → prefer host exercise / app-job when steps are known
+  → else ligh_attempt(intent=tap, id|label=…, expect={…})
+  → if !intent_met: evidence.hypotheses → fix Swift → rebuild
 ```
+
+Do **not** ask the LLM to “read the UX graph and navigate” — that path was disproven. Feel IR is the live frame; compiled replay / `exercise_app` is the zero-LLM path.
 
 One `attempt` replaces ~4–6 observe/tap/observe/guess turns.
 

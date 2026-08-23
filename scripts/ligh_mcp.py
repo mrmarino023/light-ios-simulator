@@ -159,6 +159,9 @@ def compact_qa_cap(raw: dict[str, Any]) -> dict[str, Any]:
         detail = data["detail"]
         if "perceive" in detail:
             base["perceive"] = detail["perceive"]
+        if "feel" in detail:
+            # Feel IR — compact host world model (prefer over raw affordance dumps).
+            base["feel"] = detail["feel"]
         if "verdict" in detail:
             v = detail["verdict"]
             base["intent_met"] = v.get("intent_met")
@@ -545,7 +548,7 @@ TOOLS = [
     },
     {
         "name": "ligh_perceive",
-        "description": "QA layer (preferred): settled world model — fingerprint, typed affordances, blocking overlay.",
+        "description": "QA layer: settled world model + Feel IR (place/salience/block/delta). Prefer feel for planning.",
         "inputSchema": {
             "type": "object",
             "properties": {"settle_ms": {"type": "integer", "default": 2500}},

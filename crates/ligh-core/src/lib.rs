@@ -4,6 +4,7 @@ pub mod config;
 pub mod control;
 pub mod device;
 pub mod error;
+pub mod feel;
 pub mod observe;
 pub mod profile;
 pub mod qa;
@@ -25,6 +26,10 @@ pub use observe::{
     is_editable_role, is_transition_sparse, node_viewport_hittable, rank_candidates,
     AccessibilityTree, FrameMeta, ObserveSnapshot, SceneMeta, SenseEvent, ACTIONABLE_TOPK,
     OBSERVE_SCHEMA_VERSION,
+};
+pub use feel::{
+    build_feel, feel_agent_view, suggest_act, FeelBlock, FeelDelta, FeelIR, FeelMeta, FeelPhase,
+    FeelPlace, FeelSuggestedAct, SalienceItem, FEEL_SCHEMA_VERSION,
 };
 pub use qa::{
     build_perceive, evaluate_attempt, fingerprint_of, infer_affordances, parse_expectation,

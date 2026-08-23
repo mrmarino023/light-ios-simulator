@@ -4,8 +4,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use ligh_core::{
-    build_perceive, evaluate_attempt, overlay_from_snapshot, parse_expectation, CapabilityResult,
-    Expectation, FaultClass, ObserveSnapshot, Overlay, PerceiveView, SessionPhase,
+    build_feel, build_perceive, evaluate_attempt, feel_agent_view, overlay_from_snapshot,
+    parse_expectation, CapabilityResult, Expectation, FaultClass, ObserveSnapshot, Overlay,
+    PerceiveView, SessionPhase,
 };
 use ligh_host::{AxDump, HidInput};
 use serde_json::json;
@@ -40,12 +41,16 @@ pub(crate) fn cap_perceive(
         .clone()
         .unwrap_or_else(|| settle_eyes(build, settle_ms));
     let view = perceive_from_snap(&snap);
+    let feel = build_feel(&view, &snap, None, Some(settle_ms));
     ux_persist_perceive(workspace, &view);
     CapabilityResult::success(
         phase_of(&snap),
         surface_of(&snap),
         "perceive",
-        json!({ "perceive": view }),
+        json!({
+            "perceive": view,
+            "feel": feel_agent_view(&feel),
+        }),
         Some(snap),
     )
 }
@@ -115,6 +120,12 @@ pub(crate) fn cap_attempt(
     );
     let pre_view = build_perceive(&pre, &pre.events);
     ux_persist_attempt(workspace, &pre_view, &verdict, label, id, text);
+    let feel_after = build_feel(
+        &verdict.perceive_after,
+        &post,
+        Some(pre_view.location.fingerprint.as_str()),
+        Some(settle_ms),
+    );
 
     let fault = if verdict.intent_met {
         FaultClass::Ok
@@ -131,6 +142,7 @@ pub(crate) fn cap_attempt(
             "attempt",
             json!({
                 "verdict": verdict,
+                "feel": feel_agent_view(&feel_after),
                 "motor_detail": motor.detail,
             }),
             Some(post),
@@ -143,6 +155,7 @@ pub(crate) fn cap_attempt(
             "attempt",
             json!({
                 "verdict": verdict,
+                "feel": feel_agent_view(&feel_after),
                 "motor_detail": motor.detail,
                 "motor_fault": motor.fault.as_str(),
             }),

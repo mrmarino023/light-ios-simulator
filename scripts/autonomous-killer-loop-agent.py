@@ -24,7 +24,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 from killer_loop_task import load_task, list_swift_sources, safe_source_path  # noqa: E402
-from killer_loop_verify import establish_initial_state, strict_verify  # noqa: E402
+from killer_loop_verify import establish_initial_state, run_steps, strict_verify  # noqa: E402
 from ligh_mcp import call_tool, ligh_result_path  # noqa: E402
 
 ARM = os.environ.get("LIGH_KILLER_ARM", "ligh").lower()
@@ -45,21 +45,21 @@ def system_prompt() -> str:
         ui = """UI control: screenshot + vision coordinates ONLY (no accessibility tree for planning).
 Actions: screenshot, vision_tap, vision_type, dismiss (keyboard)."""
     elif ARM == "hybrid":
-        ui = """UI control: AX-first routed perceive (+ attempt/find/dismiss). Vision only on escalation.
-Actions: perceive, attempt, find, dismiss, vision_tap, vision_type (vision only when perceive returns channel=vision).
-perceive returns channel:
-  ax     — plan from affordances; use attempt (not vision_tap)
-  vision — screenshot attached; use vision_tap once, then perceive again
-  none   — bootstrap_app or fix session; do not spam screenshots"""
+        ui = """UI control: AX-first routed perceive (+ Feel IR). Vision only on escalation.
+Actions: perceive, exercise_app, attempt, find, dismiss, vision_tap, vision_type (vision only when channel=vision).
+perceive returns feel (place/salience/block) + channel ax|vision|none.
+Prefer exercise_app after bootstrap — host runs the flow; do not micro-tap with attempt unless debugging."""
     else:
-        ui = """UI control: perceive + attempt (+ find/dismiss). Use action name "attempt", not "ligh_attempt". No screenshots for planning."""
+        ui = """UI control: perceive (returns Feel IR) + exercise_app (+ attempt/find/dismiss if needed).
+Prefer feel.salience / feel.suggest over raw affordance dumps. No screenshots for planning.
+After bootstrap_app: call exercise_app (host-owned taps) then verify — do not hand-drive every tap."""
 
     return f"""You fix and verify a real iOS app on a Mac.
 
 Each turn reply with ONE JSON object.
 
 Code actions (both arms):
-  read_file, write_file, build_app, bootstrap_app, verify, done
+  read_file, write_file, build_app, bootstrap_app, exercise_app, verify, done
 
 {ui}
 
@@ -69,7 +69,7 @@ Swift sources (under frozen upstream tree):
 Rules:
 - Prefer a SURGICAL fix. Do not rewrite whole files, move enums, add typealiases, or redesign onboarding pages.
 - Look for the finish/dismiss path of onboarding (what should hide the overlay after the last step).
-- After build_app succeeds: bootstrap_app → exercise the flow with attempt taps → verify.
+- After build_app succeeds: bootstrap_app → exercise_app → verify.
 - Call verify before done. done triggers the same strict harness (setup → exercise → postconditions).
 - Seeing "Hello, world!" alone is NOT success if the onboarding overlay is still visible.
 Never ask the user questions."""
@@ -225,6 +225,22 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
         if action == "bootstrap_app":
             return bootstrap_app()
 
+        if action == "exercise_app":
+            # Host-owned exercise (Feel IR path): task verification steps, zero LLM taps.
+            ver = TASK.get("verification") or {}
+            setup = run_steps(ver.get("initial_setup") or [], "setup")
+            if not all(s.get("ok") for s in setup):
+                return {"ok": False, "phase": "setup", "setup_trace": setup, "host_owned": True}
+            exercise = run_steps(ver.get("exercise") or [], "exercise")
+            ok = all(s.get("ok") for s in exercise) if exercise else False
+            return {
+                "ok": ok,
+                "host_owned": True,
+                "setup_trace": setup,
+                "exercise_trace": exercise,
+                "suggestion": "Call verify next — host already exercised the flow.",
+            }
+
         if action == "perceive":
             settle = act.get("settle_ms") or 2500
             if ARM == "hybrid":
@@ -317,7 +333,7 @@ def summarize_trace(trace: list[dict[str, Any]]) -> dict[str, Any]:
             code_changes.append({"path": res.get("path"), "bytes": res.get("bytes"), "preview": res.get("preview")})
         if name == "build_app":
             builds += 1
-        if name in ("perceive", "attempt", "screenshot", "vision_tap") and row.get("step"):
+        if name in ("perceive", "attempt", "screenshot", "vision_tap", "exercise_app") and row.get("step"):
             verifications += 1
         if name == "perceive" and res.get("channel"):
             ch = str(res.get("channel"))

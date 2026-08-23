@@ -59,11 +59,11 @@ Frozen onboarding bug (same task, same prompt; agent never sees `ground-truth.js
 
 | Arm | Pass | Wall | LLM tokens |
 |-----|------|------|------------|
-| **LIGH (AX)** | yes | **~177 s** | **~64k** |
+| **LIGH (AX + Feel IR / host exercise)** | yes | **~86 s** | **~27k** |
 | Vision baseline | yes | ~204 s | ~73k |
 | Hybrid (AX→vision) | no | ~334 s | ~402k |
 
-On this run LIGH beat vision on wall time and tokens. Hybrid thrash-failed on the Swift fix (not a motor regression). Evidence: [`docs/assets/killer-loop-ab-latest.json`](docs/assets/killer-loop-ab-latest.json).
+Latest LIGH run: surgical fix → `exercise_app` (host-owned) → verify in **6 steps**. Feel IR + host exercise cut wall time ~2× and tokens ~2.4× vs the prior LIGH arm (~177 s / ~64k). Hybrid thrash-failed on the Swift fix (not a motor regression). Evidence: [`docs/assets/killer-loop-ab-latest.json`](docs/assets/killer-loop-ab-latest.json) · [`killer-loop-ligh-latest.json`](docs/assets/killer-loop-ligh-latest.json).
 
 Reproduce: `./scripts/gate-killer-loop.sh` · `LIGH_KILLER_AB_HYBRID=1 ./scripts/gate-killer-loop-ab.sh` (needs `OPENAI_API_KEY`).
 
