@@ -106,7 +106,7 @@ cp scripts/wda.env.example ~/.ligh/wda.env
 # set UDID, bundle id, Apple team id
 ```
 
-4. **Appium** (keep it running; do not `pkill appium` mid-prove):
+5. **Appium** (keep it running; do not `pkill appium` mid-prove):
 
 ```bash
 ./scripts/start-appium-wda.sh
@@ -115,7 +115,7 @@ APPIUM_HOME=.appium ./node_modules/.bin/appium \
   --address 127.0.0.1 --port 4723 --relaxed-security
 ```
 
-5. **Daemon + wait:**
+6. **Daemon + wait:**
 
 ```bash
 ./target/release/lighd &
