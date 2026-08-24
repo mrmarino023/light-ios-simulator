@@ -58,6 +58,11 @@ fn looks_like_springboard(snap: &ObserveSnapshot) -> bool {
     if detect_surface(&nodes) == "springboard" {
         return true;
     }
+    // A real app owns the tree: whatever its layout looks like, this is not the home
+    // grid. Without this, any list-of-buttons screen trips the icon-count heuristic.
+    if ligh_core::foreground_app_label(&nodes).is_some() {
+        return false;
+    }
     let has_spotlight = nodes.iter().any(|n| {
         n.get("identifier").and_then(|v| v.as_str()) == Some("spotlight-pill")
             || node_label(n).map(|l| l.eq_ignore_ascii_case("cerca") || l.eq_ignore_ascii_case("search"))
@@ -85,7 +90,10 @@ fn only_app_icon_on_home(snap: &ObserveSnapshot, app_label: &str) -> bool {
         return false;
     }
     ax_nodes(snap).iter().any(|n| {
-        node_label(n).map(|l| l.eq_ignore_ascii_case(app_label)).unwrap_or(false)
+        // The app's own AXApplication node carries the same label as its icon.
+        let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+        !role.contains("Application")
+            && node_label(n).map(|l| l.eq_ignore_ascii_case(app_label)).unwrap_or(false)
     })
 }
 

@@ -1,0 +1,63 @@
+{
+  "gate": "killer_loop_ab_v2",
+  "claim": "Host-driven UI makes the autonomous loop \u22653.0\u00d7 faster than vision and passes",
+  "protocol": "honest",
+  "protocol_version": 2,
+  "task": "login-never-navigates",
+  "task_file": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/login-never-navigates/task.json",
+  "held_identical": [
+    "task + injected bug",
+    "strict harness verifier",
+    "model + step budget",
+    "failure nudges (modality-neutral)",
+    "acceptance target given to both arms"
+  ],
+  "only_difference": "arm A: host discovers and drives the path (0 tokens). arm B: LLM drives every tap via vision.",
+  "arms": {
+    "autopilot": {
+      "runs": 1,
+      "passes": 1,
+      "median_wall_ms": 41862,
+      "median_tokens": 9034,
+      "median_builds": 1,
+      "median_patches": 1,
+      "top1_acceptance": 1.0,
+      "accepted_at_patch": [
+        1
+      ],
+      "llm_drove_ui": false,
+      "false_success": false,
+      "reasons": [
+        "verified"
+      ]
+    },
+    "baseline": {
+      "runs": 1,
+      "passes": 1,
+      "median_wall_ms": 152391,
+      "median_tokens": 67040,
+      "median_builds": 1,
+      "median_patches": 1,
+      "top1_acceptance": 1.0,
+      "accepted_at_patch": [
+        1
+      ],
+      "llm_drove_ui": true,
+      "false_success": false,
+      "reasons": [
+        "verified"
+      ]
+    }
+  },
+  "speedup_vs_vision": 3.64,
+  "token_ratio_vs_vision": 7.42,
+  "speedup_target": 3.0,
+  "verdict": {
+    "autopilot_passed_all": true,
+    "speedup_met": true,
+    "autopilot_never_drove_ui": true,
+    "no_false_success": true
+  },
+  "claim_pass": true,
+  "interpretation": "Published regardless of outcome. Speedup without a pass is not a win; top1_acceptance decides whether speculative multi-patch turns are worth building."
+}

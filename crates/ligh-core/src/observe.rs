@@ -237,6 +237,25 @@ impl ObserveSnapshot {
 }
 
 /// Status-bar / Spotlight / chrome that must not drive agent policy.
+/// Label of the app that owns the AX tree, when it is not SpringBoard itself.
+/// Decisive signal that a real app is foreground, whatever its content looks like.
+pub fn foreground_app_label(nodes: &[serde_json::Value]) -> Option<String> {
+    nodes.iter().find_map(|n| {
+        let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+        if !role.contains("Application") {
+            return None;
+        }
+        let label = n
+            .get("label")
+            .and_then(|v| v.as_str())
+            .or_else(|| n.get("text").and_then(|v| v.as_str()))?;
+        if label.is_empty() || label.eq_ignore_ascii_case("springboard") {
+            return None;
+        }
+        Some(label.to_string())
+    })
+}
+
 pub fn is_chrome_node(n: &serde_json::Value) -> bool {
     let id = n
         .get("identifier")
@@ -403,22 +422,33 @@ pub fn detect_surface(nodes: &[serde_json::Value]) -> &'static str {
     if has("safari") && (has("messaggi") || has("messages")) && app_icons >= 2 {
         return "springboard";
     }
-    // Home grid: many hittable icon-sized buttons in the upper screen.
-    let grid_icons = nodes
-        .iter()
-        .filter(|n| {
-            let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
-            role.contains("Button")
-                && n.get("hittable").and_then(|v| v.as_bool()).unwrap_or(false)
-                && n.get("frame")
-                    .and_then(|f| f.get("y"))
-                    .and_then(|y| y.as_f64())
-                    .map(|y| y < 650.0)
-                    .unwrap_or(false)
-        })
-        .count();
-    if grid_icons >= 6 {
-        return "springboard";
+    // Home grid: many hittable icon-sized buttons in the upper screen. Weak signal —
+    // a list-of-buttons app looks identical, so require that no foreground app owns
+    // the tree and that the buttons carry no accessibility identifier (home icons
+    // never do, app content usually does).
+    if foreground_app_label(nodes).is_none() {
+        let grid_icons = nodes
+            .iter()
+            .filter(|n| {
+                let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+                let has_ident = n
+                    .get("identifier")
+                    .and_then(|v| v.as_str())
+                    .map(|s| !s.is_empty())
+                    .unwrap_or(false);
+                role.contains("Button")
+                    && !has_ident
+                    && n.get("hittable").and_then(|v| v.as_bool()).unwrap_or(false)
+                    && n.get("frame")
+                        .and_then(|f| f.get("y"))
+                        .and_then(|y| y.as_f64())
+                        .map(|y| y < 650.0)
+                        .unwrap_or(false)
+            })
+            .count();
+        if grid_icons >= 6 {
+            return "springboard";
+        }
     }
 
     if is_transition_sparse(nodes) {
@@ -1307,6 +1337,28 @@ mod tests {
             json!({"label":"OnboardingDemo","role":"AXButton","hittable":true,"enabled":true,"frame":{"x":120,"y":180,"width":64,"height":86}}),
         ];
         assert_eq!(detect_surface(&nodes), "springboard");
+    }
+
+    #[test]
+    fn button_dense_app_is_not_springboard() {
+        let mut nodes = vec![json!({
+            "label": "LighFeed",
+            "role": "AXApplication",
+            "hittable": true,
+            "enabled": true
+        })];
+        nodes.extend((1..=16).map(|i| {
+            json!({
+                "label": format!("Post {i}"),
+                "identifier": format!("post-{i}"),
+                "role": "AXButton",
+                "hittable": true,
+                "enabled": true,
+                "frame": {"x":40,"y":120 + i * 30,"width":80,"height":24}
+            })
+        }));
+        assert_eq!(foreground_app_label(&nodes).as_deref(), Some("LighFeed"));
+        assert_eq!(detect_surface(&nodes), "app");
     }
 
     #[test]

@@ -1,0 +1,50 @@
+{
+  "app_id": "lighfeed",
+  "app": "LighFeed",
+  "flow_shape": "list_drill_down",
+  "goal_id": "PostDetail",
+  "reached": true,
+  "ok": true,
+  "steps": 1,
+  "wall_ms": 10158,
+  "pilot_ms": 10087,
+  "llm_tokens": 0,
+  "spec_inputs": {
+    "goal_id": "PostDetail",
+    "params": 0
+  },
+  "stop_code": null,
+  "diagnosis": null,
+  "trace": [
+    {
+      "act": {
+        "id": "post-1",
+        "intent": "tap",
+        "kind": "button",
+        "label": "Post 1",
+        "reason": "salience rank 1 (Button)",
+        "stop_code": null,
+        "text": null
+      },
+      "changed": true,
+      "fired": true,
+      "fp": "fp_7587f6aae345346f",
+      "fp_after": "fp_3878c6cafe950b2d",
+      "ms": 596,
+      "step": 1
+    },
+    {
+      "act": {
+        "id": null,
+        "intent": "stop",
+        "kind": null,
+        "label": null,
+        "reason": "acceptance target PostDetail present",
+        "stop_code": "goal_visible",
+        "text": null
+      },
+      "fp": "fp_3878c6cafe950b2d",
+      "step": 2
+    }
+  ]
+}

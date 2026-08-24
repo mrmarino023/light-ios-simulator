@@ -1,0 +1,101 @@
+{
+  "app_id": "lighonboard",
+  "app": "LighOnboard",
+  "flow_shape": "multi_step_wizard",
+  "goal_id": "HomeReady",
+  "reached": true,
+  "ok": true,
+  "steps": 4,
+  "wall_ms": 17099,
+  "pilot_ms": 17030,
+  "llm_tokens": 0,
+  "spec_inputs": {
+    "goal_id": "HomeReady",
+    "params": 1
+  },
+  "stop_code": null,
+  "diagnosis": null,
+  "trace": [
+    {
+      "act": {
+        "id": "OnboardContinue",
+        "intent": "tap",
+        "kind": "primary_button",
+        "label": "Continue",
+        "reason": "salience rank 1 (PrimaryButton)",
+        "stop_code": null,
+        "text": null
+      },
+      "changed": true,
+      "fired": true,
+      "fp": "fp_ab0895f8ab1dcb92",
+      "fp_after": "fp_6773b114c7c21f15",
+      "ms": 2493,
+      "step": 1
+    },
+    {
+      "act": {
+        "id": "OnboardNameField",
+        "intent": "type",
+        "kind": "text_field",
+        "label": null,
+        "reason": "fill TextField (param 1 of class)",
+        "stop_code": null,
+        "text": "pilot"
+      },
+      "changed": false,
+      "fired": true,
+      "fp": "fp_6773b114c7c21f15",
+      "fp_after": "fp_6773b114c7c21f15",
+      "ms": 3070,
+      "step": 2
+    },
+    {
+      "act": {
+        "id": "OnboardNext",
+        "intent": "tap",
+        "kind": "primary_button",
+        "label": "Next",
+        "reason": "salience rank 2 (PrimaryButton)",
+        "stop_code": null,
+        "text": null
+      },
+      "changed": true,
+      "fired": true,
+      "fp": "fp_6773b114c7c21f15",
+      "fp_after": "fp_4cf50893082415a3",
+      "ms": 1861,
+      "step": 3
+    },
+    {
+      "act": {
+        "id": "OnboardFinish",
+        "intent": "tap",
+        "kind": "button",
+        "label": "Finish",
+        "reason": "salience rank 1 (Button)",
+        "stop_code": null,
+        "text": null
+      },
+      "changed": true,
+      "fired": true,
+      "fp": "fp_4cf50893082415a3",
+      "fp_after": "fp_2b03c8b62402be70",
+      "ms": 297,
+      "step": 4
+    },
+    {
+      "act": {
+        "id": null,
+        "intent": "stop",
+        "kind": null,
+        "label": null,
+        "reason": "acceptance target HomeReady present",
+        "stop_code": "goal_visible",
+        "text": null
+      },
+      "fp": "fp_2b03c8b62402be70",
+      "step": 5
+    }
+  ]
+}

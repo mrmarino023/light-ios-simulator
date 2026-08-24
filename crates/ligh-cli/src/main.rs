@@ -437,6 +437,34 @@ enum CapCommands {
         #[arg(long = "launch-arg")]
         launch_args: Vec<String>,
     },
+    /// Autopilot: host drives the UI to a goal. No step list — the path is discovered.
+    Autopilot {
+        #[arg(long)]
+        app: Option<String>,
+        #[arg(long)]
+        bundle_id: Option<String>,
+        /// Acceptance target: accessibility identifier.
+        #[arg(long)]
+        goal_id: Option<String>,
+        /// Acceptance target: visible label.
+        #[arg(long)]
+        goal_label: Option<String>,
+        /// Typed datum for text fields, `value` or `secure:value`. Repeatable.
+        #[arg(long = "param")]
+        params: Vec<String>,
+        #[arg(long, default_value_t = 24)]
+        max_steps: u32,
+        #[arg(long)]
+        workspace: Option<String>,
+        #[arg(long, default_value_t = 1500)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 8000)]
+        timeout_ms: u64,
+        #[arg(long, default_value_t = false)]
+        no_install: bool,
+        #[arg(long = "launch-arg")]
+        launch_args: Vec<String>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -1436,6 +1464,49 @@ fn main() -> anyhow::Result<()> {
                         bundle_id,
                         setup: setup_p,
                         postconditions: post_p,
+                        settle_ms: Some(settle_ms),
+                        timeout_ms: Some(timeout_ms),
+                        install: Some(!no_install),
+                        launch_args: if launch_args.is_empty() {
+                            None
+                        } else {
+                            Some(launch_args)
+                        },
+                    }
+                },
+                CapCommands::Autopilot {
+                    app,
+                    bundle_id,
+                    goal_id,
+                    goal_label,
+                    params,
+                    max_steps,
+                    workspace,
+                    settle_ms,
+                    timeout_ms,
+                    no_install,
+                    launch_args,
+                } => {
+                    if goal_id.is_none() && goal_label.is_none() {
+                        anyhow::bail!("autopilot needs --goal-id or --goal-label");
+                    }
+                    let parsed: Vec<serde_json::Value> = params
+                        .iter()
+                        .map(|p| match p.strip_prefix("secure:") {
+                            Some(v) => serde_json::json!({ "value": v, "secure": true }),
+                            None => serde_json::json!({ "value": p, "secure": false }),
+                        })
+                        .collect();
+                    DaemonRequest::Autopilot {
+                        app,
+                        bundle_id,
+                        goal: serde_json::json!({
+                            "target_id": goal_id,
+                            "target_label": goal_label,
+                            "params": parsed,
+                        }),
+                        max_steps: Some(max_steps),
+                        workspace,
                         settle_ms: Some(settle_ms),
                         timeout_ms: Some(timeout_ms),
                         install: Some(!no_install),

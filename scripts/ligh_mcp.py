@@ -172,6 +172,57 @@ def compact_qa_cap(raw: dict[str, Any]) -> dict[str, Any]:
     return base
 
 
+def compact_autopilot(raw: dict[str, Any]) -> dict[str, Any]:
+    """Autopilot verdict for a code-fixing agent: outcome + why, no AX dump.
+
+    On failure the agent gets a semantic diagnosis and (when known) the source file
+    correlated with the failing screen — evidence to fix code, not a bare timeout.
+    """
+    base = compact_cap(raw)
+    detail = base.get("detail")
+    if not isinstance(detail, dict):
+        return base
+    out: dict[str, Any] = {
+        "ok": bool(base.get("ok")),
+        "fault": base.get("fault"),
+        "reached": bool(detail.get("reached")),
+        "goal": detail.get("goal"),
+        "steps": detail.get("steps"),
+        "elapsed_ms": detail.get("elapsed_ms"),
+        "llm_tokens": detail.get("llm_tokens", 0),
+    }
+    # The pilot can die before it ever plans (install/launch). Surface that as infra,
+    # so the agent does not read an environment failure as a bug in its own patch.
+    if "reached" not in detail:
+        inner = detail.get("detail") if isinstance(detail.get("detail"), dict) else {}
+        out["stage"] = detail.get("stage") or inner.get("step")
+        err = inner.get("error") or inner.get("detail") or detail.get("error")
+        if err:
+            out["error"] = err if isinstance(err, str) else str(err)[:400]
+        out["host_error"] = True
+        return out
+    if detail.get("diagnosis"):
+        out["diagnosis"] = detail["diagnosis"]
+    if detail.get("source_hint"):
+        out["source_hint"] = detail["source_hint"]
+    if detail.get("stop_code"):
+        out["stop_code"] = detail["stop_code"]
+    # Trace stays short: what was driven, not every observation.
+    trace = detail.get("trace")
+    if isinstance(trace, list):
+        out["trace"] = [
+            {
+                "step": t.get("step"),
+                "intent": (t.get("act") or {}).get("intent"),
+                "target": (t.get("act") or {}).get("id") or (t.get("act") or {}).get("label"),
+                "fired": t.get("fired"),
+                "changed": t.get("changed"),
+            }
+            for t in trace
+        ]
+    return out
+
+
 def ligh_result_path(raw: dict[str, Any]) -> str | None:
     """Extract a filesystem path from nested ligh() / call_tool responses."""
     if raw.get("path"):
@@ -509,6 +560,39 @@ TOOLS = [
         },
     },
     {
+        "name": "ligh_cap_autopilot",
+        "description": (
+            "Host drives the UI to a goal and verifies it — zero LLM tokens, path discovered "
+            "at runtime from Feel IR. Give the acceptance target and any data the flow needs; "
+            "never a step list. On failure returns a semantic diagnosis plus source_hint."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "app": {"type": "string", "description": "Absolute path to .app (installs + launches)"},
+                "bundle_id": {"type": "string"},
+                "goal_id": {"type": "string", "description": "Acceptance target: accessibility identifier"},
+                "goal_label": {"type": "string", "description": "Acceptance target: visible label"},
+                "params": {
+                    "type": "array",
+                    "description": "Data for text fields, in form order: [{value, secure}]",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "value": {"type": "string"},
+                            "secure": {"type": "boolean", "default": False},
+                        },
+                        "required": ["value"],
+                    },
+                },
+                "max_steps": {"type": "integer", "default": 24},
+                "workspace": {"type": "string"},
+                "settle_ms": {"type": "integer", "default": 1500},
+                "timeout_ms": {"type": "integer", "default": 8000},
+            },
+        },
+    },
+    {
         "name": "ligh_cap_wait_label",
         "description": "Capability: settle → wait until AX label exists (app chrome).",
         "inputSchema": {
@@ -789,6 +873,35 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
         if args.get("wait_label"):
             cmd += ["--wait-label", str(args["wait_label"])]
         return ligh(*cmd, timeout=180)
+    if name == "ligh_cap_autopilot":
+        goal_id = str(args.get("goal_id") or "")
+        goal_label = str(args.get("goal_label") or "")
+        if not goal_id and not goal_label:
+            return {"ok": False, "fault": "infra", "error": "need goal_id or goal_label"}
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 1500)
+        to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 8000)
+        st = str(args.get("max_steps") if args.get("max_steps") is not None else 24)
+        cmd = [
+            "--json", "cap", "autopilot",
+            "--max-steps", st, "--settle-ms", ms, "--timeout-ms", to,
+        ]
+        if goal_id:
+            cmd += ["--goal-id", goal_id]
+        if goal_label:
+            cmd += ["--goal-label", goal_label]
+        for p in args.get("params") or []:
+            if isinstance(p, dict):
+                val = str(p.get("value") or "")
+                cmd += ["--param", f"secure:{val}" if p.get("secure") else val]
+            else:
+                cmd += ["--param", str(p)]
+        if args.get("app"):
+            cmd += ["--app", str(args["app"])]
+        if args.get("bundle_id"):
+            cmd += ["--bundle-id", str(args["bundle_id"])]
+        if args.get("workspace"):
+            cmd += ["--workspace", str(args["workspace"])]
+        return compact_autopilot(ligh(*cmd, timeout=420))
     if name == "ligh_cap_wait_label":
         lab = str(args.get("label") or "")
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)

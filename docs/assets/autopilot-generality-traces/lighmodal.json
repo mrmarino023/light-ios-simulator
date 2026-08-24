@@ -1,0 +1,481 @@
+{
+  "capability": "autopilot",
+  "detail": {
+    "elapsed_ms": 12518,
+    "goal": {
+      "target_id": "ModalConfirmed",
+      "target_label": null
+    },
+    "llm_tokens": 0,
+    "reached": true,
+    "steps": 2,
+    "trace": [
+      {
+        "act": {
+          "id": "OpenSheet",
+          "intent": "tap",
+          "kind": "button",
+          "label": "OpenSheet",
+          "reason": "salience rank 1 (Button)",
+          "stop_code": null,
+          "text": null
+        },
+        "changed": true,
+        "fired": true,
+        "fp": "fp_f09fd088f763b6c0",
+        "fp_after": "fp_ba2d47f0d2002f52",
+        "ms": 370,
+        "step": 1
+      },
+      {
+        "act": {
+          "id": "ConfirmAction",
+          "intent": "tap",
+          "kind": "button",
+          "label": "ConfirmAction",
+          "reason": "salience rank 1 (Button)",
+          "stop_code": null,
+          "text": null
+        },
+        "changed": true,
+        "fired": true,
+        "fp": "fp_ba2d47f0d2002f52",
+        "fp_after": "fp_df7dcce197701e0c",
+        "ms": 808,
+        "step": 2
+      },
+      {
+        "act": {
+          "id": null,
+          "intent": "stop",
+          "kind": null,
+          "label": null,
+          "reason": "acceptance target ModalConfirmed present",
+          "stop_code": "goal_visible",
+          "text": null
+        },
+        "fp": "fp_f81deb774bb59cc5",
+        "step": 3
+      }
+    ]
+  },
+  "fault": "ok",
+  "observe": {
+    "accessibility_tree": {
+      "element_count": 5,
+      "nodes": [
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 852,
+            "width": 393,
+            "x": 0,
+            "y": 0
+          },
+          "hittable": true,
+          "id": "nb4c18047",
+          "label": "LighModal",
+          "path_id": "n13d267c7",
+          "role": "AXApplication",
+          "selected": false,
+          "text": "LighModal",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.16539440203562342,
+            "y": 0.1428012519561815
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 40.66666666666667,
+            "width": 98,
+            "x": 16,
+            "y": 101.33333333333331
+          },
+          "hittable": true,
+          "id": "n5c2a0777",
+          "label": "Modal",
+          "parent_id": "nb4c18047",
+          "path_id": "n38bbe510",
+          "role": "AXHeading",
+          "selected": false,
+          "text": "Modal",
+          "traits": "heading",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5041079812206573
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 40.666666666666686,
+            "width": 179.3333333333333,
+            "x": 106.83333333333334,
+            "y": 409.16666666666674
+          },
+          "hittable": true,
+          "id": "nfe9e249e",
+          "identifier": "ModalHome",
+          "label": "ModalHome",
+          "parent_id": "nb4c18047",
+          "path_id": "n1048c5cd",
+          "role": "AXStaticText",
+          "selected": false,
+          "text": "ModalHome",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5715962441314554
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 26.33333333333331,
+            "width": 159.66666666666663,
+            "x": 116.66666666666669,
+            "y": 473.83333333333337
+          },
+          "hittable": true,
+          "id": "n4c3154ec",
+          "identifier": "ModalConfirmed",
+          "label": "ModalConfirmed",
+          "parent_id": "nb4c18047",
+          "path_id": "ned544eea",
+          "role": "AXStaticText",
+          "selected": false,
+          "text": "ModalConfirmed",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5004240882103477,
+            "y": 0.6355633802816901
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 34.33333333333337,
+            "width": 110,
+            "x": 141.66666666666666,
+            "y": 524.3333333333333
+          },
+          "hittable": true,
+          "id": "n3d732473",
+          "identifier": "OpenSheet",
+          "label": "OpenSheet",
+          "parent_id": "nb4c18047",
+          "path_id": "nc496fc68",
+          "role": "AXButton",
+          "selected": false,
+          "text": "OpenSheet",
+          "traits": "button",
+          "visible": true
+        }
+      ],
+      "point_size": [
+        393.0,
+        852.0
+      ],
+      "root": {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "children": [
+          {
+            "center_norm": {
+              "x": 0.16539440203562342,
+              "y": 0.1428012519561815
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.66666666666667,
+              "width": 98,
+              "x": 16,
+              "y": 101.33333333333331
+            },
+            "hittable": true,
+            "id": "n5c2a0777",
+            "label": "Modal",
+            "parent_id": "nb4c18047",
+            "path_id": "n38bbe510",
+            "role": "AXHeading",
+            "selected": false,
+            "text": "Modal",
+            "traits": "heading",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5041079812206573
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.666666666666686,
+              "width": 179.3333333333333,
+              "x": 106.83333333333334,
+              "y": 409.16666666666674
+            },
+            "hittable": true,
+            "id": "nfe9e249e",
+            "identifier": "ModalHome",
+            "label": "ModalHome",
+            "parent_id": "nb4c18047",
+            "path_id": "n1048c5cd",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "ModalHome",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5715962441314554
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 26.33333333333331,
+              "width": 159.66666666666663,
+              "x": 116.66666666666669,
+              "y": 473.83333333333337
+            },
+            "hittable": true,
+            "id": "n4c3154ec",
+            "identifier": "ModalConfirmed",
+            "label": "ModalConfirmed",
+            "parent_id": "nb4c18047",
+            "path_id": "ned544eea",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "ModalConfirmed",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5004240882103477,
+              "y": 0.6355633802816901
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 34.33333333333337,
+              "width": 110,
+              "x": 141.66666666666666,
+              "y": 524.3333333333333
+            },
+            "hittable": true,
+            "id": "n3d732473",
+            "identifier": "OpenSheet",
+            "label": "OpenSheet",
+            "parent_id": "nb4c18047",
+            "path_id": "nc496fc68",
+            "role": "AXButton",
+            "selected": false,
+            "text": "OpenSheet",
+            "traits": "button",
+            "visible": true
+          }
+        ],
+        "children_ids": [
+          "n5c2a0777",
+          "nfe9e249e",
+          "n4c3154ec",
+          "n3d732473"
+        ],
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 852,
+          "width": 393,
+          "x": 0,
+          "y": 0
+        },
+        "hittable": true,
+        "id": "nb4c18047",
+        "label": "LighModal",
+        "path_id": "n13d267c7",
+        "role": "AXApplication",
+        "selected": false,
+        "text": "LighModal",
+        "visible": true
+      },
+      "status": "available"
+    },
+    "actionable_topk": [
+      {
+        "center_norm": {
+          "x": 0.5004240882103477,
+          "y": 0.6355633802816901
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 34.33333333333337,
+          "width": 110,
+          "x": 141.66666666666666,
+          "y": 524.3333333333333
+        },
+        "hittable": true,
+        "id": "n3d732473",
+        "identifier": "OpenSheet",
+        "label": "OpenSheet",
+        "parent_id": "nb4c18047",
+        "role": "AXButton",
+        "selected": false,
+        "text": "OpenSheet",
+        "traits": "button",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.16539440203562342,
+          "y": 0.1428012519561815
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 40.66666666666667,
+          "width": 98,
+          "x": 16,
+          "y": 101.33333333333331
+        },
+        "hittable": true,
+        "id": "n5c2a0777",
+        "label": "Modal",
+        "parent_id": "nb4c18047",
+        "role": "AXHeading",
+        "selected": false,
+        "text": "Modal",
+        "traits": "heading",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5041079812206573
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 40.666666666666686,
+          "width": 179.3333333333333,
+          "x": 106.83333333333334,
+          "y": 409.16666666666674
+        },
+        "hittable": true,
+        "id": "nfe9e249e",
+        "identifier": "ModalHome",
+        "label": "ModalHome",
+        "parent_id": "nb4c18047",
+        "role": "AXStaticText",
+        "selected": false,
+        "text": "ModalHome",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5715962441314554
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 26.33333333333331,
+          "width": 159.66666666666663,
+          "x": 116.66666666666669,
+          "y": 473.83333333333337
+        },
+        "hittable": true,
+        "id": "n4c3154ec",
+        "identifier": "ModalConfirmed",
+        "label": "ModalConfirmed",
+        "parent_id": "nb4c18047",
+        "role": "AXStaticText",
+        "selected": false,
+        "text": "ModalConfirmed",
+        "visible": true
+      }
+    ],
+    "app_bundle_id": "dev.ligh.Modal",
+    "ax_quality": "ready",
+    "booted": true,
+    "events": [
+      {
+        "kind": "navigated",
+        "payload": {
+          "from": null,
+          "to": "Modal"
+        },
+        "t": 1787558132.054383
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_tap",
+          "detail": {
+            "method": "hid_tap",
+            "target": "OpenSheet",
+            "verified": true
+          },
+          "ok": true
+        },
+        "t": 1787558130.776026
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_tap",
+          "detail": {
+            "method": "ax_press_id",
+            "target": "ConfirmAction",
+            "verified": true
+          },
+          "ok": true
+        },
+        "t": 1787558131.625374
+      }
+    ],
+    "eyes_unusable": false,
+    "frame": {
+      "fps": 52.407851036515986,
+      "h": 2556,
+      "id": 785,
+      "imports_ok": true,
+      "w": 1179
+    },
+    "observe_ms": 0.00033299999999999996,
+    "overlay": "none",
+    "path": "lighd",
+    "phase": "ready",
+    "scene": {
+      "bundle_id": "dev.ligh.Modal",
+      "keyboard_visible": false,
+      "screen_title": "Modal",
+      "surface": "app"
+    },
+    "schema_version": 2,
+    "settled": true,
+    "simulator_app_running": false,
+    "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+  },
+  "ok": true,
+  "overlay": "none",
+  "phase": "ready",
+  "surface": "app"
+}

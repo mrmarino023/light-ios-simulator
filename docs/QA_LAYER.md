@@ -10,9 +10,11 @@ LIGH’s product wedge for coding agents is not raw `tap`/`observe`. It is **ver
 | `ligh_attempt` | `ligh cap attempt tap …` | `tap` + `observe` + guess |
 | `ligh_find` | `ligh cap find --label …` | `scroll-until` + retries |
 | `ligh_dismiss` | `ligh cap dismiss` | ad-hoc keyboard/alert handling |
+| `ligh_cap_autopilot` | `ligh cap autopilot` | the complete LLM-driven UI loop |
 | `ligh_cap_app_job` | `ligh cap app-job` | CI acceptance (known steps) |
 
-Low-level `ligh_tap` / `ligh_observe` remain for debugging. **Agents should plan with perceive + attempt.**
+Low-level `ligh_tap` / `ligh_observe` remain for debugging. Coding agents should
+prefer one `autopilot` call; `perceive + attempt` remains the interactive fallback.
 
 ## Perceive (world model + Feel IR)
 
@@ -49,16 +51,31 @@ Intents: `tap`, `type`, `key`.
 
 Expect JSON keys: `see_id`, `see_label`, `surface`, `fingerprint_changed`.
 
-## Agent loop (thin)
+## Autopilot (goal → host-discovered path)
 
-```text
-ligh_perceive → read feel.salience / feel.suggest
-  → prefer host exercise / app-job when steps are known
-  → else ligh_attempt(intent=tap, id|label=…, expect={…})
-  → if !intent_met: evidence.hypotheses → fix Swift → rebuild
+```bash
+ligh --json cap autopilot \
+  --app build/MyApp.app --bundle-id com.example.MyApp \
+  --goal-id homeTitle \
+  --param alice --param secure:secret
 ```
 
-Do **not** ask the LLM to “read the UX graph and navigate” — that path was disproven. Feel IR is the live frame; compiled replay / `exercise_app` is the zero-LLM path.
+The input is the acceptance target plus typed data. There is deliberately no
+step-list argument. Rust repeatedly builds Feel IR, fills fields by kind, ranks
+safe controls, handles overlays, waits for async CTA transitions, and verifies
+the target. The response has `reached`, a compact trace and `llm_tokens: 0`.
+Failure returns a semantic `diagnosis` and an optional `source_hint`.
+
+## Coding-agent loop (thin)
+
+```text
+read Swift → write minimal patch → build → ligh_cap_autopilot
+  → reached: strict harness accepts immediately; stop
+  → not reached: diagnosis/source_hint → fix Swift; retry
+```
+
+Do **not** ask the LLM to “read the UX graph and navigate” — that path was
+disproven. Feel IR is the live frame; Autopilot consumes it inside the host.
 
 One `attempt` replaces ~4–6 observe/tap/observe/guess turns.
 

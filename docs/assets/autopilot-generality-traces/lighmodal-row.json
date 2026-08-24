@@ -1,0 +1,67 @@
+{
+  "app_id": "lighmodal",
+  "app": "LighModal",
+  "flow_shape": "sheet_overlay",
+  "goal_id": "ModalConfirmed",
+  "reached": true,
+  "ok": true,
+  "steps": 2,
+  "wall_ms": 12600,
+  "pilot_ms": 12518,
+  "llm_tokens": 0,
+  "spec_inputs": {
+    "goal_id": "ModalConfirmed",
+    "params": 0
+  },
+  "stop_code": null,
+  "diagnosis": null,
+  "trace": [
+    {
+      "act": {
+        "id": "OpenSheet",
+        "intent": "tap",
+        "kind": "button",
+        "label": "OpenSheet",
+        "reason": "salience rank 1 (Button)",
+        "stop_code": null,
+        "text": null
+      },
+      "changed": true,
+      "fired": true,
+      "fp": "fp_f09fd088f763b6c0",
+      "fp_after": "fp_ba2d47f0d2002f52",
+      "ms": 370,
+      "step": 1
+    },
+    {
+      "act": {
+        "id": "ConfirmAction",
+        "intent": "tap",
+        "kind": "button",
+        "label": "ConfirmAction",
+        "reason": "salience rank 1 (Button)",
+        "stop_code": null,
+        "text": null
+      },
+      "changed": true,
+      "fired": true,
+      "fp": "fp_ba2d47f0d2002f52",
+      "fp_after": "fp_df7dcce197701e0c",
+      "ms": 808,
+      "step": 2
+    },
+    {
+      "act": {
+        "id": null,
+        "intent": "stop",
+        "kind": null,
+        "label": null,
+        "reason": "acceptance target ModalConfirmed present",
+        "stop_code": "goal_visible",
+        "text": null
+      },
+      "fp": "fp_f81deb774bb59cc5",
+      "step": 3
+    }
+  ]
+}

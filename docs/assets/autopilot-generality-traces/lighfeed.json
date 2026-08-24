@@ -1,0 +1,451 @@
+{
+  "capability": "autopilot",
+  "detail": {
+    "elapsed_ms": 10087,
+    "goal": {
+      "target_id": "PostDetail",
+      "target_label": null
+    },
+    "llm_tokens": 0,
+    "reached": true,
+    "steps": 1,
+    "trace": [
+      {
+        "act": {
+          "id": "post-1",
+          "intent": "tap",
+          "kind": "button",
+          "label": "Post 1",
+          "reason": "salience rank 1 (Button)",
+          "stop_code": null,
+          "text": null
+        },
+        "changed": true,
+        "fired": true,
+        "fp": "fp_7587f6aae345346f",
+        "fp_after": "fp_3878c6cafe950b2d",
+        "ms": 596,
+        "step": 1
+      },
+      {
+        "act": {
+          "id": null,
+          "intent": "stop",
+          "kind": null,
+          "label": null,
+          "reason": "acceptance target PostDetail present",
+          "stop_code": "goal_visible",
+          "text": null
+        },
+        "fp": "fp_3878c6cafe950b2d",
+        "step": 2
+      }
+    ]
+  },
+  "fault": "ok",
+  "observe": {
+    "accessibility_tree": {
+      "element_count": 5,
+      "nodes": [
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 852,
+            "width": 393,
+            "x": 0,
+            "y": 0
+          },
+          "hittable": true,
+          "id": "n4aa8a72e",
+          "label": "LighFeed",
+          "path_id": "n88b1128e",
+          "role": "AXApplication",
+          "selected": false,
+          "text": "LighFeed",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.15776081424936386,
+            "y": 0.1428012519561815
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 40.66666666666667,
+            "width": 92,
+            "x": 16,
+            "y": 101.33333333333331
+          },
+          "hittable": true,
+          "id": "nec53a97d",
+          "label": "Detail",
+          "parent_id": "n4aa8a72e",
+          "path_id": "n1bf967fd",
+          "role": "AXHeading",
+          "selected": false,
+          "text": "Detail",
+          "traits": "heading",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5252347417840375
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 33.666666666666686,
+            "width": 123,
+            "x": 135,
+            "y": 430.66666666666663
+          },
+          "hittable": true,
+          "id": "n11b16081",
+          "identifier": "PostDetail",
+          "label": "PostDetail",
+          "parent_id": "n4aa8a72e",
+          "path_id": "nec70049a",
+          "role": "AXStaticText",
+          "selected": false,
+          "text": "PostDetail",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5757042253521126
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 20.33333333333331,
+            "width": 45.66666666666666,
+            "x": 173.66666666666669,
+            "y": 480.33333333333326
+          },
+          "hittable": true,
+          "id": "neaa27303",
+          "identifier": "PostDetailTitle",
+          "label": "Post 1",
+          "parent_id": "n4aa8a72e",
+          "path_id": "nc58ad43b",
+          "role": "AXStaticText",
+          "selected": false,
+          "text": "Post 1",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.6183489827856025
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 20.33333333333337,
+            "width": 93,
+            "x": 150,
+            "y": 516.6666666666666
+          },
+          "hittable": true,
+          "id": "n275427f0",
+          "identifier": "BackToFeed",
+          "label": "BackToFeed",
+          "parent_id": "n4aa8a72e",
+          "path_id": "n8119da09",
+          "role": "AXButton",
+          "selected": false,
+          "text": "BackToFeed",
+          "traits": "button",
+          "visible": true
+        }
+      ],
+      "point_size": [
+        393.0,
+        852.0
+      ],
+      "root": {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "children": [
+          {
+            "center_norm": {
+              "x": 0.15776081424936386,
+              "y": 0.1428012519561815
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.66666666666667,
+              "width": 92,
+              "x": 16,
+              "y": 101.33333333333331
+            },
+            "hittable": true,
+            "id": "nec53a97d",
+            "label": "Detail",
+            "parent_id": "n4aa8a72e",
+            "path_id": "n1bf967fd",
+            "role": "AXHeading",
+            "selected": false,
+            "text": "Detail",
+            "traits": "heading",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5252347417840375
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 33.666666666666686,
+              "width": 123,
+              "x": 135,
+              "y": 430.66666666666663
+            },
+            "hittable": true,
+            "id": "n11b16081",
+            "identifier": "PostDetail",
+            "label": "PostDetail",
+            "parent_id": "n4aa8a72e",
+            "path_id": "nec70049a",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "PostDetail",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5757042253521126
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 20.33333333333331,
+              "width": 45.66666666666666,
+              "x": 173.66666666666669,
+              "y": 480.33333333333326
+            },
+            "hittable": true,
+            "id": "neaa27303",
+            "identifier": "PostDetailTitle",
+            "label": "Post 1",
+            "parent_id": "n4aa8a72e",
+            "path_id": "nc58ad43b",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "Post 1",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.6183489827856025
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 20.33333333333337,
+              "width": 93,
+              "x": 150,
+              "y": 516.6666666666666
+            },
+            "hittable": true,
+            "id": "n275427f0",
+            "identifier": "BackToFeed",
+            "label": "BackToFeed",
+            "parent_id": "n4aa8a72e",
+            "path_id": "n8119da09",
+            "role": "AXButton",
+            "selected": false,
+            "text": "BackToFeed",
+            "traits": "button",
+            "visible": true
+          }
+        ],
+        "children_ids": [
+          "nec53a97d",
+          "n11b16081",
+          "neaa27303",
+          "n275427f0"
+        ],
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 852,
+          "width": 393,
+          "x": 0,
+          "y": 0
+        },
+        "hittable": true,
+        "id": "n4aa8a72e",
+        "label": "LighFeed",
+        "path_id": "n88b1128e",
+        "role": "AXApplication",
+        "selected": false,
+        "text": "LighFeed",
+        "visible": true
+      },
+      "status": "available"
+    },
+    "actionable_topk": [
+      {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.6183489827856025
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 20.33333333333337,
+          "width": 93,
+          "x": 150,
+          "y": 516.6666666666666
+        },
+        "hittable": true,
+        "id": "n275427f0",
+        "identifier": "BackToFeed",
+        "label": "BackToFeed",
+        "parent_id": "n4aa8a72e",
+        "role": "AXButton",
+        "selected": false,
+        "text": "BackToFeed",
+        "traits": "button",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.15776081424936386,
+          "y": 0.1428012519561815
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 40.66666666666667,
+          "width": 92,
+          "x": 16,
+          "y": 101.33333333333331
+        },
+        "hittable": true,
+        "id": "nec53a97d",
+        "label": "Detail",
+        "parent_id": "n4aa8a72e",
+        "role": "AXHeading",
+        "selected": false,
+        "text": "Detail",
+        "traits": "heading",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5252347417840375
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 33.666666666666686,
+          "width": 123,
+          "x": 135,
+          "y": 430.66666666666663
+        },
+        "hittable": true,
+        "id": "n11b16081",
+        "identifier": "PostDetail",
+        "label": "PostDetail",
+        "parent_id": "n4aa8a72e",
+        "role": "AXStaticText",
+        "selected": false,
+        "text": "PostDetail",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5757042253521126
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 20.33333333333331,
+          "width": 45.66666666666666,
+          "x": 173.66666666666669,
+          "y": 480.33333333333326
+        },
+        "hittable": true,
+        "id": "neaa27303",
+        "identifier": "PostDetailTitle",
+        "label": "Post 1",
+        "parent_id": "n4aa8a72e",
+        "role": "AXStaticText",
+        "selected": false,
+        "text": "Post 1",
+        "visible": true
+      }
+    ],
+    "app_bundle_id": "dev.ligh.Feed",
+    "ax_quality": "ready",
+    "booted": true,
+    "events": [
+      {
+        "kind": "navigated",
+        "payload": {
+          "from": null,
+          "to": "Detail"
+        },
+        "t": 1787558209.641607
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_tap",
+          "detail": {
+            "method": "hid_tap",
+            "target": "post-1",
+            "verified": true
+          },
+          "ok": true
+        },
+        "t": 1787558209.447121
+      }
+    ],
+    "eyes_unusable": false,
+    "frame": {
+      "fps": 49.6378768053867,
+      "h": 2556,
+      "id": 617,
+      "imports_ok": true,
+      "w": 1179
+    },
+    "observe_ms": 0.000292,
+    "overlay": "none",
+    "path": "lighd",
+    "phase": "ready",
+    "scene": {
+      "bundle_id": "dev.ligh.Feed",
+      "keyboard_visible": false,
+      "screen_title": "Detail",
+      "surface": "app"
+    },
+    "schema_version": 2,
+    "settled": true,
+    "simulator_app_running": false,
+    "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+  },
+  "ok": true,
+  "overlay": "none",
+  "phase": "ready",
+  "surface": "app"
+}

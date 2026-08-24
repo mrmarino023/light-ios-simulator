@@ -1,0 +1,465 @@
+{
+  "capability": "autopilot",
+  "detail": {
+    "elapsed_ms": 17030,
+    "goal": {
+      "target_id": "HomeReady",
+      "target_label": null
+    },
+    "llm_tokens": 0,
+    "reached": true,
+    "steps": 4,
+    "trace": [
+      {
+        "act": {
+          "id": "OnboardContinue",
+          "intent": "tap",
+          "kind": "primary_button",
+          "label": "Continue",
+          "reason": "salience rank 1 (PrimaryButton)",
+          "stop_code": null,
+          "text": null
+        },
+        "changed": true,
+        "fired": true,
+        "fp": "fp_ab0895f8ab1dcb92",
+        "fp_after": "fp_6773b114c7c21f15",
+        "ms": 2493,
+        "step": 1
+      },
+      {
+        "act": {
+          "id": "OnboardNameField",
+          "intent": "type",
+          "kind": "text_field",
+          "label": null,
+          "reason": "fill TextField (param 1 of class)",
+          "stop_code": null,
+          "text": "pilot"
+        },
+        "changed": false,
+        "fired": true,
+        "fp": "fp_6773b114c7c21f15",
+        "fp_after": "fp_6773b114c7c21f15",
+        "ms": 3070,
+        "step": 2
+      },
+      {
+        "act": {
+          "id": "OnboardNext",
+          "intent": "tap",
+          "kind": "primary_button",
+          "label": "Next",
+          "reason": "salience rank 2 (PrimaryButton)",
+          "stop_code": null,
+          "text": null
+        },
+        "changed": true,
+        "fired": true,
+        "fp": "fp_6773b114c7c21f15",
+        "fp_after": "fp_4cf50893082415a3",
+        "ms": 1861,
+        "step": 3
+      },
+      {
+        "act": {
+          "id": "OnboardFinish",
+          "intent": "tap",
+          "kind": "button",
+          "label": "Finish",
+          "reason": "salience rank 1 (Button)",
+          "stop_code": null,
+          "text": null
+        },
+        "changed": true,
+        "fired": true,
+        "fp": "fp_4cf50893082415a3",
+        "fp_after": "fp_2b03c8b62402be70",
+        "ms": 297,
+        "step": 4
+      },
+      {
+        "act": {
+          "id": null,
+          "intent": "stop",
+          "kind": null,
+          "label": null,
+          "reason": "acceptance target HomeReady present",
+          "stop_code": "goal_visible",
+          "text": null
+        },
+        "fp": "fp_2b03c8b62402be70",
+        "step": 5
+      }
+    ]
+  },
+  "fault": "ok",
+  "observe": {
+    "accessibility_tree": {
+      "element_count": 4,
+      "nodes": [
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 852,
+            "width": 393,
+            "x": 0,
+            "y": 0
+          },
+          "hittable": true,
+          "id": "n91b0a6ff",
+          "label": "LighOnboard",
+          "path_id": "n286645ff",
+          "role": "AXApplication",
+          "selected": false,
+          "text": "LighOnboard",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.21670907548770135,
+            "y": 0.1428012519561815
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 40.66666666666667,
+            "width": 138.33333333333331,
+            "x": 15.999999999999986,
+            "y": 101.33333333333331
+          },
+          "hittable": true,
+          "id": "nb5a02070",
+          "label": "Onboard",
+          "parent_id": "n91b0a6ff",
+          "path_id": "n1a7f2ac0",
+          "role": "AXHeading",
+          "selected": false,
+          "text": "Onboard",
+          "traits": "heading",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5465571205007825
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 40.666666666666686,
+            "width": 180.3333333333333,
+            "x": 106.33333333333334,
+            "y": 445.33333333333337
+          },
+          "hittable": true,
+          "id": "n7489e226",
+          "identifier": "HomeReady",
+          "label": "HomeReady",
+          "parent_id": "n91b0a6ff",
+          "path_id": "n0b530215",
+          "role": "AXStaticText",
+          "selected": false,
+          "text": "HomeReady",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.6011345852895149
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 20.33333333333331,
+            "width": 33.66666666666666,
+            "x": 179.66666666666669,
+            "y": 502.00000000000006
+          },
+          "hittable": true,
+          "id": "n949c59f1",
+          "identifier": "HomeUserName",
+          "label": "Pilot",
+          "parent_id": "n91b0a6ff",
+          "path_id": "nf3e83d4b",
+          "role": "AXStaticText",
+          "selected": false,
+          "text": "Pilot",
+          "visible": true
+        }
+      ],
+      "point_size": [
+        393.0,
+        852.0
+      ],
+      "root": {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "children": [
+          {
+            "center_norm": {
+              "x": 0.21670907548770135,
+              "y": 0.1428012519561815
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.66666666666667,
+              "width": 138.33333333333331,
+              "x": 15.999999999999986,
+              "y": 101.33333333333331
+            },
+            "hittable": true,
+            "id": "nb5a02070",
+            "label": "Onboard",
+            "parent_id": "n91b0a6ff",
+            "path_id": "n1a7f2ac0",
+            "role": "AXHeading",
+            "selected": false,
+            "text": "Onboard",
+            "traits": "heading",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5465571205007825
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.666666666666686,
+              "width": 180.3333333333333,
+              "x": 106.33333333333334,
+              "y": 445.33333333333337
+            },
+            "hittable": true,
+            "id": "n7489e226",
+            "identifier": "HomeReady",
+            "label": "HomeReady",
+            "parent_id": "n91b0a6ff",
+            "path_id": "n0b530215",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "HomeReady",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.6011345852895149
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 20.33333333333331,
+              "width": 33.66666666666666,
+              "x": 179.66666666666669,
+              "y": 502.00000000000006
+            },
+            "hittable": true,
+            "id": "n949c59f1",
+            "identifier": "HomeUserName",
+            "label": "Pilot",
+            "parent_id": "n91b0a6ff",
+            "path_id": "nf3e83d4b",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "Pilot",
+            "visible": true
+          }
+        ],
+        "children_ids": [
+          "nb5a02070",
+          "n7489e226",
+          "n949c59f1"
+        ],
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 852,
+          "width": 393,
+          "x": 0,
+          "y": 0
+        },
+        "hittable": true,
+        "id": "n91b0a6ff",
+        "label": "LighOnboard",
+        "path_id": "n286645ff",
+        "role": "AXApplication",
+        "selected": false,
+        "text": "LighOnboard",
+        "visible": true
+      },
+      "status": "available"
+    },
+    "actionable_topk": [
+      {
+        "center_norm": {
+          "x": 0.21670907548770135,
+          "y": 0.1428012519561815
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 40.66666666666667,
+          "width": 138.33333333333331,
+          "x": 15.999999999999986,
+          "y": 101.33333333333331
+        },
+        "hittable": true,
+        "id": "nb5a02070",
+        "label": "Onboard",
+        "parent_id": "n91b0a6ff",
+        "role": "AXHeading",
+        "selected": false,
+        "text": "Onboard",
+        "traits": "heading",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5465571205007825
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 40.666666666666686,
+          "width": 180.3333333333333,
+          "x": 106.33333333333334,
+          "y": 445.33333333333337
+        },
+        "hittable": true,
+        "id": "n7489e226",
+        "identifier": "HomeReady",
+        "label": "HomeReady",
+        "parent_id": "n91b0a6ff",
+        "role": "AXStaticText",
+        "selected": false,
+        "text": "HomeReady",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.6011345852895149
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 20.33333333333331,
+          "width": 33.66666666666666,
+          "x": 179.66666666666669,
+          "y": 502.00000000000006
+        },
+        "hittable": true,
+        "id": "n949c59f1",
+        "identifier": "HomeUserName",
+        "label": "Pilot",
+        "parent_id": "n91b0a6ff",
+        "role": "AXStaticText",
+        "selected": false,
+        "text": "Pilot",
+        "visible": true
+      }
+    ],
+    "app_bundle_id": "dev.ligh.Onboard",
+    "ax_quality": "ready",
+    "booted": true,
+    "events": [
+      {
+        "kind": "navigated",
+        "payload": {
+          "from": null,
+          "to": "Onboard"
+        },
+        "t": 1787558051.501244
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_tap",
+          "detail": {
+            "method": "hid_tap",
+            "target": "OnboardContinue",
+            "verified": true
+          },
+          "ok": true
+        },
+        "t": 1787558044.416985
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_type",
+          "detail": {
+            "attempt": 0,
+            "text": "pilot"
+          },
+          "ok": true
+        },
+        "t": 1787558049.058573
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_tap",
+          "detail": {
+            "method": "hid_tap",
+            "target": "OnboardNext",
+            "verified": true
+          },
+          "ok": true
+        },
+        "t": 1787558049.399333
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_tap",
+          "detail": {
+            "method": "hid_tap",
+            "target": "OnboardFinish",
+            "verified": true
+          },
+          "ok": true
+        },
+        "t": 1787558051.303978
+      }
+    ],
+    "eyes_unusable": false,
+    "frame": {
+      "fps": 45.19924114167041,
+      "h": 2556,
+      "id": 869,
+      "imports_ok": true,
+      "w": 1179
+    },
+    "observe_ms": 0.0006670000000000001,
+    "overlay": "none",
+    "path": "lighd",
+    "phase": "ready",
+    "scene": {
+      "bundle_id": "dev.ligh.Onboard",
+      "keyboard_visible": false,
+      "screen_title": "Onboard",
+      "surface": "app"
+    },
+    "schema_version": 2,
+    "settled": true,
+    "simulator_app_running": false,
+    "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+  },
+  "ok": true,
+  "overlay": "none",
+  "phase": "ready",
+  "surface": "app"
+}

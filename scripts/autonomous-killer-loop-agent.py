@@ -4,6 +4,7 @@
 Arms (LIGH_KILLER_ARM):
   ligh      — perceive / attempt (default)
   hybrid    — AX-first routed perceive; vision only on eyes_unusable escalation
+  autopilot — LLM owns code only; host drives the UI via run_goal (zero-token motor)
   baseline  — screenshot + vision taps (same edit/build/harness)
 
 Agent receives task.json prompt only. ground-truth.json is never loaded here.
@@ -40,9 +41,28 @@ BUILD_SCRIPT = TASK["build_script"]
 PROTOCOL_VERSION = TASK.get("protocol_version", 1)
 
 
+def goal_targets() -> tuple[str | None, str | None]:
+    """Acceptance target from the task spec — the same criterion the verifier uses.
+
+    This is the success condition, not a path: both arms are told what success looks
+    like, and neither is told which controls to touch.
+    """
+    post = (TASK.get("verification") or {}).get("postconditions") or {}
+    labels = [str(x) for x in (post.get("must_see_labels") or [])]
+    return (labels[0] if labels else None), (labels[1] if len(labels) > 1 else None)
+
+
 def system_prompt() -> str:
     sources = "\n".join(f"- {p}" for p in list_swift_sources(TASK["source_root"])[:12])
-    if ARM == "baseline":
+    if ARM == "autopilot":
+        goal_id, _ = goal_targets()
+        ui = f"""UI control: you do NOT drive the UI. The host does.
+Action: run_goal — the host installs, launches, discovers the path and verifies the goal.
+  {{"action":"run_goal","goal_id":"{goal_id or 'homeTitle'}","params":[{{"value":"alice"}},{{"value":"secret","secure":true}}]}}
+Pass only the acceptance target and the data the flow needs (read them from the task).
+Never pass a step list: the host finds the path itself. There are no taps for you to make.
+run_goal returns reached plus, on failure, a diagnosis and source_hint pointing at the code."""
+    elif ARM == "baseline":
         ui = """UI control: screenshot + vision coordinates ONLY (no accessibility tree for planning).
 Actions: screenshot, vision_tap, vision_type, dismiss (keyboard)."""
     elif ARM == "hybrid" and not HONEST:
@@ -62,11 +82,25 @@ You must drive the UI yourself with attempt (type/tap) — no host exercise shor
 Prefer feel.salience / feel.suggest over raw affordance dumps. No screenshots for planning.
 After bootstrap_app: call exercise_app (host-owned taps) then verify — do not hand-drive every tap."""
 
-    code_actions = "read_file, write_file, build_app, bootstrap_app, verify, done"
-    if not HONEST:
+    if ARM == "autopilot":
+        code_actions = "read_file, write_file, build_app, run_goal, verify, done"
+    elif HONEST:
+        code_actions = "read_file, write_file, build_app, bootstrap_app, verify, done"
+    else:
         code_actions = "read_file, write_file, build_app, bootstrap_app, exercise_app, verify, done"
 
-    if HONEST:
+    if ARM == "autopilot":
+        rules = """Rules:
+- Your job is the Swift bug, nothing else. Read the source, make a minimal fix, rebuild.
+- After build_app succeeds call run_goal. If it reports reached=false, read diagnosis and
+  source_hint: they tell you which state failed to change and where to look. Fix the cause,
+  do not retry the same edit.
+- run_goal automatically invokes the strict harness when it reaches the target. A passing
+  harness ends the session immediately; no extra confirmation or second patch is needed.
+- If run_goal fails, fix the evidence-backed cause before calling it again.
+- Do not invent success — only verify/done after the harness would pass.
+Never ask the user questions."""
+    elif HONEST:
         rules = """Rules:
 - Fix the Swift bug with a minimal change; rebuild; bootstrap; exercise the UI yourself; then verify.
 - Call verify before done. done re-runs the strict harness (setup → exercise → postconditions).
@@ -85,7 +119,7 @@ Never ask the user questions."""
 
 Each turn reply with ONE JSON object.
 
-Code actions (both arms):
+Code actions:
   {code_actions}
 
 {ui}
@@ -168,6 +202,18 @@ def affordance_keys(perceive: dict[str, Any]) -> set[str]:
     return keys
 
 
+def failure_suggestion() -> str:
+    """Nudge on failure. Under the honest protocol it must be modality-neutral and
+    identical across arms, or the prompt — not the architecture — is what we measure.
+    """
+    if HONEST or ARM == "autopilot":
+        return "The harness still fails. Re-read the evidence, fix the cause in Swift, rebuild, verify."
+    return (
+        "Minimal edit only. Find finish/dismiss handler, restore overlay hide, "
+        "build_app, bootstrap_app, then verify. Do not rewrite enums/pages."
+    )
+
+
 def harness_verify() -> dict[str, Any]:
     return strict_verify(TASK, app=APP, bundle_id=BUNDLE_ID)
 
@@ -223,8 +269,19 @@ def _attach_vision_b64(result: dict[str, Any]) -> None:
             result["image_b64_len"] = len(result["_b64"])
 
 
+AUTOPILOT_ALLOWED = {"read_file", "write_file", "build_app", "run_goal", "verify", "done"}
+
+
 def run_action(act: dict[str, Any]) -> dict[str, Any]:
     action = (act.get("action") or "").lower()
+    # The autopilot arm is a restricted API by construction: the LLM cannot touch the
+    # UI even if it tries, so the comparison measures the architecture, not the prompt.
+    if ARM == "autopilot" and action not in AUTOPILOT_ALLOWED:
+        return {
+            "ok": False,
+            "error": f"action '{action}' is not available in this arm",
+            "allowed": sorted(AUTOPILOT_ALLOWED),
+        }
     try:
         if action == "read_file":
             p = safe_source_path(TASK, str(act.get("path") or ""))
@@ -256,7 +313,37 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
             }
 
         if action == "bootstrap_app":
+            if ARM == "autopilot":
+                return {
+                    "ok": False,
+                    "error": "no bootstrap in this arm — run_goal installs and launches for you",
+                }
             return bootstrap_app()
+
+        if action == "run_goal":
+            if ARM != "autopilot":
+                return {"ok": False, "error": "run_goal is only available in the autopilot arm"}
+            spec_id, spec_label = goal_targets()
+            goal_id = act.get("goal_id") or spec_id
+            goal_label = act.get("goal_label") or (None if act.get("goal_id") else spec_label)
+            params = act.get("params")
+            if not isinstance(params, list):
+                params = []
+            r = call_tool(
+                "ligh_cap_autopilot",
+                {
+                    "app": APP,
+                    "bundle_id": BUNDLE_ID,
+                    "goal_id": goal_id,
+                    "goal_label": goal_label,
+                    "params": params,
+                    "max_steps": 24,
+                    "settle_ms": 1500,
+                    "timeout_ms": 8000,
+                },
+            )
+            r["goal_source"] = "agent" if act.get("goal_id") or act.get("goal_label") else "task_spec"
+            return r
 
         if action == "exercise_app":
             if HONEST:
@@ -355,6 +442,46 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
         return {"ok": False, "error": str(e)}
 
 
+def patch_economics(trace: list[dict[str, Any]]) -> dict[str, Any]:
+    """How many distinct patch attempts, and which one finally worked.
+
+    `top1_accepted` is the speculation decision variable: if the first patch usually
+    works, proposing k candidates per turn wastes builds; if it usually fails, one LLM
+    call with k candidates and parallel builds is strictly cheaper.
+    """
+    attempts: list[dict[str, Any]] = []
+    pending: dict[str, Any] | None = None
+    for row in trace:
+        name = (row.get("action") or {}).get("action")
+        res = row.get("result") or {}
+        if name == "write_file" and res.get("ok"):
+            if pending is None:
+                pending = {
+                    "patch": len(attempts) + 1,
+                    "paths": [],
+                    "writes": 0,
+                    "outcome": "unverified",
+                }
+            path = res.get("path")
+            if path and path not in pending["paths"]:
+                pending["paths"].append(path)
+            pending["writes"] += 1
+        elif name in ("verify", "run_goal", "exercise_app") and pending is not None:
+            passed = bool(res.get("verified") if name == "verify" else res.get("reached"))
+            pending["outcome"] = "passed" if passed else "rejected"
+            attempts.append(pending)
+            pending = None
+    if pending is not None:
+        attempts.append(pending)
+    accepted_at = next((a["patch"] for a in attempts if a["outcome"] == "passed"), None)
+    return {
+        "patch_attempts": len(attempts),
+        "accepted_at_patch": accepted_at,
+        "top1_accepted": accepted_at == 1,
+        "patch_trail": attempts[:12],
+    }
+
+
 def summarize_trace(trace: list[dict[str, Any]]) -> dict[str, Any]:
     actions = []
     faults = []
@@ -366,14 +493,23 @@ def summarize_trace(trace: list[dict[str, Any]]) -> dict[str, Any]:
         act = row.get("action") or {}
         name = act.get("action")
         res = row.get("result") or {}
+        if not name:
+            continue
         actions.append({"step": row.get("step"), "action": name, "ok": res.get("ok")})
-        if res.get("fault"):
+        if res.get("fault") and res.get("fault") != "ok":
             faults.append({"step": row.get("step"), "fault": res.get("fault"), "action": name})
         if name == "write_file" and res.get("ok"):
             code_changes.append({"path": res.get("path"), "bytes": res.get("bytes"), "preview": res.get("preview")})
         if name == "build_app":
             builds += 1
-        if name in ("perceive", "attempt", "screenshot", "vision_tap", "exercise_app") and row.get("step"):
+        if name in (
+            "perceive",
+            "attempt",
+            "screenshot",
+            "vision_tap",
+            "exercise_app",
+            "run_goal",
+        ) and row.get("step"):
             verifications += 1
         if name == "perceive" and res.get("channel"):
             ch = str(res.get("channel"))
@@ -389,6 +525,7 @@ def summarize_trace(trace: list[dict[str, Any]]) -> dict[str, Any]:
         "verification_attempts": verifications,
         "human_interventions": 0,
         "perception_channels": perception,
+        "patch_economics": patch_economics(trace),
     }
 
 
@@ -433,6 +570,37 @@ def main() -> int:
         trace.append({"step": step, "action": act, "result": {k: v for k, v in result.items() if k != "_b64"}})
         print(json.dumps({"step": step, "arm": ARM, "action": act.get("action"), "ok": result.get("ok")}), flush=True)
 
+        # Host acceptance is the agent-loop equivalent of speculative decoding's
+        # verifier. Once the goal executor reaches the declared target, run the
+        # common strict harness immediately and accept the patch without spending
+        # another LLM turn. This also prevents a model from "improving" a patch
+        # that has already passed, which was the dominant waste in A/B v2 run 1.
+        if act.get("action") == "run_goal" and result.get("reached"):
+            verify = harness_verify()
+            verified = bool(verify.get("verified"))
+            trace.append({"step": step, "phase": "host_accept", "strict_verify": verify})
+            if verified:
+                break
+            messages.append({"role": "assistant", "content": json.dumps(act)})
+            messages.append(
+                {
+                    "role": "user",
+                    "content": json.dumps(
+                        {
+                            "tool_result": {
+                                **result,
+                                "strict_verified": False,
+                                "strict_reason": verify.get("reason"),
+                                "strict_evidence": verify.get("evidence"),
+                                "suggestion": failure_suggestion(),
+                            },
+                            "step": step,
+                        }
+                    ),
+                }
+            )
+            continue
+
         if act.get("action") == "verify" and result.get("verified"):
             verified = True
             verify = {
@@ -460,7 +628,7 @@ def main() -> int:
                 "reason": verify.get("reason"),
                 "evidence": verify.get("evidence"),
                 "false_success": verify.get("false_success"),
-                "suggestion": "Surgical fix only — restore overlay dismiss after finish; rebuild; verify again.",
+                "suggestion": failure_suggestion(),
             }
             messages.append({"role": "assistant", "content": json.dumps(act)})
             messages.append({"role": "user", "content": json.dumps({"tool_result": reject, "step": step})})
@@ -469,12 +637,7 @@ def main() -> int:
         fault = result.get("fault") or ""
         hint = {}
         if fault or result.get("error") or (act.get("action") == "verify" and not result.get("verified")):
-            hint = {
-                "suggestion": (
-                    "Minimal edit only. Find finish/dismiss handler, restore overlay hide, "
-                    "build_app, bootstrap_app, then verify. Do not rewrite enums/pages."
-                )
-            }
+            hint = {"suggestion": failure_suggestion()}
 
         messages.append({"role": "assistant", "content": json.dumps(act)})
         messages.append({"role": "user", "content": json.dumps({"tool_result": {**result, **hint}, "step": step})})

@@ -103,6 +103,20 @@ fn is_primary_cta_label(label: &str) -> bool {
     .any(|k| l == *k || l.contains(k))
 }
 
+/// UIKit/SwiftUI secure fields reach AX as a plain `AXTextField` with no secure
+/// marker in role or traits, so the naming convention is the only pre-typing
+/// signal. Cross-app convention, not an app-specific label list.
+fn looks_like_secure_field(identifier: &str, placeholder: &str, label: &str) -> bool {
+    ["password", "passwd", "pwd", "secure", "passcode", "pin", "password"]
+        .iter()
+        .any(|k| {
+            let id = identifier.to_ascii_lowercase();
+            let ph = placeholder.to_ascii_lowercase();
+            let lb = label.to_ascii_lowercase();
+            id.contains(k) || ph.contains(k) || lb.contains(k)
+        })
+}
+
 fn is_nav_back_label(label: &str) -> bool {
     let l = label.to_ascii_lowercase();
     ["back", "indietro", "annulla", "cancel", "close", "chiudi"]
@@ -140,12 +154,19 @@ pub fn infer_affordances(nodes: &[Value], cap: usize) -> Vec<Affordance> {
         let center_norm = n.get("center_norm").cloned();
 
         let lab_str = label.as_deref().unwrap_or("");
+        let placeholder = n
+            .get("placeholder")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
         let kind = if is_nav_back_label(lab_str) {
             AffordanceKind::NavBack
         } else if role.contains("secure") {
             AffordanceKind::SecureField
         } else if is_editable_role(&role) {
-            if lab_str.to_ascii_lowercase().contains("search")
+            if looks_like_secure_field(id.as_deref().unwrap_or(""), placeholder, lab_str) {
+                AffordanceKind::SecureField
+            } else if lab_str.to_ascii_lowercase().contains("search")
+                || placeholder.to_ascii_lowercase().contains("search")
                 || lab_str.to_ascii_lowercase().contains("cerca")
                 || role.contains("search")
             {
@@ -638,10 +659,17 @@ mod tests {
             json!({"id":"n1","role":"AXTextField","identifier":"usernameTextField","label":"Username","hittable":true,"enabled":true}),
             json!({"id":"n2","role":"AXSecureTextField","identifier":"passwordSecureField","label":"Password","hittable":true,"enabled":true}),
             json!({"id":"n3","role":"AXButton","identifier":"loginButton","label":"Login","hittable":true,"enabled":true}),
+            // SwiftUI SecureField is exposed this way on current iOS runtimes.
+            json!({"id":"n4","role":"AXTextField","identifier":"passwordSecureField","placeholder":"Password","hittable":true,"enabled":true}),
         ];
         let aff = infer_affordances(&nodes, 10);
         assert!(aff.iter().any(|a| a.kind == AffordanceKind::PrimaryButton));
-        assert!(aff.iter().any(|a| a.kind == AffordanceKind::SecureField));
+        assert_eq!(
+            aff.iter()
+                .filter(|a| a.kind == AffordanceKind::SecureField)
+                .count(),
+            2
+        );
         assert!(aff.iter().any(|a| a.kind == AffordanceKind::TextField));
     }
 

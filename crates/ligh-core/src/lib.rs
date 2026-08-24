@@ -1,5 +1,6 @@
 //! Core types and configuration for LIGH.
 
+pub mod autopilot;
 pub mod config;
 pub mod control;
 pub mod device;
@@ -12,6 +13,10 @@ pub mod rpc;
 pub mod state;
 pub mod uxgraph;
 
+pub use autopilot::{
+    diagnose, next_act, PilotAct, PilotDiagnosis, PilotGoal, PilotIntent, PilotLimits, PilotMemory,
+    PilotParam, PilotStepRecord, AUTOPILOT_SCHEMA_VERSION,
+};
 pub use config::LighConfig;
 pub use control::{
     eyes_unusable, overlay_from_snapshot, phase_from_snapshot, stamp_control_fields,
@@ -22,7 +27,8 @@ pub use error::{LighError, Result};
 pub use observe::{
     build_actionable_topk, build_scene, detect_surface, diff_sense_events, eyes_ready,
     find_hittable_id_in_dump, find_hittable_label_in_dump, find_id_center, find_id_in_dump,
-    find_label_center, find_label_in_dump, find_onscreen_id_in_dump, is_chrome_node,
+    find_label_center, find_label_in_dump, find_onscreen_id_in_dump, foreground_app_label,
+    is_chrome_node,
     is_editable_role, is_transition_sparse, node_viewport_hittable, rank_candidates,
     AccessibilityTree, FrameMeta, ObserveSnapshot, SceneMeta, SenseEvent, ACTIONABLE_TOPK,
     OBSERVE_SCHEMA_VERSION,

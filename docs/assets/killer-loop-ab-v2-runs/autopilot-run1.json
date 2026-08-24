@@ -1,0 +1,2144 @@
+{
+  "gate": "killer_loop",
+  "protocol": "honest",
+  "protocol_version": 2,
+  "arm": "autopilot",
+  "task": "login-never-navigates",
+  "task_prompt": "The XCUITestDemo login flow is broken \u2014 after tapping Login with valid credentials the user never reaches the Home screen. Find and fix the issue in the Swift source under fixtures/third-party/XCUITestDemo/, rebuild the app, exercise login in the Simulator, and verify. Known good credentials: username alice, password secret. Success = Home screen visible (homeTitle) after Login.",
+  "app_id": "xcuitestdemo",
+  "app_commit": "third-party-vendored",
+  "upstream_url": "https://github.com/himalimarasinghe/XCUITestDemo",
+  "initial_state": "broken",
+  "initial_state_setup": {
+    "ok": true,
+    "reason": "initial_state_ready",
+    "bootstrap": {
+      "ok": true,
+      "data": {
+        "capability": "run_app",
+        "detail": {
+          "app_ready": true,
+          "attempt": "1",
+          "bundle_id": "com.himali.XCUITestDemo",
+          "install": true,
+          "wait_id": null,
+          "wait_label": "Login"
+        },
+        "fault": "ok",
+        "observe": {
+          "accessibility_tree": {
+            "element_count": 5,
+            "nodes": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 852,
+                  "width": 393,
+                  "x": 0,
+                  "y": 0
+                },
+                "hittable": true,
+                "id": "n8e51e0b4",
+                "label": "XCUITestDemo",
+                "path_id": "n88c59054",
+                "role": "AXApplication",
+                "selected": false,
+                "text": "XCUITestDemo",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000000000001,
+                  "y": 0.4264475743348983
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.666666666666686,
+                  "width": 136.66666666666669,
+                  "x": 128.16666666666669,
+                  "y": 343
+                },
+                "hittable": true,
+                "id": "n157d4fda",
+                "label": "Welcome",
+                "parent_id": "n8e51e0b4",
+                "path_id": "n2d657359",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Welcome",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.48904538341158055
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34,
+                  "width": 361,
+                  "x": 16,
+                  "y": 399.66666666666663
+                },
+                "hittable": true,
+                "id": "nb4f5abd1",
+                "identifier": "usernameTextField",
+                "parent_id": "n8e51e0b4",
+                "path_id": "n2dfa2f53",
+                "placeholder": "Username",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Username",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5477308294209702
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34,
+                  "width": 361,
+                  "x": 16,
+                  "y": 449.66666666666663
+                },
+                "hittable": true,
+                "id": "n0a75f426",
+                "identifier": "passwordSecureField",
+                "parent_id": "n8e51e0b4",
+                "path_id": "nc828fa29",
+                "placeholder": "Password",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Password",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.6066118935837245
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34.33333333333337,
+                  "width": 65.66666666666666,
+                  "x": 163.66666666666666,
+                  "y": 499.66666666666663
+                },
+                "hittable": true,
+                "id": "n90ddeefd",
+                "identifier": "loginButton",
+                "label": "Login",
+                "parent_id": "n8e51e0b4",
+                "path_id": "n885034ad",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Login",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "point_size": [
+              393.0,
+              852.0
+            ],
+            "root": {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "children": [
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.4264475743348983
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 40.666666666666686,
+                    "width": 136.66666666666669,
+                    "x": 128.16666666666669,
+                    "y": 343
+                  },
+                  "hittable": true,
+                  "id": "n157d4fda",
+                  "label": "Welcome",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "n2d657359",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "Welcome",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.48904538341158055
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 399.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "nb4f5abd1",
+                  "identifier": "usernameTextField",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "n2dfa2f53",
+                  "placeholder": "Username",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Username",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5477308294209702
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 449.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n0a75f426",
+                  "identifier": "passwordSecureField",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "nc828fa29",
+                  "placeholder": "Password",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Password",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6066118935837245
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34.33333333333337,
+                    "width": 65.66666666666666,
+                    "x": 163.66666666666666,
+                    "y": 499.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n90ddeefd",
+                  "identifier": "loginButton",
+                  "label": "Login",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "n885034ad",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "Login",
+                  "traits": "button",
+                  "visible": true
+                }
+              ],
+              "children_ids": [
+                "n157d4fda",
+                "nb4f5abd1",
+                "n0a75f426",
+                "n90ddeefd"
+              ],
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 852,
+                "width": 393,
+                "x": 0,
+                "y": 0
+              },
+              "hittable": true,
+              "id": "n8e51e0b4",
+              "label": "XCUITestDemo",
+              "path_id": "n88c59054",
+              "role": "AXApplication",
+              "selected": false,
+              "text": "XCUITestDemo",
+              "visible": true
+            },
+            "status": "available"
+          },
+          "actionable_topk": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.48904538341158055
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34,
+                "width": 361,
+                "x": 16,
+                "y": 399.66666666666663
+              },
+              "hittable": true,
+              "id": "nb4f5abd1",
+              "identifier": "usernameTextField",
+              "parent_id": "n8e51e0b4",
+              "placeholder": "Username",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Username",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5477308294209702
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34,
+                "width": 361,
+                "x": 16,
+                "y": 449.66666666666663
+              },
+              "hittable": true,
+              "id": "n0a75f426",
+              "identifier": "passwordSecureField",
+              "parent_id": "n8e51e0b4",
+              "placeholder": "Password",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Password",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6066118935837245
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34.33333333333337,
+                "width": 65.66666666666666,
+                "x": 163.66666666666666,
+                "y": 499.66666666666663
+              },
+              "hittable": true,
+              "id": "n90ddeefd",
+              "identifier": "loginButton",
+              "label": "Login",
+              "parent_id": "n8e51e0b4",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Login",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.4264475743348983
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 40.666666666666686,
+                "width": 136.66666666666669,
+                "x": 128.16666666666669,
+                "y": 343
+              },
+              "hittable": true,
+              "id": "n157d4fda",
+              "label": "Welcome",
+              "parent_id": "n8e51e0b4",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "Welcome",
+              "visible": true
+            }
+          ],
+          "app_bundle_id": "com.himali.XCUITestDemo",
+          "ax_quality": "ready",
+          "booted": true,
+          "eyes_unusable": false,
+          "frame": {
+            "fps": 56.86458427259735,
+            "h": 2556,
+            "id": 620,
+            "imports_ok": true,
+            "w": 1179
+          },
+          "observe_ms": 0.000375,
+          "overlay": "none",
+          "path": "lighd",
+          "phase": "ready",
+          "scene": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "keyboard_visible": false,
+            "surface": "app"
+          },
+          "schema_version": 2,
+          "settled": true,
+          "simulator_app_running": false,
+          "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+        },
+        "ok": true,
+        "overlay": "none",
+        "phase": "ready",
+        "surface": "app"
+      },
+      "foreground_ok": true,
+      "attempt": 1,
+      "keys": [
+        "Login",
+        "Welcome",
+        "loginButton",
+        "n157d4fda",
+        "passwordSecureField",
+        "usernameTextField"
+      ]
+    },
+    "setup_trace": [],
+    "preconditions": {
+      "ok": true,
+      "must_see": {
+        "Welcome": true,
+        "Login": true
+      },
+      "must_not_see": {
+        "homeTitle": true,
+        "Home": true
+      },
+      "keys_sample": [
+        "Login",
+        "Welcome",
+        "loginButton",
+        "n157d4fda",
+        "passwordSecureField",
+        "usernameTextField"
+      ]
+    }
+  },
+  "final_state": "verified",
+  "verified": true,
+  "claim_pass": true,
+  "false_success": false,
+  "verification_reason": "verified",
+  "verification_evidence": {
+    "homeTitle": true,
+    "onboardingOverlay": false,
+    "post": {
+      "ok": true,
+      "must_see": {
+        "homeTitle": true,
+        "Home": true
+      },
+      "must_not_see": {
+        "loginButton": true
+      },
+      "keys_sample": [
+        "Home",
+        "You\u2019re logged in!",
+        "homeMessage",
+        "homeTitle"
+      ]
+    },
+    "legacy_weak_pass": true
+  },
+  "legacy_weak_pass": true,
+  "exercise_executed": [
+    {
+      "phase": "exercise",
+      "step": 1,
+      "action": "type",
+      "id": "usernameTextField",
+      "label": null,
+      "text_len": 5,
+      "ok": true,
+      "fault": "ok"
+    },
+    {
+      "phase": "exercise",
+      "step": 2,
+      "action": "type",
+      "id": "passwordSecureField",
+      "label": null,
+      "text_len": 6,
+      "ok": true,
+      "fault": "ok"
+    },
+    {
+      "phase": "exercise",
+      "step": 3,
+      "action": "tap",
+      "label": "Login",
+      "id": "loginButton",
+      "ok": true,
+      "fault": "ok"
+    }
+  ],
+  "model": "gpt-5-nano",
+  "wall_time_ms": 41862,
+  "llm_tokens": 9034,
+  "tokens": {
+    "in": 6870,
+    "out": 2164,
+    "total": 9034
+  },
+  "steps_used": 7,
+  "strict_verify": {
+    "verified": true,
+    "reason": "verified",
+    "phase": "post",
+    "evidence": {
+      "homeTitle": true,
+      "onboardingOverlay": false,
+      "post": {
+        "ok": true,
+        "must_see": {
+          "homeTitle": true,
+          "Home": true
+        },
+        "must_not_see": {
+          "loginButton": true
+        },
+        "keys_sample": [
+          "Home",
+          "You\u2019re logged in!",
+          "homeMessage",
+          "homeTitle"
+        ]
+      },
+      "legacy_weak_pass": true
+    },
+    "bootstrap": {
+      "ok": true,
+      "data": {
+        "capability": "run_app",
+        "detail": {
+          "app_ready": true,
+          "attempt": "1",
+          "bundle_id": "com.himali.XCUITestDemo",
+          "install": true,
+          "wait_id": null,
+          "wait_label": "Login"
+        },
+        "fault": "ok",
+        "observe": {
+          "accessibility_tree": {
+            "element_count": 5,
+            "nodes": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 852,
+                  "width": 393,
+                  "x": 0,
+                  "y": 0
+                },
+                "hittable": true,
+                "id": "n8e51e0b4",
+                "label": "XCUITestDemo",
+                "path_id": "n88c59054",
+                "role": "AXApplication",
+                "selected": false,
+                "text": "XCUITestDemo",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000000000001,
+                  "y": 0.4264475743348983
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.666666666666686,
+                  "width": 136.66666666666669,
+                  "x": 128.16666666666669,
+                  "y": 343
+                },
+                "hittable": true,
+                "id": "n157d4fda",
+                "label": "Welcome",
+                "parent_id": "n8e51e0b4",
+                "path_id": "n2d657359",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Welcome",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.48904538341158055
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34,
+                  "width": 361,
+                  "x": 16,
+                  "y": 399.66666666666663
+                },
+                "hittable": true,
+                "id": "nb4f5abd1",
+                "identifier": "usernameTextField",
+                "parent_id": "n8e51e0b4",
+                "path_id": "n2dfa2f53",
+                "placeholder": "Username",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Username",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5477308294209702
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34,
+                  "width": 361,
+                  "x": 16,
+                  "y": 449.66666666666663
+                },
+                "hittable": true,
+                "id": "n0a75f426",
+                "identifier": "passwordSecureField",
+                "parent_id": "n8e51e0b4",
+                "path_id": "nc828fa29",
+                "placeholder": "Password",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Password",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.6066118935837245
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34.33333333333337,
+                  "width": 65.66666666666666,
+                  "x": 163.66666666666666,
+                  "y": 499.66666666666663
+                },
+                "hittable": true,
+                "id": "n90ddeefd",
+                "identifier": "loginButton",
+                "label": "Login",
+                "parent_id": "n8e51e0b4",
+                "path_id": "n885034ad",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Login",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "point_size": [
+              393.0,
+              852.0
+            ],
+            "root": {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "children": [
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.4264475743348983
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 40.666666666666686,
+                    "width": 136.66666666666669,
+                    "x": 128.16666666666669,
+                    "y": 343
+                  },
+                  "hittable": true,
+                  "id": "n157d4fda",
+                  "label": "Welcome",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "n2d657359",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "Welcome",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.48904538341158055
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 399.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "nb4f5abd1",
+                  "identifier": "usernameTextField",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "n2dfa2f53",
+                  "placeholder": "Username",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Username",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5477308294209702
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 449.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n0a75f426",
+                  "identifier": "passwordSecureField",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "nc828fa29",
+                  "placeholder": "Password",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Password",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6066118935837245
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34.33333333333337,
+                    "width": 65.66666666666666,
+                    "x": 163.66666666666666,
+                    "y": 499.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n90ddeefd",
+                  "identifier": "loginButton",
+                  "label": "Login",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "n885034ad",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "Login",
+                  "traits": "button",
+                  "visible": true
+                }
+              ],
+              "children_ids": [
+                "n157d4fda",
+                "nb4f5abd1",
+                "n0a75f426",
+                "n90ddeefd"
+              ],
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 852,
+                "width": 393,
+                "x": 0,
+                "y": 0
+              },
+              "hittable": true,
+              "id": "n8e51e0b4",
+              "label": "XCUITestDemo",
+              "path_id": "n88c59054",
+              "role": "AXApplication",
+              "selected": false,
+              "text": "XCUITestDemo",
+              "visible": true
+            },
+            "status": "available"
+          },
+          "actionable_topk": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.48904538341158055
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34,
+                "width": 361,
+                "x": 16,
+                "y": 399.66666666666663
+              },
+              "hittable": true,
+              "id": "nb4f5abd1",
+              "identifier": "usernameTextField",
+              "parent_id": "n8e51e0b4",
+              "placeholder": "Username",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Username",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5477308294209702
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34,
+                "width": 361,
+                "x": 16,
+                "y": 449.66666666666663
+              },
+              "hittable": true,
+              "id": "n0a75f426",
+              "identifier": "passwordSecureField",
+              "parent_id": "n8e51e0b4",
+              "placeholder": "Password",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Password",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6066118935837245
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34.33333333333337,
+                "width": 65.66666666666666,
+                "x": 163.66666666666666,
+                "y": 499.66666666666663
+              },
+              "hittable": true,
+              "id": "n90ddeefd",
+              "identifier": "loginButton",
+              "label": "Login",
+              "parent_id": "n8e51e0b4",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Login",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.4264475743348983
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 40.666666666666686,
+                "width": 136.66666666666669,
+                "x": 128.16666666666669,
+                "y": 343
+              },
+              "hittable": true,
+              "id": "n157d4fda",
+              "label": "Welcome",
+              "parent_id": "n8e51e0b4",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "Welcome",
+              "visible": true
+            }
+          ],
+          "app_bundle_id": "com.himali.XCUITestDemo",
+          "ax_quality": "ready",
+          "booted": true,
+          "events": [
+            {
+              "kind": "value_changed",
+              "payload": {
+                "from": "",
+                "id": "nb4f5abd1",
+                "label": "",
+                "to": "Username"
+              },
+              "t": 1787557555.853456
+            },
+            {
+              "kind": "value_changed",
+              "payload": {
+                "from": "",
+                "id": "n0a75f426",
+                "label": "",
+                "to": "Password"
+              },
+              "t": 1787557555.853456
+            }
+          ],
+          "eyes_unusable": false,
+          "frame": {
+            "fps": 52.30224101605237,
+            "h": 2556,
+            "id": 2572,
+            "imports_ok": true,
+            "w": 1179
+          },
+          "observe_ms": 0.000459,
+          "overlay": "none",
+          "path": "lighd",
+          "phase": "ready",
+          "scene": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "keyboard_visible": false,
+            "surface": "app"
+          },
+          "schema_version": 2,
+          "settled": true,
+          "simulator_app_running": false,
+          "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+        },
+        "ok": true,
+        "overlay": "none",
+        "phase": "ready",
+        "surface": "app"
+      },
+      "foreground_ok": true,
+      "attempt": 1,
+      "keys": [
+        "Login",
+        "Welcome",
+        "loginButton",
+        "n157d4fda",
+        "passwordSecureField",
+        "usernameTextField"
+      ]
+    },
+    "setup_trace": [],
+    "exercise_trace": [
+      {
+        "phase": "exercise",
+        "step": 1,
+        "action": "type",
+        "id": "usernameTextField",
+        "label": null,
+        "text_len": 5,
+        "ok": true,
+        "fault": "ok"
+      },
+      {
+        "phase": "exercise",
+        "step": 2,
+        "action": "type",
+        "id": "passwordSecureField",
+        "label": null,
+        "text_len": 6,
+        "ok": true,
+        "fault": "ok"
+      },
+      {
+        "phase": "exercise",
+        "step": 3,
+        "action": "tap",
+        "label": "Login",
+        "id": "loginButton",
+        "ok": true,
+        "fault": "ok"
+      }
+    ],
+    "preconditions": {
+      "ok": true,
+      "must_see": {
+        "Welcome": true,
+        "Login": true
+      },
+      "must_not_see": {
+        "homeTitle": true,
+        "Home": true
+      },
+      "keys_sample": [
+        "Login",
+        "Welcome",
+        "loginButton",
+        "n157d4fda",
+        "passwordSecureField",
+        "usernameTextField"
+      ]
+    },
+    "legacy_weak_pass": true,
+    "false_success": false
+  },
+  "agent_actions": [
+    {
+      "step": 1,
+      "action": "read_file",
+      "ok": true
+    },
+    {
+      "step": 2,
+      "action": "read_file",
+      "ok": true
+    },
+    {
+      "step": 3,
+      "action": "write_file",
+      "ok": true
+    },
+    {
+      "step": 4,
+      "action": "build_app",
+      "ok": true
+    },
+    {
+      "step": 5,
+      "action": "run_goal",
+      "ok": true
+    }
+  ],
+  "faults": [],
+  "code_changes": [
+    {
+      "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+      "bytes": 854,
+      "preview": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            logi"
+    }
+  ],
+  "build_attempts": 1,
+  "verification_attempts": 1,
+  "human_interventions": 0,
+  "perception_channels": {
+    "ax": 0,
+    "vision": 0,
+    "none": 0,
+    "vision_escalations": 0
+  },
+  "patch_economics": {
+    "patch_attempts": 1,
+    "accepted_at_patch": 1,
+    "top1_accepted": true,
+    "patch_trail": [
+      {
+        "patch": 1,
+        "paths": [
+          "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift"
+        ],
+        "writes": 1,
+        "outcome": "passed"
+      }
+    ]
+  },
+  "trace": [
+    {
+      "step": 0,
+      "phase": "initial_state",
+      "result": {
+        "ok": true,
+        "reason": "initial_state_ready",
+        "bootstrap": {
+          "ok": true,
+          "data": {
+            "capability": "run_app",
+            "detail": {
+              "app_ready": true,
+              "attempt": "1",
+              "bundle_id": "com.himali.XCUITestDemo",
+              "install": true,
+              "wait_id": null,
+              "wait_label": "Login"
+            },
+            "fault": "ok",
+            "observe": {
+              "accessibility_tree": {
+                "element_count": 5,
+                "nodes": [
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 852,
+                      "width": 393,
+                      "x": 0,
+                      "y": 0
+                    },
+                    "hittable": true,
+                    "id": "n8e51e0b4",
+                    "label": "XCUITestDemo",
+                    "path_id": "n88c59054",
+                    "role": "AXApplication",
+                    "selected": false,
+                    "text": "XCUITestDemo",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5000000000000001,
+                      "y": 0.4264475743348983
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 40.666666666666686,
+                      "width": 136.66666666666669,
+                      "x": 128.16666666666669,
+                      "y": 343
+                    },
+                    "hittable": true,
+                    "id": "n157d4fda",
+                    "label": "Welcome",
+                    "parent_id": "n8e51e0b4",
+                    "path_id": "n2d657359",
+                    "role": "AXStaticText",
+                    "selected": false,
+                    "text": "Welcome",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.48904538341158055
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 34,
+                      "width": 361,
+                      "x": 16,
+                      "y": 399.66666666666663
+                    },
+                    "hittable": true,
+                    "id": "nb4f5abd1",
+                    "identifier": "usernameTextField",
+                    "parent_id": "n8e51e0b4",
+                    "path_id": "n2dfa2f53",
+                    "placeholder": "Username",
+                    "role": "AXTextField",
+                    "selected": false,
+                    "traits": "editable",
+                    "value": "Username",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.5477308294209702
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 34,
+                      "width": 361,
+                      "x": 16,
+                      "y": 449.66666666666663
+                    },
+                    "hittable": true,
+                    "id": "n0a75f426",
+                    "identifier": "passwordSecureField",
+                    "parent_id": "n8e51e0b4",
+                    "path_id": "nc828fa29",
+                    "placeholder": "Password",
+                    "role": "AXTextField",
+                    "selected": false,
+                    "traits": "editable",
+                    "value": "Password",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.6066118935837245
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 34.33333333333337,
+                      "width": 65.66666666666666,
+                      "x": 163.66666666666666,
+                      "y": 499.66666666666663
+                    },
+                    "hittable": true,
+                    "id": "n90ddeefd",
+                    "identifier": "loginButton",
+                    "label": "Login",
+                    "parent_id": "n8e51e0b4",
+                    "path_id": "n885034ad",
+                    "role": "AXButton",
+                    "selected": false,
+                    "text": "Login",
+                    "traits": "button",
+                    "visible": true
+                  }
+                ],
+                "point_size": [
+                  393.0,
+                  852.0
+                ],
+                "root": {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5
+                  },
+                  "children": [
+                    {
+                      "center_norm": {
+                        "x": 0.5000000000000001,
+                        "y": 0.4264475743348983
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 40.666666666666686,
+                        "width": 136.66666666666669,
+                        "x": 128.16666666666669,
+                        "y": 343
+                      },
+                      "hittable": true,
+                      "id": "n157d4fda",
+                      "label": "Welcome",
+                      "parent_id": "n8e51e0b4",
+                      "path_id": "n2d657359",
+                      "role": "AXStaticText",
+                      "selected": false,
+                      "text": "Welcome",
+                      "visible": true
+                    },
+                    {
+                      "center_norm": {
+                        "x": 0.5,
+                        "y": 0.48904538341158055
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 34,
+                        "width": 361,
+                        "x": 16,
+                        "y": 399.66666666666663
+                      },
+                      "hittable": true,
+                      "id": "nb4f5abd1",
+                      "identifier": "usernameTextField",
+                      "parent_id": "n8e51e0b4",
+                      "path_id": "n2dfa2f53",
+                      "placeholder": "Username",
+                      "role": "AXTextField",
+                      "selected": false,
+                      "traits": "editable",
+                      "value": "Username",
+                      "visible": true
+                    },
+                    {
+                      "center_norm": {
+                        "x": 0.5,
+                        "y": 0.5477308294209702
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 34,
+                        "width": 361,
+                        "x": 16,
+                        "y": 449.66666666666663
+                      },
+                      "hittable": true,
+                      "id": "n0a75f426",
+                      "identifier": "passwordSecureField",
+                      "parent_id": "n8e51e0b4",
+                      "path_id": "nc828fa29",
+                      "placeholder": "Password",
+                      "role": "AXTextField",
+                      "selected": false,
+                      "traits": "editable",
+                      "value": "Password",
+                      "visible": true
+                    },
+                    {
+                      "center_norm": {
+                        "x": 0.5,
+                        "y": 0.6066118935837245
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 34.33333333333337,
+                        "width": 65.66666666666666,
+                        "x": 163.66666666666666,
+                        "y": 499.66666666666663
+                      },
+                      "hittable": true,
+                      "id": "n90ddeefd",
+                      "identifier": "loginButton",
+                      "label": "Login",
+                      "parent_id": "n8e51e0b4",
+                      "path_id": "n885034ad",
+                      "role": "AXButton",
+                      "selected": false,
+                      "text": "Login",
+                      "traits": "button",
+                      "visible": true
+                    }
+                  ],
+                  "children_ids": [
+                    "n157d4fda",
+                    "nb4f5abd1",
+                    "n0a75f426",
+                    "n90ddeefd"
+                  ],
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 852,
+                    "width": 393,
+                    "x": 0,
+                    "y": 0
+                  },
+                  "hittable": true,
+                  "id": "n8e51e0b4",
+                  "label": "XCUITestDemo",
+                  "path_id": "n88c59054",
+                  "role": "AXApplication",
+                  "selected": false,
+                  "text": "XCUITestDemo",
+                  "visible": true
+                },
+                "status": "available"
+              },
+              "actionable_topk": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.48904538341158055
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 399.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "nb4f5abd1",
+                  "identifier": "usernameTextField",
+                  "parent_id": "n8e51e0b4",
+                  "placeholder": "Username",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Username",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5477308294209702
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 449.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n0a75f426",
+                  "identifier": "passwordSecureField",
+                  "parent_id": "n8e51e0b4",
+                  "placeholder": "Password",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Password",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6066118935837245
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34.33333333333337,
+                    "width": 65.66666666666666,
+                    "x": 163.66666666666666,
+                    "y": 499.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n90ddeefd",
+                  "identifier": "loginButton",
+                  "label": "Login",
+                  "parent_id": "n8e51e0b4",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "Login",
+                  "traits": "button",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.4264475743348983
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 40.666666666666686,
+                    "width": 136.66666666666669,
+                    "x": 128.16666666666669,
+                    "y": 343
+                  },
+                  "hittable": true,
+                  "id": "n157d4fda",
+                  "label": "Welcome",
+                  "parent_id": "n8e51e0b4",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "Welcome",
+                  "visible": true
+                }
+              ],
+              "app_bundle_id": "com.himali.XCUITestDemo",
+              "ax_quality": "ready",
+              "booted": true,
+              "eyes_unusable": false,
+              "frame": {
+                "fps": 56.86458427259735,
+                "h": 2556,
+                "id": 620,
+                "imports_ok": true,
+                "w": 1179
+              },
+              "observe_ms": 0.000375,
+              "overlay": "none",
+              "path": "lighd",
+              "phase": "ready",
+              "scene": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "keyboard_visible": false,
+                "surface": "app"
+              },
+              "schema_version": 2,
+              "settled": true,
+              "simulator_app_running": false,
+              "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+            },
+            "ok": true,
+            "overlay": "none",
+            "phase": "ready",
+            "surface": "app"
+          },
+          "foreground_ok": true,
+          "attempt": 1,
+          "keys": [
+            "Login",
+            "Welcome",
+            "loginButton",
+            "n157d4fda",
+            "passwordSecureField",
+            "usernameTextField"
+          ]
+        },
+        "setup_trace": [],
+        "preconditions": {
+          "ok": true,
+          "must_see": {
+            "Welcome": true,
+            "Login": true
+          },
+          "must_not_see": {
+            "homeTitle": true,
+            "Home": true
+          },
+          "keys_sample": [
+            "Login",
+            "Welcome",
+            "loginButton",
+            "n157d4fda",
+            "passwordSecureField",
+            "usernameTextField"
+          ]
+        }
+      }
+    },
+    {
+      "step": 1,
+      "action": {
+        "action": "read_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @StateObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        _viewModel = StateObject(wrappedValue: viewModel)\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView()\n                    .environmentObject(viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @EnvironmentObject var vm: LoginViewModel\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginButton\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You\u2019re logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
+      }
+    },
+    {
+      "step": 2,
+      "action": {
+        "action": "read_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+        "content": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            loginError = \"Please enter both username and password\"\n            return\n        }\n\n        isLoading = true\n        defer { isLoading = false }\n\n        let failure = ProcessInfo.processInfo.arguments.contains(\"--ui_test_login_failure\")\n        try? await Task.sleep(nanoseconds: 300_000_000)\n\n        if failure {\n            loginError = \"Invalid credentials\"\n        } else {\n            loginError = nil\n            isLoggedIn = false\n        }\n    }\n}\n"
+      }
+    },
+    {
+      "step": 3,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+        "content": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            loginError = \"Please enter both username and password\"\n            return\n        }\n\n        isLoading = true\n        defer { isLoading = false }\n\n        let failure = ProcessInfo.processInfo.arguments.contains(\"--ui_test_login_failure\")\n        try? await Task.sleep(nanoseconds: 300_000_000)\n\n        if failure {\n            loginError = \"Invalid credentials\"\n        } else {\n            loginError = nil\n            isLoggedIn = true\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+        "bytes": 854,
+        "preview": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            logi"
+      }
+    },
+    {
+      "step": 4,
+      "action": {
+        "action": "build_app"
+      },
+      "result": {
+        "ok": true,
+        "ms": 11552,
+        "tail": "ter-for-swift-os\nIgnoring --strip-bitcode because --sign was not passed\n\nProcessInfoPlistFile /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Info.plist /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/empty-XCUITestDemo.plist (in target 'XCUITestDemo' from project 'XCUITestDemo')\n    cd /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo\n    builtin-infoPlistUtility /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/empty-XCUITestDemo.plist -producttype com.apple.product-type.application -genpkginfo /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/assetcatalog_generated_info.plist -o /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Info.plist\n\n** BUILD SUCCEEDED **\n\n\u2713 /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n"
+      }
+    },
+    {
+      "step": 5,
+      "action": {
+        "action": "run_goal",
+        "goal_id": "homeTitle",
+        "params": [
+          {
+            "value": "alice"
+          },
+          {
+            "value": "secret",
+            "secure": true
+          }
+        ]
+      },
+      "result": {
+        "ok": true,
+        "fault": "ok",
+        "reached": true,
+        "goal": {
+          "target_id": "homeTitle",
+          "target_label": null
+        },
+        "steps": 3,
+        "elapsed_ms": 5347,
+        "llm_tokens": 0,
+        "trace": [
+          {
+            "step": 1,
+            "intent": "type",
+            "target": "usernameTextField",
+            "fired": true,
+            "changed": false
+          },
+          {
+            "step": 2,
+            "intent": "type",
+            "target": "passwordSecureField",
+            "fired": true,
+            "changed": false
+          },
+          {
+            "step": 3,
+            "intent": "tap",
+            "target": "loginButton",
+            "fired": true,
+            "changed": true
+          },
+          {
+            "step": 4,
+            "intent": "stop",
+            "target": null,
+            "fired": null,
+            "changed": null
+          }
+        ],
+        "goal_source": "agent"
+      }
+    },
+    {
+      "step": 5,
+      "phase": "host_accept",
+      "strict_verify": {
+        "verified": true,
+        "reason": "verified",
+        "phase": "post",
+        "evidence": {
+          "homeTitle": true,
+          "onboardingOverlay": false,
+          "post": {
+            "ok": true,
+            "must_see": {
+              "homeTitle": true,
+              "Home": true
+            },
+            "must_not_see": {
+              "loginButton": true
+            },
+            "keys_sample": [
+              "Home",
+              "You\u2019re logged in!",
+              "homeMessage",
+              "homeTitle"
+            ]
+          },
+          "legacy_weak_pass": true
+        },
+        "bootstrap": {
+          "ok": true,
+          "data": {
+            "capability": "run_app",
+            "detail": {
+              "app_ready": true,
+              "attempt": "1",
+              "bundle_id": "com.himali.XCUITestDemo",
+              "install": true,
+              "wait_id": null,
+              "wait_label": "Login"
+            },
+            "fault": "ok",
+            "observe": {
+              "accessibility_tree": {
+                "element_count": 5,
+                "nodes": [
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.5
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 852,
+                      "width": 393,
+                      "x": 0,
+                      "y": 0
+                    },
+                    "hittable": true,
+                    "id": "n8e51e0b4",
+                    "label": "XCUITestDemo",
+                    "path_id": "n88c59054",
+                    "role": "AXApplication",
+                    "selected": false,
+                    "text": "XCUITestDemo",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5000000000000001,
+                      "y": 0.4264475743348983
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 40.666666666666686,
+                      "width": 136.66666666666669,
+                      "x": 128.16666666666669,
+                      "y": 343
+                    },
+                    "hittable": true,
+                    "id": "n157d4fda",
+                    "label": "Welcome",
+                    "parent_id": "n8e51e0b4",
+                    "path_id": "n2d657359",
+                    "role": "AXStaticText",
+                    "selected": false,
+                    "text": "Welcome",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.48904538341158055
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 34,
+                      "width": 361,
+                      "x": 16,
+                      "y": 399.66666666666663
+                    },
+                    "hittable": true,
+                    "id": "nb4f5abd1",
+                    "identifier": "usernameTextField",
+                    "parent_id": "n8e51e0b4",
+                    "path_id": "n2dfa2f53",
+                    "placeholder": "Username",
+                    "role": "AXTextField",
+                    "selected": false,
+                    "traits": "editable",
+                    "value": "Username",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.5477308294209702
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 34,
+                      "width": 361,
+                      "x": 16,
+                      "y": 449.66666666666663
+                    },
+                    "hittable": true,
+                    "id": "n0a75f426",
+                    "identifier": "passwordSecureField",
+                    "parent_id": "n8e51e0b4",
+                    "path_id": "nc828fa29",
+                    "placeholder": "Password",
+                    "role": "AXTextField",
+                    "selected": false,
+                    "traits": "editable",
+                    "value": "Password",
+                    "visible": true
+                  },
+                  {
+                    "center_norm": {
+                      "x": 0.5,
+                      "y": 0.6066118935837245
+                    },
+                    "enabled": true,
+                    "focused": false,
+                    "frame": {
+                      "height": 34.33333333333337,
+                      "width": 65.66666666666666,
+                      "x": 163.66666666666666,
+                      "y": 499.66666666666663
+                    },
+                    "hittable": true,
+                    "id": "n90ddeefd",
+                    "identifier": "loginButton",
+                    "label": "Login",
+                    "parent_id": "n8e51e0b4",
+                    "path_id": "n885034ad",
+                    "role": "AXButton",
+                    "selected": false,
+                    "text": "Login",
+                    "traits": "button",
+                    "visible": true
+                  }
+                ],
+                "point_size": [
+                  393.0,
+                  852.0
+                ],
+                "root": {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5
+                  },
+                  "children": [
+                    {
+                      "center_norm": {
+                        "x": 0.5000000000000001,
+                        "y": 0.4264475743348983
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 40.666666666666686,
+                        "width": 136.66666666666669,
+                        "x": 128.16666666666669,
+                        "y": 343
+                      },
+                      "hittable": true,
+                      "id": "n157d4fda",
+                      "label": "Welcome",
+                      "parent_id": "n8e51e0b4",
+                      "path_id": "n2d657359",
+                      "role": "AXStaticText",
+                      "selected": false,
+                      "text": "Welcome",
+                      "visible": true
+                    },
+                    {
+                      "center_norm": {
+                        "x": 0.5,
+                        "y": 0.48904538341158055
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 34,
+                        "width": 361,
+                        "x": 16,
+                        "y": 399.66666666666663
+                      },
+                      "hittable": true,
+                      "id": "nb4f5abd1",
+                      "identifier": "usernameTextField",
+                      "parent_id": "n8e51e0b4",
+                      "path_id": "n2dfa2f53",
+                      "placeholder": "Username",
+                      "role": "AXTextField",
+                      "selected": false,
+                      "traits": "editable",
+                      "value": "Username",
+                      "visible": true
+                    },
+                    {
+                      "center_norm": {
+                        "x": 0.5,
+                        "y": 0.5477308294209702
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 34,
+                        "width": 361,
+                        "x": 16,
+                        "y": 449.66666666666663
+                      },
+                      "hittable": true,
+                      "id": "n0a75f426",
+                      "identifier": "passwordSecureField",
+                      "parent_id": "n8e51e0b4",
+                      "path_id": "nc828fa29",
+                      "placeholder": "Password",
+                      "role": "AXTextField",
+                      "selected": false,
+                      "traits": "editable",
+                      "value": "Password",
+                      "visible": true
+                    },
+                    {
+                      "center_norm": {
+                        "x": 0.5,
+                        "y": 0.6066118935837245
+                      },
+                      "enabled": true,
+                      "focused": false,
+                      "frame": {
+                        "height": 34.33333333333337,
+                        "width": 65.66666666666666,
+                        "x": 163.66666666666666,
+                        "y": 499.66666666666663
+                      },
+                      "hittable": true,
+                      "id": "n90ddeefd",
+                      "identifier": "loginButton",
+                      "label": "Login",
+                      "parent_id": "n8e51e0b4",
+                      "path_id": "n885034ad",
+                      "role": "AXButton",
+                      "selected": false,
+                      "text": "Login",
+                      "traits": "button",
+                      "visible": true
+                    }
+                  ],
+                  "children_ids": [
+                    "n157d4fda",
+                    "nb4f5abd1",
+                    "n0a75f426",
+                    "n90ddeefd"
+                  ],
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 852,
+                    "width": 393,
+                    "x": 0,
+                    "y": 0
+                  },
+                  "hittable": true,
+                  "id": "n8e51e0b4",
+                  "label": "XCUITestDemo",
+                  "path_id": "n88c59054",
+                  "role": "AXApplication",
+                  "selected": false,
+                  "text": "XCUITestDemo",
+                  "visible": true
+                },
+                "status": "available"
+              },
+              "actionable_topk": [
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.48904538341158055
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 399.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "nb4f5abd1",
+                  "identifier": "usernameTextField",
+                  "parent_id": "n8e51e0b4",
+                  "placeholder": "Username",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Username",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5477308294209702
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 449.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n0a75f426",
+                  "identifier": "passwordSecureField",
+                  "parent_id": "n8e51e0b4",
+                  "placeholder": "Password",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Password",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6066118935837245
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34.33333333333337,
+                    "width": 65.66666666666666,
+                    "x": 163.66666666666666,
+                    "y": 499.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n90ddeefd",
+                  "identifier": "loginButton",
+                  "label": "Login",
+                  "parent_id": "n8e51e0b4",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "Login",
+                  "traits": "button",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.4264475743348983
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 40.666666666666686,
+                    "width": 136.66666666666669,
+                    "x": 128.16666666666669,
+                    "y": 343
+                  },
+                  "hittable": true,
+                  "id": "n157d4fda",
+                  "label": "Welcome",
+                  "parent_id": "n8e51e0b4",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "Welcome",
+                  "visible": true
+                }
+              ],
+              "app_bundle_id": "com.himali.XCUITestDemo",
+              "ax_quality": "ready",
+              "booted": true,
+              "events": [
+                {
+                  "kind": "value_changed",
+                  "payload": {
+                    "from": "",
+                    "id": "nb4f5abd1",
+                    "label": "",
+                    "to": "Username"
+                  },
+                  "t": 1787557555.853456
+                },
+                {
+                  "kind": "value_changed",
+                  "payload": {
+                    "from": "",
+                    "id": "n0a75f426",
+                    "label": "",
+                    "to": "Password"
+                  },
+                  "t": 1787557555.853456
+                }
+              ],
+              "eyes_unusable": false,
+              "frame": {
+                "fps": 52.30224101605237,
+                "h": 2556,
+                "id": 2572,
+                "imports_ok": true,
+                "w": 1179
+              },
+              "observe_ms": 0.000459,
+              "overlay": "none",
+              "path": "lighd",
+              "phase": "ready",
+              "scene": {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "keyboard_visible": false,
+                "surface": "app"
+              },
+              "schema_version": 2,
+              "settled": true,
+              "simulator_app_running": false,
+              "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+            },
+            "ok": true,
+            "overlay": "none",
+            "phase": "ready",
+            "surface": "app"
+          },
+          "foreground_ok": true,
+          "attempt": 1,
+          "keys": [
+            "Login",
+            "Welcome",
+            "loginButton",
+            "n157d4fda",
+            "passwordSecureField",
+            "usernameTextField"
+          ]
+        },
+        "setup_trace": [],
+        "exercise_trace": [
+          {
+            "phase": "exercise",
+            "step": 1,
+            "action": "type",
+            "id": "usernameTextField",
+            "label": null,
+            "text_len": 5,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 2,
+            "action": "type",
+            "id": "passwordSecureField",
+            "label": null,
+            "text_len": 6,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 3,
+            "action": "tap",
+            "label": "Login",
+            "id": "loginButton",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "preconditions": {
+          "ok": true,
+          "must_see": {
+            "Welcome": true,
+            "Login": true
+          },
+          "must_not_see": {
+            "homeTitle": true,
+            "Home": true
+          },
+          "keys_sample": [
+            "Login",
+            "Welcome",
+            "loginButton",
+            "n157d4fda",
+            "passwordSecureField",
+            "usernameTextField"
+          ]
+        },
+        "legacy_weak_pass": true,
+        "false_success": false
+      }
+    }
+  ],
+  "source_restored": true,
+  "task_file": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/login-never-navigates/task.json"
+}

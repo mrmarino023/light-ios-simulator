@@ -1,0 +1,84 @@
+{
+  "app_id": "xcuitestdemo",
+  "app": "XCUITestDemo",
+  "flow_shape": "login_credentials",
+  "goal_id": "homeTitle",
+  "reached": true,
+  "ok": true,
+  "steps": 3,
+  "wall_ms": 10620,
+  "pilot_ms": 10553,
+  "llm_tokens": 0,
+  "spec_inputs": {
+    "goal_id": "homeTitle",
+    "params": 2
+  },
+  "stop_code": null,
+  "diagnosis": null,
+  "trace": [
+    {
+      "act": {
+        "id": "usernameTextField",
+        "intent": "type",
+        "kind": "text_field",
+        "label": null,
+        "reason": "fill TextField (param 1 of class)",
+        "stop_code": null,
+        "text": "alice"
+      },
+      "changed": false,
+      "fired": true,
+      "fp": "fp_67f84fe6fa9605dc",
+      "fp_after": "fp_67f84fe6fa9605dc",
+      "ms": 950,
+      "step": 1
+    },
+    {
+      "act": {
+        "id": "passwordSecureField",
+        "intent": "type",
+        "kind": "secure_field",
+        "label": null,
+        "reason": "fill SecureField (param 1 of class)",
+        "stop_code": null,
+        "text": "***"
+      },
+      "changed": false,
+      "fired": true,
+      "fp": "fp_67f84fe6fa9605dc",
+      "fp_after": "fp_67f84fe6fa9605dc",
+      "ms": 602,
+      "step": 2
+    },
+    {
+      "act": {
+        "id": "loginButton",
+        "intent": "tap",
+        "kind": "primary_button",
+        "label": "Login",
+        "reason": "salience rank 2 (PrimaryButton)",
+        "stop_code": null,
+        "text": null
+      },
+      "changed": true,
+      "fired": true,
+      "fp": "fp_67f84fe6fa9605dc",
+      "fp_after": "fp_19f1529abee7518a",
+      "ms": 629,
+      "step": 3
+    },
+    {
+      "act": {
+        "id": null,
+        "intent": "stop",
+        "kind": null,
+        "label": null,
+        "reason": "acceptance target homeTitle present",
+        "stop_code": "goal_visible",
+        "text": null
+      },
+      "fp": "fp_19f1529abee7518a",
+      "step": 4
+    }
+  ]
+}

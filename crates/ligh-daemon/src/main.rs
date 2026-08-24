@@ -5,6 +5,7 @@
 mod capabilities;
 mod cognition;
 mod motor;
+mod pilot_cap;
 mod qa_cap;
 mod ux_cap;
 
@@ -1139,6 +1140,46 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 swipes,
                 settle,
                 timeout,
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::Autopilot {
+            app,
+            bundle_id,
+            goal,
+            max_steps,
+            workspace,
+            settle_ms,
+            timeout_ms,
+            install,
+            launch_args,
+        } => {
+            let parsed: ligh_core::PilotGoal = match serde_json::from_value(goal) {
+                Ok(g) => g,
+                Err(e) => return DaemonResponse::err(format!("goal: {e}")),
+            };
+            let settle = settle_ms.unwrap_or(1500);
+            let timeout = timeout_ms.unwrap_or(8000);
+            let steps = max_steps.unwrap_or(24);
+            let ws = workspace.as_deref().map(std::path::Path::new);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = pilot_cap::cap_autopilot(
+                ws,
+                &build,
+                state,
+                app.as_deref(),
+                bundle_id.as_deref(),
+                &parsed,
+                steps,
+                settle,
+                timeout,
+                install.unwrap_or(true),
+                launch_args.as_deref(),
             );
             if let Some(ref mut obs) = r.observe {
                 attach_sense(state, obs, Instant::now());

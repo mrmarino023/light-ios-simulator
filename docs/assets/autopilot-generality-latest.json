@@ -1,0 +1,391 @@
+{
+  "gate": "autopilot_generality",
+  "claim": "One generic Feel-IR policy reaches the acceptance target on every app, with no per-app steps and zero LLM tokens",
+  "apps_total": 5,
+  "apps_reached": 5,
+  "flow_shapes_covered": [
+    "form",
+    "list_drill_down",
+    "login_credentials",
+    "multi_step_wizard",
+    "sheet_overlay"
+  ],
+  "per_app": [
+    {
+      "app_id": "lighfixture",
+      "app": "LighFixture",
+      "flow_shape": "form",
+      "goal_id": "LighDone",
+      "reached": true,
+      "ok": true,
+      "steps": 2,
+      "wall_ms": 11506,
+      "pilot_ms": 11445,
+      "llm_tokens": 0,
+      "spec_inputs": {
+        "goal_id": "LighDone",
+        "params": 1
+      },
+      "stop_code": null,
+      "diagnosis": null,
+      "trace": [
+        {
+          "act": {
+            "id": "NameField",
+            "intent": "type",
+            "kind": "text_field",
+            "label": "NameField",
+            "reason": "fill TextField (param 1 of class)",
+            "stop_code": null,
+            "text": "pilot"
+          },
+          "changed": false,
+          "fired": true,
+          "fp": "fp_6b0db857f2d2985e",
+          "fp_after": "fp_6b0db857f2d2985e",
+          "ms": 1894,
+          "step": 1
+        },
+        {
+          "act": {
+            "id": "GoNext",
+            "intent": "tap",
+            "kind": "primary_button",
+            "label": "GoNext",
+            "reason": "salience rank 2 (PrimaryButton)",
+            "stop_code": null,
+            "text": null
+          },
+          "changed": true,
+          "fired": true,
+          "fp": "fp_6b0db857f2d2985e",
+          "fp_after": "fp_b298712fd4e2ab33",
+          "ms": 357,
+          "step": 2
+        },
+        {
+          "act": {
+            "id": null,
+            "intent": "stop",
+            "kind": null,
+            "label": null,
+            "reason": "acceptance target LighDone present",
+            "stop_code": "goal_visible",
+            "text": null
+          },
+          "fp": "fp_b298712fd4e2ab33",
+          "step": 3
+        }
+      ]
+    },
+    {
+      "app_id": "lighonboard",
+      "app": "LighOnboard",
+      "flow_shape": "multi_step_wizard",
+      "goal_id": "HomeReady",
+      "reached": true,
+      "ok": true,
+      "steps": 4,
+      "wall_ms": 17099,
+      "pilot_ms": 17030,
+      "llm_tokens": 0,
+      "spec_inputs": {
+        "goal_id": "HomeReady",
+        "params": 1
+      },
+      "stop_code": null,
+      "diagnosis": null,
+      "trace": [
+        {
+          "act": {
+            "id": "OnboardContinue",
+            "intent": "tap",
+            "kind": "primary_button",
+            "label": "Continue",
+            "reason": "salience rank 1 (PrimaryButton)",
+            "stop_code": null,
+            "text": null
+          },
+          "changed": true,
+          "fired": true,
+          "fp": "fp_ab0895f8ab1dcb92",
+          "fp_after": "fp_6773b114c7c21f15",
+          "ms": 2493,
+          "step": 1
+        },
+        {
+          "act": {
+            "id": "OnboardNameField",
+            "intent": "type",
+            "kind": "text_field",
+            "label": null,
+            "reason": "fill TextField (param 1 of class)",
+            "stop_code": null,
+            "text": "pilot"
+          },
+          "changed": false,
+          "fired": true,
+          "fp": "fp_6773b114c7c21f15",
+          "fp_after": "fp_6773b114c7c21f15",
+          "ms": 3070,
+          "step": 2
+        },
+        {
+          "act": {
+            "id": "OnboardNext",
+            "intent": "tap",
+            "kind": "primary_button",
+            "label": "Next",
+            "reason": "salience rank 2 (PrimaryButton)",
+            "stop_code": null,
+            "text": null
+          },
+          "changed": true,
+          "fired": true,
+          "fp": "fp_6773b114c7c21f15",
+          "fp_after": "fp_4cf50893082415a3",
+          "ms": 1861,
+          "step": 3
+        },
+        {
+          "act": {
+            "id": "OnboardFinish",
+            "intent": "tap",
+            "kind": "button",
+            "label": "Finish",
+            "reason": "salience rank 1 (Button)",
+            "stop_code": null,
+            "text": null
+          },
+          "changed": true,
+          "fired": true,
+          "fp": "fp_4cf50893082415a3",
+          "fp_after": "fp_2b03c8b62402be70",
+          "ms": 297,
+          "step": 4
+        },
+        {
+          "act": {
+            "id": null,
+            "intent": "stop",
+            "kind": null,
+            "label": null,
+            "reason": "acceptance target HomeReady present",
+            "stop_code": "goal_visible",
+            "text": null
+          },
+          "fp": "fp_2b03c8b62402be70",
+          "step": 5
+        }
+      ]
+    },
+    {
+      "app_id": "lighmodal",
+      "app": "LighModal",
+      "flow_shape": "sheet_overlay",
+      "goal_id": "ModalConfirmed",
+      "reached": true,
+      "ok": true,
+      "steps": 2,
+      "wall_ms": 12600,
+      "pilot_ms": 12518,
+      "llm_tokens": 0,
+      "spec_inputs": {
+        "goal_id": "ModalConfirmed",
+        "params": 0
+      },
+      "stop_code": null,
+      "diagnosis": null,
+      "trace": [
+        {
+          "act": {
+            "id": "OpenSheet",
+            "intent": "tap",
+            "kind": "button",
+            "label": "OpenSheet",
+            "reason": "salience rank 1 (Button)",
+            "stop_code": null,
+            "text": null
+          },
+          "changed": true,
+          "fired": true,
+          "fp": "fp_f09fd088f763b6c0",
+          "fp_after": "fp_ba2d47f0d2002f52",
+          "ms": 370,
+          "step": 1
+        },
+        {
+          "act": {
+            "id": "ConfirmAction",
+            "intent": "tap",
+            "kind": "button",
+            "label": "ConfirmAction",
+            "reason": "salience rank 1 (Button)",
+            "stop_code": null,
+            "text": null
+          },
+          "changed": true,
+          "fired": true,
+          "fp": "fp_ba2d47f0d2002f52",
+          "fp_after": "fp_df7dcce197701e0c",
+          "ms": 808,
+          "step": 2
+        },
+        {
+          "act": {
+            "id": null,
+            "intent": "stop",
+            "kind": null,
+            "label": null,
+            "reason": "acceptance target ModalConfirmed present",
+            "stop_code": "goal_visible",
+            "text": null
+          },
+          "fp": "fp_f81deb774bb59cc5",
+          "step": 3
+        }
+      ]
+    },
+    {
+      "app_id": "lighfeed",
+      "app": "LighFeed",
+      "flow_shape": "list_drill_down",
+      "goal_id": "PostDetail",
+      "reached": true,
+      "ok": true,
+      "steps": 1,
+      "wall_ms": 10158,
+      "pilot_ms": 10087,
+      "llm_tokens": 0,
+      "spec_inputs": {
+        "goal_id": "PostDetail",
+        "params": 0
+      },
+      "stop_code": null,
+      "diagnosis": null,
+      "trace": [
+        {
+          "act": {
+            "id": "post-1",
+            "intent": "tap",
+            "kind": "button",
+            "label": "Post 1",
+            "reason": "salience rank 1 (Button)",
+            "stop_code": null,
+            "text": null
+          },
+          "changed": true,
+          "fired": true,
+          "fp": "fp_7587f6aae345346f",
+          "fp_after": "fp_3878c6cafe950b2d",
+          "ms": 596,
+          "step": 1
+        },
+        {
+          "act": {
+            "id": null,
+            "intent": "stop",
+            "kind": null,
+            "label": null,
+            "reason": "acceptance target PostDetail present",
+            "stop_code": "goal_visible",
+            "text": null
+          },
+          "fp": "fp_3878c6cafe950b2d",
+          "step": 2
+        }
+      ]
+    },
+    {
+      "app_id": "xcuitestdemo",
+      "app": "XCUITestDemo",
+      "flow_shape": "login_credentials",
+      "goal_id": "homeTitle",
+      "reached": true,
+      "ok": true,
+      "steps": 3,
+      "wall_ms": 10620,
+      "pilot_ms": 10553,
+      "llm_tokens": 0,
+      "spec_inputs": {
+        "goal_id": "homeTitle",
+        "params": 2
+      },
+      "stop_code": null,
+      "diagnosis": null,
+      "trace": [
+        {
+          "act": {
+            "id": "usernameTextField",
+            "intent": "type",
+            "kind": "text_field",
+            "label": null,
+            "reason": "fill TextField (param 1 of class)",
+            "stop_code": null,
+            "text": "alice"
+          },
+          "changed": false,
+          "fired": true,
+          "fp": "fp_67f84fe6fa9605dc",
+          "fp_after": "fp_67f84fe6fa9605dc",
+          "ms": 950,
+          "step": 1
+        },
+        {
+          "act": {
+            "id": "passwordSecureField",
+            "intent": "type",
+            "kind": "secure_field",
+            "label": null,
+            "reason": "fill SecureField (param 1 of class)",
+            "stop_code": null,
+            "text": "***"
+          },
+          "changed": false,
+          "fired": true,
+          "fp": "fp_67f84fe6fa9605dc",
+          "fp_after": "fp_67f84fe6fa9605dc",
+          "ms": 602,
+          "step": 2
+        },
+        {
+          "act": {
+            "id": "loginButton",
+            "intent": "tap",
+            "kind": "primary_button",
+            "label": "Login",
+            "reason": "salience rank 2 (PrimaryButton)",
+            "stop_code": null,
+            "text": null
+          },
+          "changed": true,
+          "fired": true,
+          "fp": "fp_67f84fe6fa9605dc",
+          "fp_after": "fp_19f1529abee7518a",
+          "ms": 629,
+          "step": 3
+        },
+        {
+          "act": {
+            "id": null,
+            "intent": "stop",
+            "kind": null,
+            "label": null,
+            "reason": "acceptance target homeTitle present",
+            "stop_code": "goal_visible",
+            "text": null
+          },
+          "fp": "fp_19f1529abee7518a",
+          "step": 4
+        }
+      ]
+    }
+  ],
+  "verdict": {
+    "all_reached": true,
+    "distinct_flow_shapes": 5,
+    "zero_llm": true,
+    "median_wall_ms": 11506
+  },
+  "claim_pass": true
+}

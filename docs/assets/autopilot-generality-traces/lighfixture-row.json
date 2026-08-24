@@ -1,0 +1,67 @@
+{
+  "app_id": "lighfixture",
+  "app": "LighFixture",
+  "flow_shape": "form",
+  "goal_id": "LighDone",
+  "reached": true,
+  "ok": true,
+  "steps": 2,
+  "wall_ms": 11506,
+  "pilot_ms": 11445,
+  "llm_tokens": 0,
+  "spec_inputs": {
+    "goal_id": "LighDone",
+    "params": 1
+  },
+  "stop_code": null,
+  "diagnosis": null,
+  "trace": [
+    {
+      "act": {
+        "id": "NameField",
+        "intent": "type",
+        "kind": "text_field",
+        "label": "NameField",
+        "reason": "fill TextField (param 1 of class)",
+        "stop_code": null,
+        "text": "pilot"
+      },
+      "changed": false,
+      "fired": true,
+      "fp": "fp_6b0db857f2d2985e",
+      "fp_after": "fp_6b0db857f2d2985e",
+      "ms": 1894,
+      "step": 1
+    },
+    {
+      "act": {
+        "id": "GoNext",
+        "intent": "tap",
+        "kind": "primary_button",
+        "label": "GoNext",
+        "reason": "salience rank 2 (PrimaryButton)",
+        "stop_code": null,
+        "text": null
+      },
+      "changed": true,
+      "fired": true,
+      "fp": "fp_6b0db857f2d2985e",
+      "fp_after": "fp_b298712fd4e2ab33",
+      "ms": 357,
+      "step": 2
+    },
+    {
+      "act": {
+        "id": null,
+        "intent": "stop",
+        "kind": null,
+        "label": null,
+        "reason": "acceptance target LighDone present",
+        "stop_code": "goal_visible",
+        "text": null
+      },
+      "fp": "fp_b298712fd4e2ab33",
+      "step": 3
+    }
+  ]
+}

@@ -310,6 +310,27 @@ pub enum DaemonRequest {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         launch_args: Option<Vec<String>>,
     },
+    /// Autopilot: host drives the UI to a goal, zero LLM tokens. Path is discovered.
+    Autopilot {
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        app: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        bundle_id: Option<String>,
+        /// Acceptance target + typed params (no step list).
+        goal: serde_json::Value,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        max_steps: Option<u32>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        install: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        launch_args: Option<Vec<String>>,
+    },
     /// UX graph: status (nodes, edges, baselines).
     UxStatus {
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -460,6 +481,15 @@ fn read_timeout_for(req: &DaemonRequest) -> Duration {
         }
         DaemonRequest::Reach { timeout_ms, .. } => {
             Duration::from_millis(timeout_ms.unwrap_or(12_000).saturating_add(30_000))
+        }
+        DaemonRequest::Autopilot {
+            timeout_ms,
+            max_steps,
+            ..
+        } => {
+            let per = timeout_ms.unwrap_or(8_000);
+            let n = max_steps.unwrap_or(24).max(1) as u64;
+            Duration::from_millis(per.saturating_mul(n).saturating_add(120_000))
         }
         DaemonRequest::RunApp { timeout_ms, .. } => {
             Duration::from_millis(timeout_ms.unwrap_or(8_000).saturating_add(60_000))

@@ -66,7 +66,10 @@ Reproduce: `ligh agent-bench` (WDA baseline needs Appium listening).
 
 Evidence: [`docs/assets/killer-loop-ab-latest.json`](docs/assets/killer-loop-ab-latest.json). Reproduce: `./scripts/gate-killer-loop.sh`.
 
-**Honest A/B** (no host exercise): XCUITestDemo `login-never-navigates` — same prompt, agent must type/tap via AX **or** vision. `exercise_app` disabled. Both arms **failed** this run (postcondition not met); neither modality won.
+**Historical honest A/B v1** (no host exercise): XCUITestDemo
+`login-never-navigates` — same prompt, agent must type/tap via AX **or** vision.
+`exercise_app` disabled. Both arms **failed** this run (postcondition not met);
+neither modality won.
 
 | Arm | Pass | Wall | LLM tokens | Used exercise_app |
 |-----|------|------|------------|-------------------|
@@ -75,7 +78,41 @@ Evidence: [`docs/assets/killer-loop-ab-latest.json`](docs/assets/killer-loop-ab-
 
 Evidence: [`docs/assets/killer-loop-ab-honest-latest.json`](docs/assets/killer-loop-ab-honest-latest.json). Reproduce: `LIGH_KILLER_HONEST=1 ./scripts/gate-killer-loop-ab.sh` (needs `OPENAI_API_KEY`).
 
-The product path is a real feature. The honest path is the fair AX-vs-vision test — and it currently shows the full coding loop is still hard.
+This v1 result identified the architectural bug: the LLM was still the UI
+executor. It is retained as the negative baseline, not presented as a win.
+
+**Honest A/B v2 — Host Autopilot.** Same XCUITestDemo task, injected bug,
+model, acceptance target and strict harness. Neither arm receives a step list.
+The Autopilot arm restricts the LLM to code (`read/write/build/run_goal`);
+Rust discovers and drives the UI path from live Feel IR. Vision still drives
+every tap through the LLM.
+
+| Arm | Pass | Wall | LLM tokens | Patches / builds |
+|-----|------|------|------------|------------------|
+| **LIGH Host Autopilot** | yes | **41.9 s** | **9,034** | 1 / 1 |
+| Vision baseline | yes | 152.4 s | 67,040 | 1 / 1 |
+
+That paired run is **3.64× faster wall-clock** and uses **7.42× fewer LLM
+tokens**. The UI executor itself used zero LLM tokens. Evidence:
+[`docs/assets/killer-loop-ab-v2-latest.json`](docs/assets/killer-loop-ab-v2-latest.json).
+Reproduce with `./scripts/gate-killer-loop-ab-v2.sh` (needs
+`OPENAI_API_KEY`). The artifact is published regardless of outcome and only
+passes when Autopilot both verifies and reaches the 3× threshold.
+
+The same policy also passes the no-special-cases generality gate on **5/5
+apps**, covering five different flow shapes:
+
+- **LighFixture** — form: type + submit, 2 actions, 11.5 s
+- **LighOnboard** — multi-screen wizard, 4 actions, 17.1 s
+- **LighModal** — sheet presentation + confirmation, 2 actions, 12.6 s
+- **LighFeed** — list → detail navigation, 1 action, 10.2 s
+- **XCUITestDemo** — third-party OSS login with credentials, 3 actions, 10.6 s
+
+There are no per-app branches or recorded flows in Autopilot. Every run receives
+only an acceptance goal plus typed data; Rust discovers the path at runtime and
+uses **zero LLM UI tokens**. Evidence:
+[`docs/assets/autopilot-generality-latest.json`](docs/assets/autopilot-generality-latest.json).
+Reproduce with `./scripts/gate-autopilot-generality.sh`.
 
 ---
 
@@ -84,7 +121,7 @@ The product path is a real feature. The honest path is the fair AX-vs-vision tes
 ```text
 Coding agent (Cursor MCP)
         ↓
-LIGH host — Feel IR + perceive / attempt / exercise
+LIGH host — Autopilot over Feel IR (perceive → plan → act → verify)
         ↓
 Apple CoreSimulator
         ↓
@@ -128,19 +165,21 @@ Example shape (agent sees this from `ligh_perceive`):
 ### Who decides what
 
 ```text
-LLM (slow, expensive)     →  read/edit Swift, decide *what* to fix
-Rust host (fast, cheap)   →  bootstrap, exercise known steps, verify
-Feel IR                   →  the shared “now” of the UI (~ms update)
+LLM (slow, expensive)     →  read/edit Swift, decide what code to fix
+Rust Autopilot            →  discover and drive the UI path, verify the goal
+Feel IR                   →  the host's live interaction state (~ms update)
+strict harness            →  accept/reject the patch without another LLM turn
 ```
 
 Canonical coding-agent loop on LIGH:
 
 ```text
-read_file → write_file → build_app → bootstrap_app → exercise_app → verify
+read_file → write_file → build_app → run_goal → host_accept
 ```
 
-- **`exercise_app`** runs the task’s setup/exercise taps **on the host** (zero LLM micro-taps).
-- **`verify`** re-runs the same harness (setup → exercise → postconditions) and fail-closes on false greens.
+- **`run_goal`** receives an acceptance target plus typed data, never a step list. Rust discovers the path from live Feel IR and drives it with zero LLM UI tokens.
+- **`host_accept`** immediately runs the strict harness when the target appears. A passing patch ends the loop before the model can rewrite working code.
+- The planner is app-agnostic: field kinds, CTA salience, overlays, deltas and bounded recovery. Per-app flows are forbidden.
 - Screenshots are **debug / escalation only** (`ligh_perceive_routed`: AX → ready retry → vision if still `eyes_unusable`).
 
 ### What we tried and rejected
@@ -154,6 +193,7 @@ A persistent **UX graph** (screens + transitions as LLM memory) was measured and
 | `ligh_perceive` | Settled world model + **Feel IR** |
 | `ligh_attempt` | Act + host verdict (`intent_met`, evidence) |
 | `ligh_perceive_routed` | AX-first; vision only on escalation |
+| `ligh_cap_autopilot` | Goal + typed data → host-discovered path → verified result (0 UI tokens) |
 | `ligh_cap_app_job` | Known multi-step job (CI / fixtures) |
 
 More detail: [`docs/QA_LAYER.md`](docs/QA_LAYER.md) · [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · [`docs/STRUCTURED_CONTROL.md`](docs/STRUCTURED_CONTROL.md)

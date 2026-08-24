@@ -1,0 +1,353 @@
+{
+  "capability": "autopilot",
+  "detail": {
+    "elapsed_ms": 10553,
+    "goal": {
+      "target_id": "homeTitle",
+      "target_label": null
+    },
+    "llm_tokens": 0,
+    "reached": true,
+    "steps": 3,
+    "trace": [
+      {
+        "act": {
+          "id": "usernameTextField",
+          "intent": "type",
+          "kind": "text_field",
+          "label": null,
+          "reason": "fill TextField (param 1 of class)",
+          "stop_code": null,
+          "text": "alice"
+        },
+        "changed": false,
+        "fired": true,
+        "fp": "fp_67f84fe6fa9605dc",
+        "fp_after": "fp_67f84fe6fa9605dc",
+        "ms": 950,
+        "step": 1
+      },
+      {
+        "act": {
+          "id": "passwordSecureField",
+          "intent": "type",
+          "kind": "secure_field",
+          "label": null,
+          "reason": "fill SecureField (param 1 of class)",
+          "stop_code": null,
+          "text": "***"
+        },
+        "changed": false,
+        "fired": true,
+        "fp": "fp_67f84fe6fa9605dc",
+        "fp_after": "fp_67f84fe6fa9605dc",
+        "ms": 602,
+        "step": 2
+      },
+      {
+        "act": {
+          "id": "loginButton",
+          "intent": "tap",
+          "kind": "primary_button",
+          "label": "Login",
+          "reason": "salience rank 2 (PrimaryButton)",
+          "stop_code": null,
+          "text": null
+        },
+        "changed": true,
+        "fired": true,
+        "fp": "fp_67f84fe6fa9605dc",
+        "fp_after": "fp_19f1529abee7518a",
+        "ms": 629,
+        "step": 3
+      },
+      {
+        "act": {
+          "id": null,
+          "intent": "stop",
+          "kind": null,
+          "label": null,
+          "reason": "acceptance target homeTitle present",
+          "stop_code": "goal_visible",
+          "text": null
+        },
+        "fp": "fp_19f1529abee7518a",
+        "step": 4
+      }
+    ]
+  },
+  "fault": "ok",
+  "observe": {
+    "accessibility_tree": {
+      "element_count": 3,
+      "nodes": [
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.5
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 852,
+            "width": 393,
+            "x": 0,
+            "y": 0
+          },
+          "hittable": true,
+          "id": "n8e51e0b4",
+          "label": "XCUITestDemo",
+          "path_id": "n88c59054",
+          "role": "AXApplication",
+          "selected": false,
+          "text": "XCUITestDemo",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5,
+            "y": 0.49569640062597814
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 40.666666666666686,
+            "width": 88.33333333333334,
+            "x": 152.33333333333334,
+            "y": 402
+          },
+          "hittable": true,
+          "id": "n043eb693",
+          "identifier": "homeTitle",
+          "label": "Home",
+          "parent_id": "n8e51e0b4",
+          "path_id": "n62699621",
+          "role": "AXStaticText",
+          "selected": false,
+          "text": "Home",
+          "visible": true
+        },
+        {
+          "center_norm": {
+            "x": 0.5000000000000001,
+            "y": 0.5455790297339593
+          },
+          "enabled": true,
+          "focused": false,
+          "frame": {
+            "height": 20.33333333333331,
+            "width": 127.66666666666669,
+            "x": 132.66666666666669,
+            "y": 454.66666666666674
+          },
+          "hittable": true,
+          "id": "nea8c1656",
+          "identifier": "homeMessage",
+          "label": "You’re logged in!",
+          "parent_id": "n8e51e0b4",
+          "path_id": "nbeec27b5",
+          "role": "AXStaticText",
+          "selected": false,
+          "text": "You’re logged in!",
+          "visible": true
+        }
+      ],
+      "point_size": [
+        393.0,
+        852.0
+      ],
+      "root": {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "children": [
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.49569640062597814
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 40.666666666666686,
+              "width": 88.33333333333334,
+              "x": 152.33333333333334,
+              "y": 402
+            },
+            "hittable": true,
+            "id": "n043eb693",
+            "identifier": "homeTitle",
+            "label": "Home",
+            "parent_id": "n8e51e0b4",
+            "path_id": "n62699621",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "Home",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5000000000000001,
+              "y": 0.5455790297339593
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 20.33333333333331,
+              "width": 127.66666666666669,
+              "x": 132.66666666666669,
+              "y": 454.66666666666674
+            },
+            "hittable": true,
+            "id": "nea8c1656",
+            "identifier": "homeMessage",
+            "label": "You’re logged in!",
+            "parent_id": "n8e51e0b4",
+            "path_id": "nbeec27b5",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "You’re logged in!",
+            "visible": true
+          }
+        ],
+        "children_ids": [
+          "n043eb693",
+          "nea8c1656"
+        ],
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 852,
+          "width": 393,
+          "x": 0,
+          "y": 0
+        },
+        "hittable": true,
+        "id": "n8e51e0b4",
+        "label": "XCUITestDemo",
+        "path_id": "n88c59054",
+        "role": "AXApplication",
+        "selected": false,
+        "text": "XCUITestDemo",
+        "visible": true
+      },
+      "status": "available"
+    },
+    "actionable_topk": [
+      {
+        "center_norm": {
+          "x": 0.5,
+          "y": 0.49569640062597814
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 40.666666666666686,
+          "width": 88.33333333333334,
+          "x": 152.33333333333334,
+          "y": 402
+        },
+        "hittable": true,
+        "id": "n043eb693",
+        "identifier": "homeTitle",
+        "label": "Home",
+        "parent_id": "n8e51e0b4",
+        "role": "AXStaticText",
+        "selected": false,
+        "text": "Home",
+        "visible": true
+      },
+      {
+        "center_norm": {
+          "x": 0.5000000000000001,
+          "y": 0.5455790297339593
+        },
+        "enabled": true,
+        "focused": false,
+        "frame": {
+          "height": 20.33333333333331,
+          "width": 127.66666666666669,
+          "x": 132.66666666666669,
+          "y": 454.66666666666674
+        },
+        "hittable": true,
+        "id": "nea8c1656",
+        "identifier": "homeMessage",
+        "label": "You’re logged in!",
+        "parent_id": "n8e51e0b4",
+        "role": "AXStaticText",
+        "selected": false,
+        "text": "You’re logged in!",
+        "visible": true
+      }
+    ],
+    "app_bundle_id": "com.himali.XCUITestDemo",
+    "ax_quality": "ready",
+    "booted": true,
+    "events": [
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_type",
+          "detail": {
+            "attempt": 0,
+            "text": "alice"
+          },
+          "ok": true
+        },
+        "t": 1787558284.159262
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_type",
+          "detail": {
+            "attempt": 0,
+            "text": "secret"
+          },
+          "ok": true
+        },
+        "t": 1787558284.792783
+      },
+      {
+        "kind": "action_result",
+        "payload": {
+          "action": "act_tap",
+          "detail": {
+            "method": "hid_tap",
+            "target": "loginButton",
+            "verified": true
+          },
+          "ok": true
+        },
+        "t": 1787558285.424486
+      }
+    ],
+    "eyes_unusable": false,
+    "frame": {
+      "fps": 58.326012596206176,
+      "h": 2556,
+      "id": 728,
+      "imports_ok": true,
+      "w": 1179
+    },
+    "observe_ms": 0.000375,
+    "overlay": "none",
+    "path": "lighd",
+    "phase": "ready",
+    "scene": {
+      "bundle_id": "com.himali.XCUITestDemo",
+      "keyboard_visible": false,
+      "surface": "app"
+    },
+    "schema_version": 2,
+    "settled": true,
+    "simulator_app_running": false,
+    "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+  },
+  "ok": true,
+  "overlay": "none",
+  "phase": "ready",
+  "surface": "app"
+}

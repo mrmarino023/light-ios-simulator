@@ -4,6 +4,8 @@
 .idea/
 .vscode/
 *.swp
+__pycache__/
+*.py[cod]
 .env
 *.log
 node_modules/
