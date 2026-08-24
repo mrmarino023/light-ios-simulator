@@ -4,6 +4,7 @@
 //! Zero-copy GPU path: simulator → IOSurface → Rust Metal compositor.
 
 mod ffi;
+mod physical;
 
 use std::ffi::{CStr, CString};
 use std::path::Path;
@@ -15,6 +16,10 @@ use ligh_core::LighError;
 use tracing::{info, warn};
 
 pub use ffi::LighFrameFn;
+pub use physical::{
+    physical_ui, physical_ui_active, set_physical_ui, ui_mode, ui_mode_from, ui_target, PhysicalUi,
+    UiMode,
+};
 
 type FrameHandler = Box<dyn Fn(u32, u32, u32) + Send + Sync>;
 
@@ -238,6 +243,9 @@ pub struct HidInput;
 
 impl HidInput {
     pub fn tap(udid: &str, norm_x: f64, norm_y: f64, width: f64, height: f64) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| p.tap(norm_x, norm_y, width, height)) {
+            return r;
+        }
         HostSession::init()?;
         let _guard = bridge_lock();
         let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
@@ -262,6 +270,10 @@ impl HidInput {
         height: f64,
         hold_ms: f64,
     ) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| p.tap_hold(norm_x, norm_y, width, height, hold_ms))
+        {
+            return r;
+        }
         HostSession::init()?;
         let _guard = bridge_lock();
         let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
@@ -295,6 +307,11 @@ impl HidInput {
         width: f64,
         height: f64,
     ) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| {
+            p.swipe(from_norm_x, from_norm_y, to_norm_x, to_norm_y, width, height)
+        }) {
+            return r;
+        }
         HostSession::init()?;
         let _guard = bridge_lock();
         let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
@@ -353,6 +370,9 @@ impl HidInput {
     }
 
     pub fn home(udid: &str) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| p.home()) {
+            return r;
+        }
         HostSession::init()?;
         let _guard = bridge_lock();
         let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
@@ -368,6 +388,9 @@ impl HidInput {
     }
 
     pub fn prepare(udid: &str) -> Result<(), LighError> {
+        if physical_ui_active() {
+            return Ok(());
+        }
         HostSession::init()?;
         let _guard = bridge_lock();
         let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
@@ -383,6 +406,9 @@ impl HidInput {
     }
 
     pub fn type_text(udid: &str, text: &str) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| p.type_text(text)) {
+            return r;
+        }
         HostSession::init()?;
         let _guard = bridge_lock();
         let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
@@ -415,6 +441,9 @@ impl HidInput {
     }
 
     pub fn clear(udid: &str, count: u32) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| p.clear(count)) {
+            return r;
+        }
         for _ in 0..count.max(1) {
             Self::key_usage(udid, 0x2A)?; // Delete/Backspace
         }
@@ -439,6 +468,9 @@ impl HidInput {
 
     /// Layout-independent insert: sim pasteboard + Cmd-A/Cmd-V.
     pub fn paste_text(udid: &str, text: &str) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| p.type_text(text)) {
+            return r;
+        }
         let mut child = std::process::Command::new("xcrun")
             .args(["simctl", "pbcopy", udid])
             .stdin(std::process::Stdio::piped())
@@ -468,6 +500,9 @@ impl HidInput {
     }
 
     pub fn key_named(udid: &str, name: &str) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| p.key_named(name)) {
+            return r;
+        }
         let usage = match name.to_ascii_lowercase().as_str() {
             "return" | "enter" => 0x28u32,
             "delete" | "backspace" => 0x2A,
@@ -494,6 +529,9 @@ pub struct AxDump;
 impl AxDump {
     /// Returns JSON: `{ status, root, elements: [{label,role,frame,...}], ... }`.
     pub fn dump(udid: &str) -> Result<serde_json::Value, LighError> {
+        if let Some(r) = physical::with_physical(|p| p.dump()) {
+            return r;
+        }
         HostSession::init()?;
         let _guard = bridge_lock();
         let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
@@ -626,6 +664,9 @@ impl AxDump {
 
     /// Native accessibility press — reliable for SwiftUI sheets where HID coords miss.
     pub fn press_id(udid: &str, id: &str) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| p.press_id(id)) {
+            return r;
+        }
         let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
         let c_id = CString::new(id).map_err(|e| LighError::Simctl(e.to_string()))?;
         let mut err = ffi::LighHostError {
@@ -643,6 +684,9 @@ impl AxDump {
     }
 
     pub fn press_label(udid: &str, label: &str) -> Result<(), LighError> {
+        if let Some(r) = physical::with_physical(|p| p.press_label(label)) {
+            return r;
+        }
         let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
         let c_lab = CString::new(label).map_err(|e| LighError::Simctl(e.to_string()))?;
         let mut err = ffi::LighHostError {
@@ -663,10 +707,107 @@ impl AxDump {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::Arc;
 
     #[test]
     fn developer_dir_exists() {
         let d = resolve_developer_dir();
         assert!(Path::new(&d).exists());
+    }
+
+    struct FakePhone;
+
+    impl PhysicalUi for FakePhone {
+        fn active(&self) -> bool {
+            true
+        }
+        fn session_id(&self) -> String {
+            "device:fake".into()
+        }
+        fn transport(&self) -> &'static str {
+            "lan"
+        }
+        fn bundle_id(&self) -> Option<String> {
+            Some("dev.ligh.fake".into())
+        }
+        fn screen_points(&self) -> Option<(f64, f64)> {
+            Some((390.0, 844.0))
+        }
+        fn dump(&self) -> Result<serde_json::Value, LighError> {
+            Ok(serde_json::json!({
+                "status": "available",
+                "elements": [{
+                    "identifier": "sign_in",
+                    "label": "SIGN IN",
+                    "role": "Button",
+                    "hittable": true,
+                    "frame": { "x": 20, "y": 400, "width": 350, "height": 48 }
+                }],
+                "element_count": 1
+            }))
+        }
+        fn tap(&self, _nx: f64, _ny: f64, _w: f64, _h: f64) -> Result<(), LighError> {
+            Ok(())
+        }
+        fn tap_hold(
+            &self,
+            _nx: f64,
+            _ny: f64,
+            _w: f64,
+            _h: f64,
+            _hold_ms: f64,
+        ) -> Result<(), LighError> {
+            Ok(())
+        }
+        fn swipe(
+            &self,
+            _a: f64,
+            _b: f64,
+            _c: f64,
+            _d: f64,
+            _w: f64,
+            _h: f64,
+        ) -> Result<(), LighError> {
+            Ok(())
+        }
+        fn type_text(&self, _text: &str) -> Result<(), LighError> {
+            Ok(())
+        }
+        fn clear(&self, _count: u32) -> Result<(), LighError> {
+            Ok(())
+        }
+        fn key_named(&self, _name: &str) -> Result<(), LighError> {
+            Ok(())
+        }
+        fn home(&self) -> Result<(), LighError> {
+            Ok(())
+        }
+        fn press_id(&self, _id: &str) -> Result<(), LighError> {
+            Ok(())
+        }
+        fn press_label(&self, _label: &str) -> Result<(), LighError> {
+            Ok(())
+        }
+    }
+
+    #[test]
+    fn dump_and_tap_use_physical_override() {
+        set_physical_ui(Some(Arc::new(FakePhone)));
+        let dump = AxDump::dump("sim-udid-ignored").unwrap();
+        assert_eq!(dump["elements"][0]["identifier"], "sign_in");
+        HidInput::tap("sim-udid-ignored", 0.5, 0.5, 390.0, 844.0).unwrap();
+        HidInput::type_text("sim-udid-ignored", "hi@example.co").unwrap();
+        set_physical_ui(None);
+        assert!(!physical_ui_active());
+    }
+
+    #[test]
+    fn ui_mode_parses_loop_targets() {
+        assert_eq!(ui_mode_from(None), UiMode::Auto);
+        assert_eq!(ui_mode_from(Some("sim")), UiMode::Sim);
+        assert_eq!(ui_mode_from(Some("simulator")), UiMode::Sim);
+        assert_eq!(ui_mode_from(Some("device")), UiMode::Device);
+        assert_eq!(ui_mode_from(Some("physical")), UiMode::Device);
+        assert_eq!(ui_mode_from(Some("auto")), UiMode::Auto);
     }
 }

@@ -111,6 +111,9 @@ pub struct ObserveSnapshot {
     /// Top occlusion layer: `none|keyboard|alert|sheet|transition`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub overlay: Option<String>,
+    /// Compact screen signature for effect verification (Δ after act).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub screen_sig: Option<String>,
 }
 
 fn observe_schema_default() -> u32 {
@@ -244,6 +247,7 @@ impl ObserveSnapshot {
         self.settled = self.ax_quality == "ready";
         self.actionable_topk = build_actionable_topk(nodes, ACTIONABLE_TOPK);
         self.scene = Some(build_scene(nodes, self.app_bundle_id.clone()));
+        self.screen_sig = Some(crate::qa::screen_fingerprint(nodes));
         let has_udid = !self.udid.is_empty();
         crate::control::stamp_control_fields(self, has_udid);
     }
@@ -819,18 +823,26 @@ fn actionable_score(n: &serde_json::Value) -> i32 {
     let hittable = n.get("hittable").and_then(|v| v.as_bool()).unwrap_or(true);
     let enabled = n.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true);
     let focused = n.get("focused").and_then(|v| v.as_bool()).unwrap_or(false);
-    let has_label = n
-        .get("label")
-        .and_then(|v| v.as_str())
-        .map(|s| !s.is_empty())
-        .unwrap_or(false);
+    let label = n.get("label").and_then(|v| v.as_str()).unwrap_or("");
+    let has_label = !label.is_empty();
     let has_id = n
         .get("identifier")
         .and_then(|v| v.as_str())
         .map(|s| !s.is_empty())
-        .unwrap_or(false);
+        .unwrap_or(false)
+        || n.get("id")
+            .and_then(|v| v.as_str())
+            .map(|s| !s.is_empty())
+            .unwrap_or(false);
     if !hittable || !enabled {
         return -100;
+    }
+    // Mega VoiceOver soup / full-screen groups — poison for the planner.
+    if label_is_noisy(label) {
+        return -1000;
+    }
+    if role.contains("group") && frame_is_near_fullscreen(n) && !is_tab_bar_node(n) {
+        return -1000;
     }
     let mut s = 0;
     if focused {
@@ -854,7 +866,44 @@ fn actionable_score(n: &serde_json::Value) -> i32 {
     if role.contains("application") || role.contains("window") {
         s -= 80;
     }
+    // Prefer short, precise labels.
+    if label.len() > 40 {
+        s -= ((label.len() - 40) / 15) as i32;
+    }
     s
+}
+
+/// Labels that dump the whole screen into one node (RN accessibility merge).
+pub fn label_is_noisy(label: &str) -> bool {
+    if label.len() > 96 {
+        return true;
+    }
+    // Concatenated tab bar into one string, or many list titles jammed together.
+    let tab_marks = label.matches(", tab,").count();
+    if tab_marks >= 2 {
+        return true;
+    }
+    if label.matches(" Tab").count() >= 3 {
+        return true;
+    }
+    false
+}
+
+fn frame_is_near_fullscreen(n: &serde_json::Value) -> bool {
+    let Some(f) = n.get("frame") else {
+        return false;
+    };
+    let w = f.get("width").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let h = f.get("height").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    w >= 300.0 && h >= 500.0
+}
+
+fn shorten_label(label: &str) -> String {
+    let t = label.trim();
+    if t.len() <= 64 {
+        return t.to_string();
+    }
+    format!("{}…", t.chars().take(61).collect::<String>())
 }
 
 /// Filter + rank interactive nodes for the LLM default view.
@@ -889,6 +938,12 @@ pub fn build_actionable_topk(nodes: &[serde_json::Value], k: usize) -> Vec<serde
                 "identifier",
             ] {
                 if let Some(v) = n.get(key) {
+                    if key == "label" {
+                        if let Some(s) = v.as_str() {
+                            slim.insert(key.to_string(), json!(shorten_label(s)));
+                            continue;
+                        }
+                    }
                     slim.insert(key.to_string(), v.clone());
                 }
             }
@@ -1594,5 +1649,44 @@ mod tests {
             json!({"label":"Invia","role":"AXButton","hittable":true,"enabled":true}),
         ];
         assert_eq!(detect_surface(&nodes), "messages_composer");
+    }
+
+    #[test]
+    fn actionable_rejects_mega_labels_and_fullscreen_groups() {
+        let mega = "Symposia Into the Wild Foo Bar TabEventsHome, tab, 1 of 5 TabMatchingEvents, tab, 2 of 5 TabRecording, tab, 3 of 5 TabChat, tab, 4 of 5 TabProfile, tab, 5 of 5";
+        let nodes = vec![
+            json!({
+                "id": "n-mega",
+                "role": "Group",
+                "label": mega,
+                "hittable": true,
+                "enabled": true,
+                "frame": {"x": 0, "y": 0, "width": 390, "height": 844}
+            }),
+            json!({
+                "id": "n-tab",
+                "role": "Button",
+                "label": "TabEventsHome, tab, 1 of 5",
+                "hittable": true,
+                "enabled": true,
+                "frame": {"x": 0, "y": 764, "width": 78, "height": 60}
+            }),
+            json!({
+                "id": "n-row",
+                "role": "Button",
+                "label": "Into the Wild",
+                "hittable": true,
+                "enabled": true,
+                "frame": {"x": 25, "y": 120, "width": 348, "height": 93}
+            }),
+        ];
+        let top = build_actionable_topk(&nodes, 10);
+        assert!(top.iter().all(|n| n.get("id") != Some(&json!("n-mega"))));
+        assert!(top.iter().any(|n| n.get("label") == Some(&json!("Into the Wild"))));
+        assert!(top.iter().any(|n| {
+            n.get("label")
+                .and_then(|v| v.as_str())
+                .is_some_and(|s| s.contains("TabEventsHome"))
+        }));
     }
 }

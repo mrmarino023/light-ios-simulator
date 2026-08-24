@@ -417,6 +417,7 @@ mod tests {
             phase: None,
             eyes_unusable: false,
             overlay: None,
+            screen_sig: None,
         };
         stamp_control_fields(&mut s, true);
         s

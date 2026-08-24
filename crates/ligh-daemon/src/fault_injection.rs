@@ -80,6 +80,7 @@ mod tests {
             phase: Some("ready".into()),
             eyes_unusable: false,
             overlay: Some("none".into()),
+            screen_sig: None,
         };
         apply_mode(&mut snapshot, "stale_epoch");
         assert_eq!(snapshot.screen_epoch, 8);

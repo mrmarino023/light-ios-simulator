@@ -99,6 +99,16 @@ fn predicate_matches(nodes: &[serde_json::Value], predicate: &GoalPredicate) -> 
 }
 
 fn foreground_owned(snap: &ObserveSnapshot, goal: &PilotGoal) -> bool {
+    // In-process DevDriver means the instrumented app is foreground.
+    // Physical dumps often omit SpringBoard-style app labels.
+    if ligh_host::physical_ui_active() {
+        if let Some(bid) = snap.app_bundle_id.as_deref() {
+            if let Some(expected) = goal.expected_bundle_id.as_deref() {
+                return bid == expected;
+            }
+            return true;
+        }
+    }
     if let Some(expected) = goal
         .expected_bundle_id
         .as_deref()
@@ -331,28 +341,60 @@ pub(crate) fn cap_autopilot(
         );
     }
 
-    if let Some(app_path) = app {
-        let launched = run_app(
-            build,
-            state,
-            app_path,
-            bundle_id,
-            None,
-            None,
-            settle_ms,
-            timeout_ms,
-            install,
-            launch_args,
-        );
-        if !launched.ok {
+    // Physical motor: refuse Autopilot when DevDriver cannot gesture (motor v1 lie).
+    if ligh_host::physical_ui_active() {
+        let ui = ligh_host::physical_ui();
+        let ver = ui.as_ref().map(|u| u.driver_version()).unwrap_or(0);
+        let caps = ui
+            .as_ref()
+            .map(|u| u.capabilities())
+            .unwrap_or(json!({}));
+        let gesture_ok = ver >= 2
+            || caps.get("gesture").and_then(|v| v.as_bool()).unwrap_or(false);
+        if !gesture_ok {
             return CapabilityResult::fail(
-                launched.fault,
-                launched.phase,
-                launched.surface,
+                FaultClass::Infra,
+                SessionPhase::Ready,
+                None,
                 "autopilot",
-                json!({ "stage": "run_app", "detail": launched.detail }),
-                launched.observe,
+                json!({
+                    "error": "physical DevDriver lacks gesture capability — rebuild the app with @mm-labs/ligh-expo >= 0.2 (driver_version 2)",
+                    "driver_version": ver,
+                    "capabilities": caps,
+                }),
+                None,
             );
+        }
+    }
+
+    if let Some(app_path) = app {
+        if ligh_host::physical_ui_active() {
+            // Physical DevDriver already owns the live app. Never install/relaunch
+            // a Simulator .app — Cursor→Expo→phone butter path.
+            let _ = app_path;
+        } else {
+            let launched = run_app(
+                build,
+                state,
+                app_path,
+                bundle_id,
+                None,
+                None,
+                settle_ms,
+                timeout_ms,
+                install,
+                launch_args,
+            );
+            if !launched.ok {
+                return CapabilityResult::fail(
+                    launched.fault,
+                    launched.phase,
+                    launched.surface,
+                    "autopilot",
+                    json!({ "stage": "run_app", "detail": launched.detail }),
+                    launched.observe,
+                );
+            }
         }
     }
 

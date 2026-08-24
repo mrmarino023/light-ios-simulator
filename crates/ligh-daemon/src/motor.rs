@@ -484,6 +484,8 @@ fn motor_fire_verified(
     let tid = id.map(|s| s.to_string());
     let tlab = label.map(|s| s.to_string());
 
+    // Physical: AX activate first. Coordinate HID hits RN glyph views, not onPress.
+    let prefer_ax = prefer_ax || ligh_host::physical_ui_active();
     if prefer_ax {
         if id.is_some() {
             let u2 = u.clone();

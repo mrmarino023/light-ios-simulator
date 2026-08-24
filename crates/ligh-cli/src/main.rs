@@ -3,8 +3,8 @@ use std::time::{Duration, Instant};
 
 use clap::{Parser, Subcommand, ValueEnum};
 use ligh_core::{
-    default_sock_path, ensure_daemon, sibling_lighd, AccessibilityTree, DaemonClient, DevicePreset,
-    FeatureRequirements, FrameMeta, LighConfig, ObserveSnapshot, SessionState,
+    default_sock_path, ensure_daemon, sibling_lighd, AccessibilityTree, DaemonClient, DaemonRequest,
+    DevicePreset, FeatureRequirements, FrameMeta, LighConfig, ObserveSnapshot, SessionState,
 };
 use ligh_gpu::{FrameCompositor, Screenshot};
 use ligh_host::{AxDump, HidInput, HostSession};
@@ -586,6 +586,12 @@ enum DeviceCommands {
         #[arg(short, long, value_enum, default_value = "iphone-15-pro")]
         device: DeviceArg,
     },
+    /// Wait for a physical DevDriver (Expo dev client or native Debug).
+    /// Same transport as Metro: Wi-Fi/LAN, USB-with-LAN, or USB `iproxy` if no Wi-Fi.
+    Wait {
+        #[arg(long, default_value_t = 60)]
+        timeout: u64,
+    },
 }
 
 #[derive(Subcommand)]
@@ -642,6 +648,43 @@ fn main() -> anyhow::Result<()> {
                     println!("{}", serde_json::json!({ "name": s.name, "udid": s.udid }));
                 } else {
                     println!("✓ {} ({})", s.name, s.udid);
+                }
+            }
+            DeviceCommands::Wait { timeout } => {
+                let client = hot_client()?;
+                let deadline = Instant::now() + Duration::from_secs(timeout);
+                loop {
+                    let data = client
+                        .call(&DaemonRequest::Status)?
+                        .into_result()?
+                        .unwrap_or(serde_json::Value::Null);
+                    let physical = data.get("physical");
+                    let connected = physical
+                        .and_then(|p| p.get("connected"))
+                        .and_then(|c| c.as_bool())
+                        .unwrap_or(false);
+                    if connected {
+                        if use_json {
+                            println!("{}", serde_json::to_string_pretty(&data)?);
+                        } else {
+                            let bundle = physical
+                                .and_then(|p| p.get("bundle_id"))
+                                .and_then(|b| b.as_str())
+                                .unwrap_or("?");
+                            let transport = physical
+                                .and_then(|p| p.get("transport"))
+                                .and_then(|b| b.as_str())
+                                .unwrap_or("?");
+                            println!("✓ physical DevDriver {bundle} via {transport}");
+                        }
+                        break;
+                    }
+                    if Instant::now() >= deadline {
+                        anyhow::bail!(
+                            "no physical DevDriver after {timeout}s — rebuild YOUR app with the ligh-dev-driver plugin (Expo) or LighDevDriver pod (native), then open it on the phone (same Wi-Fi as Metro, or USB)"
+                        );
+                    }
+                    std::thread::sleep(Duration::from_millis(400));
                 }
             }
         },
@@ -1807,6 +1850,7 @@ fn observe_direct(config: &LighConfig, include_ax: bool) -> anyhow::Result<Obser
         phase: None,
         eyes_unusable: false,
         overlay: None,
+        screen_sig: None,
     };
     snap.enrich_v2();
     snap.observed_app_label = ligh_core::foreground_app_label(snap.accessibility_tree.nodes());

@@ -517,6 +517,7 @@ mod tests {
             phase: Some("ready".into()),
             eyes_unusable: false,
             overlay: Some("none".into()),
+            screen_sig: None,
         }
     }
 

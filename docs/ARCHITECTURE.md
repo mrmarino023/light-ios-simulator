@@ -10,10 +10,20 @@ This doc is the **design contract**. Motor regression fixtures (LighFixture, Lig
 
 | Layer | Responsibility | Agent-facing |
 |-------|----------------|--------------|
-| **L1 Session** | `lighd`, sim boot, HID, app install/swap | `ligh_up`, `ligh_ready` |
-| **L2 Perception** | AX dump, scene, overlay, `actionable_topk`, `rank_candidates` | `ligh_observe` |
-| **L3 Motor** | ready → resolve → clear_path → **fire+verify** → settle | `reach`, `dismiss_overlay`, taps via `app_goal` |
+| **L1 Session** | `lighd`, sim boot, HID, app install/swap; physical DevDriver hub | `ligh_up`, `ligh_ready`, `ligh device wait` |
+| **L2 Perception** | AX dump, scene, overlay, `actionable_topk`, `rank_candidates`, `screen_sig` | `ligh_observe` |
+| **L3 Motor** | ready → resolve → clear_path → **fire+verify** → settle; physical = **WDA arms** | `reach`, `dismiss_overlay`, taps via `app_goal` |
 | **L4 Goal** | Declarative setup + postconditions | `ligh_cap_app_goal`, `ligh_cap_app_job` |
+
+### Physical split (owned Expo / Debug apps)
+
+| | Path | Notes |
+|--|------|-------|
+| Eyes | `@mm-labs/ligh-expo` DevDriver | Fast in-app AX over LAN |
+| Hands | Appium → WebDriverAgent | System events; required for RN tab bars |
+| Verify | `screen_sig` before/after | Fail closed if unchanged |
+
+Details and device prove results: [`PHYSICAL.md`](PHYSICAL.md).
 
 **Human motor (target):** cognition layer (settle judge, probe planner, universal search) + full gesture vocabulary — see [`HUMAN_MOTOR.md`](HUMAN_MOTOR.md).
 

@@ -6,8 +6,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::observe::{
-    build_actionable_topk, detect_surface, is_chrome_node, is_editable_role, is_tab_bar_node, ObserveSnapshot,
-    SenseEvent,
+    build_actionable_topk, detect_surface, is_chrome_node, is_editable_role, is_tab_bar_node,
+    label_is_noisy, ObserveSnapshot, SenseEvent,
 };
 
 /// Stable 16-hex screen fingerprint from role + identifier/label hierarchy (no coordinates).
@@ -28,6 +28,10 @@ pub fn screen_fingerprint(nodes: &[Value]) -> String {
                 .or_else(|| n.get("id").and_then(|v| v.as_str()))
                 .unwrap_or("");
             let label = n.get("label").and_then(|v| v.as_str()).unwrap_or("");
+            if label_is_noisy(label) {
+                return None;
+            }
+            let label = truncate_at_char_boundary(label, 48);
             if id.is_empty() && label.is_empty() {
                 return None;
             }
@@ -43,6 +47,17 @@ pub fn screen_fingerprint(nodes: &[Value]) -> String {
     parts.dedup();
     let body = parts.join("|");
     format!("fp_{:016x}", fnv1a64(body.as_bytes()))
+}
+
+fn truncate_at_char_boundary(s: &str, max_bytes: usize) -> &str {
+    if s.len() <= max_bytes {
+        return s;
+    }
+    let mut end = max_bytes;
+    while end > 0 && !s.is_char_boundary(end) {
+        end -= 1;
+    }
+    &s[..end]
 }
 
 fn fnv1a64(data: &[u8]) -> u64 {
@@ -635,6 +650,7 @@ mod tests {
             phase: Some("ready".into()),
             eyes_unusable: false,
             overlay: Some("none".into()),
+            screen_sig: None,
         };
         s.enrich_v2();
         s

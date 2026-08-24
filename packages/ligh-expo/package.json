@@ -1,0 +1,39 @@
+{
+  "name": "@mm-labs/ligh-expo",
+  "version": "0.3.0",
+  "description": "Expo config plugin: in-process LIGH DevDriver for physical iPhone development builds (any Expo/RN app)",
+  "main": "app.plugin.js",
+  "license": "MIT",
+  "keywords": [
+    "expo",
+    "ligh",
+    "ios",
+    "dev-client",
+    "automation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrmarino023/light-ios-simulator.git",
+    "directory": "packages/ligh-expo"
+  },
+  "files": [
+    "app.plugin.js",
+    "native/**",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "expo": ">=51.0.0",
+    "@expo/config-plugins": "*"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependenciesMeta": {
+    "expo": {
+      "optional": true
+    },
+    "@expo/config-plugins": {
+      "optional": true
+    }
+  }
+}

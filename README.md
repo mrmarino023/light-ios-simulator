@@ -6,12 +6,13 @@
 
 <p align="center">
   <strong>Make coding agents actually use the iOS apps they build.</strong><br/>
-  Local iOS Simulator · open source (MIT) · macOS + Xcode
+  Local iOS Simulator + physical Expo/Debug · open source (MIT) · macOS + Xcode
 </p>
 
 <p align="center">
   <a href="#try-it"><strong>Try it</strong></a> ·
   <a href="#how-it-works"><strong>How it works</strong></a> ·
+  <a href="#physical-iphone--expo"><strong>Physical / Expo</strong></a> ·
   <a href="#what-we-measured"><strong>Evidence</strong></a> ·
   <a href="docs/DEVELOPER_TRIAL.md"><strong>Your app</strong></a>
 </p>
@@ -60,6 +61,8 @@ read → edit → build → run → use → verify → fix
 ### What LIGH is not
 
 - Not a generic WebDriver replacement for every mobile automation job
+- Not automation of unmodified App Store apps (physical path needs **your**
+  Debug / Expo development build)
 - Not a recorder or YAML-flow authoring tool
 - Not an LLM memory layer over app screens
 - Not a cloud device farm
@@ -197,6 +200,50 @@ Reproduce with `./scripts/gate-autopilot-generality.sh`.
 
 ---
 
+## Physical iPhone + Expo
+
+Same agent loop as Simulator. Different motors.
+
+```text
+lighd
+ ├─ eyes  → @mm-labs/ligh-expo DevDriver (in-app AX over LAN)
+ └─ hands → WDA / Appium XCUITest (system taps/swipes)
+              fail-closed on screen_sig (ACK without ΔUI = lie)
+```
+
+| | Simulator | Physical (owned Debug / Expo dev client) |
+|--|-----------|------------------------------------------|
+| Eyes | CoreSimulator AX | DevDriver AX dump |
+| Hands | IndigoHID | **WDA** (in-app fake UITouch is lab-only) |
+| Proof law | motor effect checks | `effect: ok` requires `screen_sig` change |
+
+**Proven on device (Mae Expo app):** tap Profile → Home with
+`motor: physical` + `effect: ok`, plus WDA swipe. Full runbook:
+[`docs/PHYSICAL.md`](docs/PHYSICAL.md).
+
+Wire any Expo app:
+
+```bash
+./scripts/sync-ligh-expo.sh /path/to/YourExpoApp
+# app.json plugins: ["@mm-labs/ligh-expo"]
+# then: EAS / expo run:ios development build
+```
+
+```bash
+cp scripts/wda.env.example ~/.ligh/wda.env   # UDID, bundle, team
+./scripts/start-appium-wda.sh                # keep running
+./target/release/lighd &
+./target/release/ligh device wait
+./target/release/ligh tap --json --label 'TabProfile'
+```
+
+Package docs: [`packages/ligh-expo/README.md`](packages/ligh-expo/README.md).
+
+Host Autopilot ×3 evidence below is **Simulator-scoped** until Autopilot is
+re-gated on the physical WDA motor.
+
+---
+
 ## How it works
 
 ```text
@@ -204,9 +251,12 @@ Coding agent (Cursor MCP)
         ↓
 LIGH host — Autopilot over Feel IR (perceive → plan → act → verify)
         ↓
-Apple CoreSimulator
-        ↓
-Your Debug .app
+  ┌─────┴─────┐
+  │           │
+CoreSimulator  Physical HybridPhysical
+(IndigoHID)    (DevDriver eyes + WDA hands)
+  │           │
+Your Debug .app / Expo development build
 ```
 
 ### Three representations (only one is the product wedge)

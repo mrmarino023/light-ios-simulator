@@ -30,11 +30,10 @@ pub use observe::{
     build_actionable_topk, build_scene, detect_surface, diff_sense_events, eyes_ready,
     find_hittable_id_in_dump, find_hittable_label_in_dump, find_id_center, find_id_in_dump,
     find_label_center, find_label_in_dump, find_onscreen_id_in_dump, foreground_app_label,
-    is_chrome_node, is_editable_role, is_tab_bar_node, is_transition_sparse,
-    node_matches_identifier, node_viewport_hittable, rank_candidates, tab_chrome_alias_matches,
-    identity_suggests_tab_label,
-    AccessibilityTree, FrameMeta, ObserveSnapshot, SceneMeta, SenseEvent, ACTIONABLE_TOPK,
-    OBSERVE_SCHEMA_VERSION,
+    identity_suggests_tab_label, is_chrome_node, is_editable_role, is_tab_bar_node,
+    is_transition_sparse, label_is_noisy, node_matches_identifier, node_viewport_hittable,
+    rank_candidates, tab_chrome_alias_matches, AccessibilityTree, FrameMeta, ObserveSnapshot,
+    SceneMeta, SenseEvent, ACTIONABLE_TOPK, OBSERVE_SCHEMA_VERSION,
 };
 pub use feel::{
     build_feel, feel_agent_view, suggest_act, FeelBlock, FeelDelta, FeelIR, FeelMeta, FeelPhase,
