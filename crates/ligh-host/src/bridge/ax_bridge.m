@@ -284,14 +284,63 @@ static CGRect ax_frame(id element) {
     return fr;
 }
 
-static NSArray *ax_children(id element) {
+static NSArray *ax_container_indexed(id element) {
+    NSInteger count = 0;
     @try {
-        id raw = [element valueForKey:@"accessibilityChildren"];
-        if ([raw isKindOfClass:[NSArray class]]) return raw;
+        SEL sel = NSSelectorFromString(@"accessibilityElementCount");
+        if ([element respondsToSelector:sel]) {
+            NSMethodSignature *sig = [element methodSignatureForSelector:sel];
+            if (sig) {
+                NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+                [inv setSelector:sel];
+                [inv setTarget:element];
+                [inv invoke];
+                [inv getReturnValue:&count];
+            }
+        }
     } @catch (NSException *ex) {
         return @[];
     }
-    return @[];
+    if (count <= 0 || count > 64) return @[];
+    NSMutableArray *kids = [NSMutableArray arrayWithCapacity:(NSUInteger)count];
+    SEL at = NSSelectorFromString(@"accessibilityElementAtIndex:");
+    if (![element respondsToSelector:at]) return @[];
+    for (NSInteger i = 0; i < count; i++) {
+        @try {
+            NSMethodSignature *sig = [element methodSignatureForSelector:at];
+            if (!sig) break;
+            NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+            [inv setSelector:at];
+            [inv setTarget:element];
+            [inv setArgument:&i atIndex:2];
+            [inv invoke];
+            __unsafe_unretained id kid = nil;
+            [inv getReturnValue:&kid];
+            if (kid) [kids addObject:kid];
+        } @catch (NSException *ex) {
+        }
+    }
+    return kids;
+}
+
+static NSArray *ax_children(id element) {
+    NSArray *keys = @[
+        @"accessibilityChildren",
+        @"accessibilityElements",
+        @"children",
+        @"accessibilityVisibleChildren",
+        @"accessibilityTabs",
+    ];
+    for (NSString *key in keys) {
+        @try {
+            id raw = [element valueForKey:key];
+            if ([raw isKindOfClass:[NSArray class]] && [raw count] > 0) {
+                return raw;
+            }
+        } @catch (NSException *ex) {
+        }
+    }
+    return ax_container_indexed(element);
 }
 
 static void stamp_token(NSString *token, id translation) {
@@ -381,15 +430,19 @@ static NSString *ax_traits_hint(id element, NSString *role) {
     if ([r containsString:@"cell"]) [bits addObject:@"cell"];
     if ([r containsString:@"heading"]) [bits addObject:@"heading"];
     if ([r containsString:@"keyboard"]) [bits addObject:@"keyboard"];
+    if ([r containsString:@"tabbar"] || [r containsString:@"tab bar"] || [r containsString:@"tabbutton"]) {
+        [bits addObject:@"tabbar"];
+    }
     if ([r containsString:@"alert"] || [r containsString:@"sheet"]) [bits addObject:@"dialog"];
     @try {
         id raw = [element valueForKey:@"accessibilityTraits"];
         if ([raw respondsToSelector:@selector(unsignedLongLongValue)]) {
             unsigned long long t = [raw unsignedLongLongValue];
-            // UIAccessibilityTraitSelected / Button / Link (common bits)
+            // UIAccessibilityTraitSelected / Button / Link / TabBar
             if (t & (1ULL << 1)) [bits addObject:@"selected"];
             if (t & (1ULL << 0)) [bits addObject:@"button"];
             if (t & (1ULL << 2)) [bits addObject:@"link"];
+            if (t & (1ULL << 28)) [bits addObject:@"tabbar"];
         }
     } @catch (NSException *ex) {
     }
@@ -398,7 +451,8 @@ static NSString *ax_traits_hint(id element, NSString *role) {
 }
 
 static NSDictionary *walk_element(id element, CGRect rootMac, CGSize pointSize, int depth,
-                                  NSString *parentPath, NSString *parentId, int index) {
+                                  NSString *parentPath, NSString *parentId, int index,
+                                  BOOL recurse) {
     if (depth >= kMaxDepth || g_node_count >= kMaxNodes) return nil;
     g_node_count++;
 
@@ -484,13 +538,15 @@ static NSDictionary *walk_element(id element, CGRect rootMac, CGSize pointSize, 
 
     NSMutableArray *kids = [NSMutableArray array];
     NSMutableArray *childIds = [NSMutableArray array];
-    NSArray *rawKids = ax_children(element);
-    for (NSUInteger i = 0; i < rawKids.count; i++) {
-        NSDictionary *child = walk_element(rawKids[i], rootMac, pointSize, depth + 1,
-                                           path, nid, (int)i);
-        if (child) {
-            [kids addObject:child];
-            if (child[@"id"]) [childIds addObject:child[@"id"]];
+    if (recurse) {
+        NSArray *rawKids = ax_children(element);
+        for (NSUInteger i = 0; i < rawKids.count; i++) {
+            NSDictionary *child = walk_element(rawKids[i], rootMac, pointSize, depth + 1,
+                                               path, nid, (int)i, YES);
+            if (child) {
+                [kids addObject:child];
+                if (child[@"id"]) [childIds addObject:child[@"id"]];
+            }
         }
     }
     if (kids.count) node[@"children"] = kids;
@@ -498,19 +554,39 @@ static NSDictionary *walk_element(id element, CGRect rootMac, CGSize pointSize, 
     return node;
 }
 
-static void flatten_interactive(NSDictionary *node, NSMutableArray *out) {
+static BOOL ax_is_tab_bar(NSString *role, NSString *label, NSString *traits) {
+    NSString *r = (role ?: @"").lowercaseString;
+    NSString *l = (label ?: @"").lowercaseString;
+    NSString *t = (traits ?: @"").lowercaseString;
+    if ([t containsString:@"tabbar"]) return YES;
+    if ([r containsString:@"tabbar"] || [r containsString:@"tab bar"]) return YES;
+    if ([l isEqualToString:@"tab bar"] || [l containsString:@"tabbar"]) return YES;
+    return NO;
+}
+
+static void flatten_interactive(NSDictionary *node, NSMutableArray *out, BOOL under_tab_bar) {
     if (!node) return;
     NSString *label = node[@"label"];
     NSString *ident = node[@"identifier"];
     NSString *role = node[@"role"] ?: @"";
+    NSString *traits = node[@"traits"] ?: @"";
     BOOL is_field = [role.lowercaseString containsString:@"textfield"]
                     || [role.lowercaseString containsString:@"searchfield"]
                     || [role.lowercaseString containsString:@"textarea"];
+    BOOL is_tab_bar = ax_is_tab_bar(role, label, traits);
+    BOOL tab_item = under_tab_bar && !is_tab_bar;
     BOOL interesting = (label.length > 0) || (ident.length > 0) || is_field
-                       || [node[@"focused"] boolValue];
+                       || [node[@"focused"] boolValue] || is_tab_bar || tab_item;
     if (interesting) {
         NSMutableDictionary *flat = [NSMutableDictionary dictionary];
-        flat[@"role"] = role;
+        NSString *flat_role = role;
+        if (tab_item && role.length == 0) {
+            flat_role = @"AXTabButton";
+        } else if (tab_item && ![role.lowercaseString containsString:@"button"]
+                   && ![role.lowercaseString containsString:@"tab"]) {
+            flat_role = @"AXTabButton";
+        }
+        flat[@"role"] = flat_role;
         flat[@"frame"] = node[@"frame"] ?: @{};
         if (node[@"id"]) flat[@"id"] = node[@"id"];
         if (node[@"path_id"]) flat[@"path_id"] = node[@"path_id"];
@@ -518,11 +594,24 @@ static void flatten_interactive(NSDictionary *node, NSMutableArray *out) {
         if (label) {
             flat[@"label"] = label;
             flat[@"text"] = label;
+        } else if (tab_item && ident.length) {
+            flat[@"label"] = ident;
+            flat[@"text"] = ident;
         }
         if (ident) flat[@"identifier"] = ident;
         if (node[@"value"]) flat[@"value"] = node[@"value"];
         if (node[@"placeholder"]) flat[@"placeholder"] = node[@"placeholder"];
-        if (node[@"traits"]) flat[@"traits"] = node[@"traits"];
+        NSString *flat_traits = traits;
+        if (is_tab_bar || tab_item) {
+            if (flat_traits.length) {
+                if (![flat_traits.lowercaseString containsString:@"tabbar"]) {
+                    flat_traits = [flat_traits stringByAppendingString:@",tabbar"];
+                }
+            } else {
+                flat_traits = @"tabbar";
+            }
+        }
+        if (flat_traits.length) flat[@"traits"] = flat_traits;
         if (node[@"center_norm"]) flat[@"center_norm"] = node[@"center_norm"];
         flat[@"enabled"] = node[@"enabled"] ?: @YES;
         flat[@"focused"] = node[@"focused"] ?: @NO;
@@ -531,8 +620,140 @@ static void flatten_interactive(NSDictionary *node, NSMutableArray *out) {
         flat[@"hittable"] = node[@"hittable"] ?: @YES;
         [out addObject:flat];
     }
+    BOOL child_under_tab = under_tab_bar || is_tab_bar;
     for (NSDictionary *c in node[@"children"] ?: @[]) {
-        flatten_interactive(c, out);
+        flatten_interactive(c, out, child_under_tab);
+    }
+}
+
+static CGPoint ax_unmap_point(CGPoint device, CGRect rootMac, CGSize pointSize) {
+    if (rootMac.size.width < 1 || rootMac.size.height < 1 || pointSize.width < 1) {
+        return device;
+    }
+    double scale = pointSize.width / rootMac.size.width;
+    double yOffset = (pointSize.height - rootMac.size.height * scale) / 2.0;
+    return CGPointMake(device.x / scale + rootMac.origin.x,
+                       (device.y - yOffset) / scale + rootMac.origin.y);
+}
+
+static id ax_object_at_point(CGPoint hostPoint, NSString *token) {
+    if (!g_translator || !token.length) return nil;
+    SEL sel = NSSelectorFromString(@"objectAtPoint:displayId:bridgeDelegateToken:");
+    if (![g_translator respondsToSelector:sel]) return nil;
+    @try {
+        IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
+        if (!imp) return nil;
+        id (*fn)(id, SEL, CGPoint, uint32_t, id) = (id (*)(id, SEL, CGPoint, uint32_t, id))imp;
+        return fn(g_translator, sel, hostPoint, 0, token);
+    } @catch (NSException *ex) {
+        return nil;
+    }
+}
+
+static id ax_mac_element_from_translation(id translation) {
+    if (!g_translator || !translation) return nil;
+    @try {
+        SEL sel = NSSelectorFromString(@"macPlatformElementFromTranslation:");
+        if (![g_translator respondsToSelector:sel]) return nil;
+        IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
+        if (!imp) return nil;
+        id (*fn)(id, SEL, id) = (id (*)(id, SEL, id))imp;
+        return fn(g_translator, sel, translation);
+    } @catch (NSException *ex) {
+        return nil;
+    }
+}
+
+static BOOL ax_is_chrome_container(NSString *role, NSString *label, NSString *traits) {
+    if (ax_is_tab_bar(role, label, traits)) return YES;
+    NSString *r = (role ?: @"").lowercaseString;
+    NSString *l = (label ?: @"").lowercaseString;
+    if ([l containsString:@"toolbar"] || [r containsString:@"toolbar"]) return YES;
+    if ([l containsString:@"navigation bar"] || [l isEqualToString:@"nav bar"]
+        || [r containsString:@"navbar"] || [r containsString:@"navigationbar"]) {
+        return YES;
+    }
+    return NO;
+}
+
+/// SwiftUI tab/nav/tool bars often walk as childless AXGroups. Server-side
+/// `objectAtPoint` still hits the real buttons (idb / baguette).
+static void recover_childless_chrome(NSMutableDictionary *node, NSString *token,
+                                     CGRect rootMac, CGSize pointSize) {
+    if (!node) return;
+    NSArray *existing = node[@"children"];
+    for (id child in existing ?: @[]) {
+        if ([child isKindOfClass:[NSMutableDictionary class]]) {
+            recover_childless_chrome(child, token, rootMac, pointSize);
+        }
+    }
+    NSString *role = node[@"role"];
+    NSString *label = node[@"label"];
+    NSString *traits = node[@"traits"];
+    if (!ax_is_chrome_container(role, label, traits)) return;
+    if ([existing count] > 0) return;
+
+    NSDictionary *frame = node[@"frame"];
+    double x = [frame[@"x"] doubleValue];
+    double y = [frame[@"y"] doubleValue];
+    double w = [frame[@"width"] doubleValue];
+    double h = [frame[@"height"] doubleValue];
+    if (w < 16.0 || h < 8.0) return;
+
+    NSString *containerId = node[@"id"];
+    double screenArea = MAX(pointSize.width * pointSize.height, 1.0);
+    int samples = 5;
+    double py = y + MIN(h * 0.38, 28.0);
+    NSMutableArray *kids = [NSMutableArray array];
+    NSMutableArray *childIds = [NSMutableArray array];
+    NSMutableSet *seen = [NSMutableSet set];
+
+    for (int i = 0; i < samples; i++) {
+        double px = x + w * ((i + 0.5) / (double)samples);
+        CGPoint host = ax_unmap_point(CGPointMake(px, py), rootMac, pointSize);
+        id translation = ax_object_at_point(host, token);
+        if (!translation) continue;
+        stamp_token(token, translation);
+        id hitElement = ax_mac_element_from_translation(translation);
+        if (!hitElement) continue;
+        stamp_element(token, hitElement);
+
+        NSDictionary *hit = walk_element(hitElement, rootMac, pointSize, 1,
+                                         @"chrome-hit", containerId, (int)kids.count, NO);
+        if (!hit) continue;
+        NSString *hid = hit[@"id"];
+        NSString *hident = hit[@"identifier"];
+        NSString *hlabel = hit[@"label"];
+        if (containerId.length && [hid isEqualToString:containerId]) continue;
+        if (hlabel.length && label.length && [hlabel isEqualToString:label]) continue;
+        NSString *hrole = [hit[@"role"] lowercaseString] ?: @"";
+        if ([hrole containsString:@"application"] || [hrole containsString:@"window"]) continue;
+
+        NSDictionary *hf = hit[@"frame"];
+        double hx = [hf[@"x"] doubleValue];
+        double hy = [hf[@"y"] doubleValue];
+        double hw = [hf[@"width"] doubleValue];
+        double hh = [hf[@"height"] doubleValue];
+        double hArea = hw * hh;
+        if (hArea > screenArea * 0.45) continue;
+        if (hw > w * 0.85 && hh > h * 0.85) continue;
+        double cx = hx + hw * 0.5;
+        double cy = hy + hh * 0.5;
+        if (cx < x - 8 || cx > x + w + 8 || cy < y - 12 || cy > y + h + 12) continue;
+
+        NSString *dedupe = hident.length ? hident : (hid.length ? hid : hlabel);
+        if (!dedupe.length) {
+            dedupe = [NSString stringWithFormat:@"%.0f,%.0f", cx, cy];
+        }
+        if ([seen containsObject:dedupe]) continue;
+        [seen addObject:dedupe];
+        [kids addObject:hit];
+        if (hid.length) [childIds addObject:hid];
+    }
+
+    if (kids.count) {
+        node[@"children"] = kids;
+        if (childIds.count) node[@"children_ids"] = childIds;
     }
 }
 
@@ -629,9 +850,12 @@ static char *ax_dump_inner(const char *udid_c, LighHostError *err) {
     CGSize pointSize = device_point_size(device);
     CGRect rootMac = ax_frame(rootElement);
     g_node_count = 0;
-    NSDictionary *root = walk_element(rootElement, rootMac, pointSize, 0, @"", nil, 0);
+    NSDictionary *root = walk_element(rootElement, rootMac, pointSize, 0, @"", nil, 0, YES);
+    if ([root isKindOfClass:[NSMutableDictionary class]]) {
+        recover_childless_chrome((NSMutableDictionary *)root, token, rootMac, pointSize);
+    }
     NSMutableArray *elements = [NSMutableArray array];
-    flatten_interactive(root, elements);
+    flatten_interactive(root, elements, NO);
 
     [g_dispatcher unregisterToken:token];
 

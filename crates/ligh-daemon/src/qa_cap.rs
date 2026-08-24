@@ -81,7 +81,7 @@ pub(crate) fn cap_attempt(
         "tap" => crate::motor::motor_tap(build, state, label, id, settle_ms, timeout_ms, None, None),
         "type" => {
             let t = text.unwrap_or("");
-            crate::motor::motor_type(build, state, t, label, id, settle_ms, timeout_ms)
+            crate::motor::motor_type(build, state, t, label, id, settle_ms, timeout_ms, ligh_core::MotorTypeStrategy::FocusHid)
         }
         "key" => cap_key(build, state, key.unwrap_or("return"), settle_ms),
         other => {

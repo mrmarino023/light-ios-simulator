@@ -8,6 +8,29 @@ import os
 from typing import Any
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+TASK_SCHEMAS = {
+    2: os.path.join(ROOT, "fixtures/frozen/task-v2.schema.json"),
+}
+
+
+def validate_task(task: dict[str, Any], *, path: str) -> None:
+    """Fail closed when a scored task does not match its versioned contract."""
+    version = task.get("protocol_version")
+    schema_path = TASK_SCHEMAS.get(version)
+    if not schema_path:
+        raise ValueError(f"{path}: unsupported task protocol_version {version!r}")
+    try:
+        import jsonschema
+    except ImportError as exc:
+        raise RuntimeError("task validation requires the 'jsonschema' Python package") from exc
+    with open(schema_path, encoding="utf-8") as f:
+        schema = json.load(f)
+    validator = jsonschema.Draft202012Validator(schema)
+    errors = sorted(validator.iter_errors(task), key=lambda e: list(e.absolute_path))
+    if errors:
+        err = errors[0]
+        location = ".".join(str(part) for part in err.absolute_path) or "<root>"
+        raise ValueError(f"{path}: task schema v{version} violation at {location}: {err.message}")
 
 
 def load_task(task_path: str | None = None) -> dict[str, Any]:
@@ -17,7 +40,9 @@ def load_task(task_path: str | None = None) -> dict[str, Any]:
     )
     if not os.path.isabs(path):
         path = os.path.join(ROOT, path)
-    task = json.load(open(path, encoding="utf-8"))
+    with open(path, encoding="utf-8") as f:
+        task = json.load(f)
+    validate_task(task, path=path)
     task["_task_path"] = path
     task["_root"] = ROOT
     for key in ("source_root", "app_path", "build_script", "bug_patch"):

@@ -1,0 +1,253 @@
+{
+  "schema_version": 1,
+  "claim": "For coding-agent iOS bugfix tasks, delegating UI operation to a deterministic host can make the fix-run-verify loop materially faster and cheaper than letting the LLM drive every UI step.",
+  "minimum_bar": {
+    "apps_total": 3,
+    "third_party_apps": 2,
+    "tasks_per_app": 5,
+    "paired_repeats_on_priority_tasks": 5,
+    "priority_tasks_with_repeats": 6,
+    "paired_min_n": 5
+  },
+  "stop_conditions": {
+    "median_speedup_below": 1.5,
+    "token_win_disappears": true,
+    "pass_rate_below_baseline": true,
+    "hidden_coaching": true,
+    "per_app_heuristics_required": true
+  },
+  "apps": [
+    {
+      "id": "lighonboard",
+      "label": "LighOnboard",
+      "kind": "fixture",
+      "third_party": false,
+      "flow_shape": "multi_step_wizard"
+    },
+    {
+      "id": "xcuitestdemo",
+      "label": "XCUITestDemo",
+      "kind": "third_party",
+      "third_party": true,
+      "flow_shape": "login_credentials"
+    },
+    {
+      "id": "kix",
+      "label": "Kix",
+      "kind": "third_party",
+      "third_party": true,
+      "flow_shape": "catalog_auth_tabs",
+      "upstream": "https://github.com/byKosta/Kix-app",
+      "commit": "0bc85035cc779abc4fd6ff05065034932bb4c744"
+    },
+    {
+      "id": "onboardingdemo",
+      "label": "OnboardingDemo",
+      "kind": "third_party",
+      "third_party": true,
+      "flow_shape": "multi_step_wizard"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "login-never-navigates",
+      "app_id": "xcuitestdemo",
+      "kind": "bugfix",
+      "status": "runnable",
+      "repeat_priority": true,
+      "honest": true,
+      "task_file": "fixtures/frozen/tasks/login-never-navigates/task.json",
+      "bug_class": "wrong_navigation_outcome"
+    },
+    {
+      "id": "login-button-disabled",
+      "app_id": "xcuitestdemo",
+      "kind": "bugfix",
+      "status": "runnable",
+      "repeat_priority": true,
+      "honest": true,
+      "task_file": "fixtures/frozen/tasks/login-button-disabled/task.json",
+      "bug_class": "disabled_or_miswired_cta"
+    },
+    {
+      "id": "login-delayed-ui",
+      "app_id": "xcuitestdemo",
+      "kind": "bugfix",
+      "status": "runnable",
+      "repeat_priority": true,
+      "honest": true,
+      "task_file": "fixtures/frozen/tasks/login-delayed-ui/task.json",
+      "bug_class": "missing_state_update_after_async"
+    },
+    {
+      "id": "xcuitestdemo-wrong-then-right",
+      "app_id": "xcuitestdemo",
+      "kind": "recovery",
+      "status": "planned",
+      "bug_class": "retry_after_wrong_input"
+    },
+    {
+      "id": "xcuitestdemo-home-visible",
+      "app_id": "xcuitestdemo",
+      "kind": "navigation",
+      "status": "runnable",
+      "via": "generality",
+      "generality_app_id": "xcuitestdemo"
+    },
+    {
+      "id": "kix-login-never-authenticates",
+      "app_id": "kix",
+      "kind": "bugfix",
+      "status": "runnable",
+      "repeat_priority": true,
+      "honest": true,
+      "task_file": "fixtures/frozen/tasks/kix-login-never-authenticates/task.json",
+      "bug_class": "wrong_navigation_outcome",
+      "flow_shape": "auth_session"
+    },
+    {
+      "id": "kix-notes-tab-missing",
+      "app_id": "kix",
+      "kind": "bugfix",
+      "status": "runnable",
+      "repeat_priority": true,
+      "honest": true,
+      "task_file": "fixtures/frozen/tasks/kix-notes-tab-missing/task.json",
+      "bug_class": "navigation_and_back",
+      "flow_shape": "tab_navigation"
+    },
+    {
+      "id": "kix-notes-add-noop",
+      "app_id": "kix",
+      "kind": "bugfix",
+      "status": "runnable",
+      "repeat_priority": true,
+      "honest": true,
+      "task_file": "fixtures/frozen/tasks/kix-notes-add-noop/task.json",
+      "bug_class": "missing_state_update_after_async",
+      "flow_shape": "notes_crud"
+    },
+    {
+      "id": "kix-favorites-tab-missing",
+      "app_id": "kix",
+      "kind": "bugfix",
+      "status": "runnable",
+      "repeat_priority": true,
+      "honest": true,
+      "task_file": "fixtures/frozen/tasks/kix-favorites-tab-missing/task.json",
+      "bug_class": "navigation_and_back",
+      "flow_shape": "tab_navigation"
+    },
+    {
+      "id": "kix-cart-tab-missing",
+      "app_id": "kix",
+      "kind": "bugfix",
+      "status": "runnable",
+      "repeat_priority": true,
+      "honest": true,
+      "task_file": "fixtures/frozen/tasks/kix-cart-tab-missing/task.json",
+      "bug_class": "navigation_and_back",
+      "flow_shape": "tab_navigation"
+    },
+    {
+      "id": "kix-home-visible",
+      "app_id": "kix",
+      "kind": "navigation",
+      "status": "runnable",
+      "via": "generality",
+      "generality_app_id": "kix"
+    },
+    {
+      "id": "onboarding-home-broken",
+      "app_id": "onboardingdemo",
+      "kind": "bugfix",
+      "status": "runnable",
+      "repeat_priority": true,
+      "honest": true,
+      "task_file": "fixtures/frozen/tasks/onboarding-home-broken/task.json",
+      "bug_class": "modal_or_overlay_state"
+    },
+    {
+      "id": "onboardingdemo-happy-path",
+      "app_id": "onboardingdemo",
+      "kind": "navigation",
+      "status": "planned"
+    },
+    {
+      "id": "onboardingdemo-validation-error",
+      "app_id": "onboardingdemo",
+      "kind": "recovery",
+      "status": "planned"
+    },
+    {
+      "id": "onboardingdemo-skip-then-finish",
+      "app_id": "onboardingdemo",
+      "kind": "recovery",
+      "status": "planned"
+    },
+    {
+      "id": "onboardingdemo-show-again",
+      "app_id": "onboardingdemo",
+      "kind": "bugfix",
+      "status": "planned",
+      "bug_class": "navigation_and_back"
+    },
+    {
+      "id": "lighonboard-happy-path",
+      "app_id": "lighonboard",
+      "kind": "navigation",
+      "status": "runnable",
+      "via": "generality",
+      "generality_app_id": "lighonboard"
+    },
+    {
+      "id": "lighfixture-happy-path",
+      "app_id": "lighfixture",
+      "kind": "navigation",
+      "status": "runnable",
+      "via": "generality",
+      "generality_app_id": "lighfixture"
+    },
+    {
+      "id": "lighmodal-happy-path",
+      "app_id": "lighmodal",
+      "kind": "navigation",
+      "status": "runnable",
+      "via": "generality",
+      "generality_app_id": "lighmodal"
+    },
+    {
+      "id": "lighfeed-happy-path",
+      "app_id": "lighfeed",
+      "kind": "navigation",
+      "status": "runnable",
+      "via": "generality",
+      "generality_app_id": "lighfeed"
+    },
+    {
+      "id": "lighonboard-validation-error",
+      "app_id": "lighonboard",
+      "kind": "recovery",
+      "status": "planned"
+    },
+    {
+      "id": "lighonboard-retry-wrong-input",
+      "app_id": "lighonboard",
+      "kind": "recovery",
+      "status": "planned"
+    },
+    {
+      "id": "lighonboard-overlay-recovery",
+      "app_id": "lighonboard",
+      "kind": "recovery",
+      "status": "planned"
+    },
+    {
+      "id": "lighonboard-nav-and-back",
+      "app_id": "lighonboard",
+      "kind": "bugfix",
+      "status": "planned",
+      "bug_class": "navigation_and_back"
+    }
+  ]
+}

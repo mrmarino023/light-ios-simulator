@@ -30,6 +30,30 @@
           ]
         }
       ]
+    },
+    {
+      "id": "kix",
+      "label": "Kix (OSS catalog / tabs)",
+      "source": "https://github.com/byKosta/Kix-app",
+      "bundle_id": "mybyKosta.Kix",
+      "build": "./scripts/build-kix.sh",
+      "frozen": true,
+      "workflows": [
+        {
+          "id": "login_home",
+          "skill": "catalog auth then home tab",
+          "steps": [
+            {"op": "wait", "id": "login_email_field"},
+            {"op": "tap", "id": "login_email_field"},
+            {"op": "type", "text": "test@kixapp.com"},
+            {"op": "tap", "id": "login_password_field"},
+            {"op": "type", "text": "password"},
+            {"op": "dismiss_overlay"},
+            {"op": "tap", "id": "login_button"},
+            {"op": "wait", "id": "tab_home"}
+          ]
+        }
+      ]
     }
   ]
 }

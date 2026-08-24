@@ -1,0 +1,9 @@
+{
+  "_human_only": "Never pass this file to the agent or include in agent prompts.",
+  "task_id": "kix-cart-tab-missing",
+  "bug_id": "kix_cart_tab_missing",
+  "ground_truth": "MainTabView omits the CartView tab entirely.",
+  "expected_fix": "Restore the CartView tab entry in MainTabView.",
+  "patch_file": "fixtures/third-party/Kix/scenarios/cart-tab-missing.patch",
+  "protocol_note": "Honest A/B task on third-party Kix \u2014 tab navigation after auth."
+}

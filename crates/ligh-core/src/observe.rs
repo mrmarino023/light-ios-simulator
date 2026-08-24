@@ -55,6 +55,24 @@ pub struct ObserveSnapshot {
     #[serde(default = "observe_schema_default")]
     pub schema_version: u32,
     pub udid: String,
+    /// Transaction identity. Targets are valid only within this session/launch/screen tuple.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
+    #[serde(default)]
+    pub boot_epoch: u64,
+    #[serde(default)]
+    pub launch_epoch: u64,
+    #[serde(default)]
+    pub screen_epoch: u64,
+    #[serde(default)]
+    pub stability_streak: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub motion_score: Option<f64>,
+    /// Bundle the current transaction owns and the foreground identity proven from live AX.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub expected_bundle_id: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub observed_app_label: Option<String>,
     pub booted: bool,
     /// Simulator.app is NOT running when LIGH owns the host (the point).
     pub simulator_app_running: bool,
@@ -313,6 +331,72 @@ pub fn is_chrome_node(n: &serde_json::Value) -> bool {
         }
     }
     false
+}
+
+/// Tab bar chrome is first-class: tab items are how real apps switch surfaces.
+/// Status-bar / Spotlight remain chrome; tab bars do not.
+pub fn is_tab_bar_node(n: &serde_json::Value) -> bool {
+    let traits = n
+        .get("traits")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    if traits.contains("tabbar") {
+        return true;
+    }
+    let role = n
+        .get("role")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    if role.contains("tabbar") || role.contains("tabbutton") || role.contains("tab bar") {
+        return true;
+    }
+    let lab = n
+        .get("label")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_ascii_lowercase();
+    lab == "tab bar" || lab.contains("tabbar")
+}
+
+fn normalize_tab_token(s: &str) -> String {
+    s.chars()
+        .filter(|c| c.is_ascii_alphanumeric())
+        .map(|c| c.to_ascii_lowercase())
+        .collect()
+}
+
+/// XCTest often names tab buttons `tab_home` while AXPTranslator hit-test
+/// reports the SF Symbol (`house.fill`) plus the visible label (`Home`).
+pub fn tab_chrome_alias_matches(needle: &str, label: Option<&str>, is_tab_chrome: bool) -> bool {
+    if !is_tab_chrome {
+        return false;
+    }
+    let Some(rest) = needle.strip_prefix("tab_") else {
+        return false;
+    };
+    if rest.is_empty() {
+        return false;
+    }
+    let Some(label) = label.filter(|s| !s.is_empty()) else {
+        return false;
+    };
+    normalize_tab_token(label) == normalize_tab_token(rest)
+}
+
+/// Exact accessibility identifier, opaque tree id, or tab-chrome `tab_*` alias.
+pub fn node_matches_identifier(n: &serde_json::Value, needle: &str) -> bool {
+    if n.get("identifier").and_then(|v| v.as_str()) == Some(needle)
+        || n.get("id").and_then(|v| v.as_str()) == Some(needle)
+    {
+        return true;
+    }
+    tab_chrome_alias_matches(
+        needle,
+        n.get("label").and_then(|v| v.as_str()),
+        is_tab_bar_node(n),
+    )
 }
 
 /// Mid-navigation AX: only status chrome or almost nothing.
@@ -708,7 +792,7 @@ pub fn build_scene(nodes: &[serde_json::Value], bundle_id: Option<String>) -> Sc
 }
 
 fn actionable_score(n: &serde_json::Value) -> i32 {
-    if is_chrome_node(n) {
+    if is_chrome_node(n) && !is_tab_bar_node(n) {
         return -1000;
     }
     let role = n
@@ -724,6 +808,11 @@ fn actionable_score(n: &serde_json::Value) -> i32 {
         .and_then(|v| v.as_str())
         .map(|s| !s.is_empty())
         .unwrap_or(false);
+    let has_id = n
+        .get("identifier")
+        .and_then(|v| v.as_str())
+        .map(|s| !s.is_empty())
+        .unwrap_or(false);
     if !hittable || !enabled {
         return -100;
     }
@@ -731,13 +820,17 @@ fn actionable_score(n: &serde_json::Value) -> i32 {
     if focused {
         s += 50;
     }
+    if is_tab_bar_node(n) {
+        s += 35;
+        return s;
+    }
     if is_editable_role(&role) {
         s += 40;
     } else if role.contains("button") || role.contains("cell") || role.contains("link") {
         s += 30;
     } else if role.contains("switch") || role.contains("slider") {
         s += 25;
-    } else if has_label {
+    } else if has_label || has_id {
         s += 10;
     } else {
         return -50;
@@ -860,18 +953,38 @@ pub fn rank_candidates(
 }
 
 /// Center of element with exact accessibility `identifier` (preferred) or opaque tree `id`.
+/// When several nodes share the identifier, prefer an on-screen editable field over a
+/// labeled container that inherited the same id.
 pub fn find_id_center(
     nodes: &[serde_json::Value],
     id: &str,
     point_size: Option<(f64, f64)>,
 ) -> Option<(f64, f64)> {
-    // Developer apps expose stable accessibilityIdentifier as `identifier`.
-    // Opaque AX node ids (`n…`) are a fallback for internal tooling.
-    let el = nodes.iter().find(|n| {
-        n.get("identifier").and_then(|v| v.as_str()) == Some(id)
-            || n.get("id").and_then(|v| v.as_str()) == Some(id)
-    })?;
-    node_center(el, point_size)
+    let mut hits: Vec<&serde_json::Value> = nodes
+        .iter()
+        .filter(|n| node_matches_identifier(n, id))
+        .collect();
+    if hits.is_empty() {
+        return None;
+    }
+    hits.sort_by(|a, b| typeable_rank(a).cmp(&typeable_rank(b)));
+    node_center(hits[0], point_size)
+}
+
+fn typeable_rank(n: &serde_json::Value) -> (u8, u8, u8) {
+    let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+    let editable = is_editable_role(role)
+        || n.get("traits")
+            .and_then(|v| v.as_str())
+            .is_some_and(|t| t.contains("editable"));
+    let focused = n.get("focused").and_then(|v| v.as_bool()).unwrap_or(false);
+    let on_screen = n.get("hittable").and_then(|v| v.as_bool()).unwrap_or(true)
+        && n.get("visible").and_then(|v| v.as_bool()).unwrap_or(true);
+    (
+        u8::from(!editable),
+        u8::from(!focused),
+        u8::from(!on_screen),
+    )
 }
 
 pub fn find_id_in_dump(dump: &serde_json::Value, id: &str) -> Option<(f64, f64)> {
@@ -917,9 +1030,7 @@ pub fn find_hittable_id_in_dump(dump: &serde_json::Value, id: &str) -> Option<(f
         .or_else(|| dump.get("nodes").and_then(|e| e.as_array()))?;
     let point_size = dump_point_size(dump);
     let el = nodes.iter().find(|n| {
-        (n.get("identifier").and_then(|v| v.as_str()) == Some(id)
-            || n.get("id").and_then(|v| v.as_str()) == Some(id))
-            && node_viewport_hittable(n)
+        node_matches_identifier(n, id) && node_viewport_hittable(n)
     })?;
     node_center(el, point_size)
 }
@@ -934,8 +1045,7 @@ pub fn find_onscreen_id_in_dump(dump: &serde_json::Value, id: &str) -> Option<(f
         .or_else(|| dump.get("nodes").and_then(|e| e.as_array()))?;
     let point_size = dump_point_size(dump);
     let el = nodes.iter().find(|n| {
-        (n.get("identifier").and_then(|v| v.as_str()) == Some(id)
-            || n.get("id").and_then(|v| v.as_str()) == Some(id))
+        node_matches_identifier(n, id)
             && n
                 .get("center_norm")
                 .and_then(|c| c.get("y").and_then(|v| v.as_f64()))
@@ -1291,6 +1401,30 @@ mod tests {
     }
 
     #[test]
+    fn find_id_prefers_editable_node_over_labeled_container() {
+        let nodes = vec![
+            json!({
+                "id": "n-wrap",
+                "identifier": "login_email_field",
+                "role": "AXGroup",
+                "hittable": true,
+                "frame": {"x": 20.0, "y": 300.0, "width": 350.0, "height": 60.0}
+            }),
+            json!({
+                "id": "n-field",
+                "identifier": "login_email_field",
+                "role": "AXTextField",
+                "focused": true,
+                "hittable": true,
+                "frame": {"x": 40.0, "y": 312.0, "width": 310.0, "height": 36.0}
+            }),
+        ];
+        let (x, y) = find_id_center(&nodes, "login_email_field", Some((393.0, 852.0))).unwrap();
+        assert!((x - (40.0 + 155.0) / 393.0).abs() < 0.01, "x={x}");
+        assert!((y - (312.0 + 18.0) / 852.0).abs() < 0.01, "y={y}");
+    }
+
+    #[test]
     fn actionable_topk_prefers_buttons() {
         let nodes = vec![
             json!({"id":"n1","role":"AXApplication","label":"SpringBoard","hittable":true,"enabled":true}),
@@ -1298,6 +1432,69 @@ mod tests {
         ];
         let top = build_actionable_topk(&nodes, 5);
         assert_eq!(top[0]["id"], "n2");
+    }
+
+    #[test]
+    fn tab_bar_items_are_actionable_not_chrome() {
+        let nodes = vec![
+            json!({
+                "id": "n-tabbar",
+                "role": "AXGroup",
+                "label": "Tab Bar",
+                "hittable": true,
+                "enabled": true,
+                "traits": "tabbar"
+            }),
+            json!({
+                "id": "n-home",
+                "identifier": "tab_home",
+                "role": "AXTabButton",
+                "label": "Home",
+                "hittable": true,
+                "enabled": true,
+                "traits": "tabbar"
+            }),
+            json!({
+                "id": "n-card",
+                "identifier": "home_product_card_1",
+                "role": "AXButton",
+                "label": "Love",
+                "hittable": true,
+                "enabled": true
+            }),
+        ];
+        assert!(is_tab_bar_node(&nodes[0]));
+        assert!(is_tab_bar_node(&nodes[1]));
+        let top = build_actionable_topk(&nodes, 5);
+        assert!(
+            top.iter().any(|n| n["identifier"] == "tab_home"),
+            "tab_home must survive top-k: {top:?}"
+        );
+    }
+
+    #[test]
+    fn tab_prefix_id_matches_recovered_tab_label() {
+        let n = json!({
+            "identifier": "house.fill",
+            "label": "Home",
+            "role": "AXRadioButton",
+            "traits": "button,tabbar",
+            "hittable": true,
+            "enabled": true
+        });
+        assert!(is_tab_bar_node(&n));
+        assert!(node_matches_identifier(&n, "tab_home"));
+        assert!(!node_matches_identifier(&n, "tab_notes"));
+        assert!(!node_matches_identifier(
+            &json!({
+                "identifier": "home_product_card_1",
+                "label": "Home",
+                "role": "AXButton",
+                "hittable": true,
+                "enabled": true
+            }),
+            "tab_home"
+        ));
     }
 
     #[test]

@@ -18,6 +18,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 from killer_loop_task import load_task  # noqa: E402
+from goal_spec import compile_task_goal, evaluate_goal  # noqa: E402
 from ligh_mcp import call_tool  # noqa: E402
 
 
@@ -46,7 +47,9 @@ def perceive(settle_ms: int = 2500) -> dict[str, Any]:
     }
 
 
-def is_springboard(keys: set[str], surface: str | None) -> bool:
+def is_springboard(
+    keys: set[str], surface: str | None, *, app_markers: set[str] | None = None
+) -> bool:
     if surface == "springboard":
         return True
     home_markers = {
@@ -62,9 +65,8 @@ def is_springboard(keys: set[str], surface: str | None) -> bool:
         "File",
         "Files",
     }
-    # In-app home has Show Onboarding; SpringBoard may also list the app icon by name.
-    in_app_markers = {"Show Onboarding", "Hello, world!", "Get Started", "Welcome to MyApp"}
-    if keys & in_app_markers:
+    # Task-defined markers avoid coupling trust to one fixture's copy.
+    if keys & (app_markers or set()):
         return False
     if len(keys & home_markers) >= 2:
         return True
@@ -73,7 +75,13 @@ def is_springboard(keys: set[str], surface: str | None) -> bool:
     return len(icon_like) >= 6
 
 
-def bootstrap_app(app: str, bundle_id: str, *, wait_label: str | None = None) -> dict[str, Any]:
+def bootstrap_app(
+    app: str,
+    bundle_id: str,
+    *,
+    wait_label: str | None = None,
+    app_markers: set[str] | None = None,
+) -> dict[str, Any]:
     call_tool("ligh_ready", {"settle_ms": 2500, "recover_homes": 4})
     payload: dict[str, Any] = {
         "app": app,
@@ -90,11 +98,11 @@ def bootstrap_app(app: str, bundle_id: str, *, wait_label: str | None = None) ->
 
     for attempt in range(1, 8):
         p = perceive(2500)
-        if is_springboard(p["keys"], p.get("surface")):
+        if is_springboard(p["keys"], p.get("surface"), app_markers=app_markers):
             call_tool("ligh_launch", {"bundle_id": bundle_id})
             time.sleep(1.5)
             p = perceive(3000)
-        if not is_springboard(p["keys"], p.get("surface")):
+        if not is_springboard(p["keys"], p.get("surface"), app_markers=app_markers):
             return {**boot, "foreground_ok": True, "attempt": attempt, "keys": sorted(p["keys"])[:16]}
         app_label = os.path.basename(app).replace(".app", "")
         if app_label in p["keys"]:
@@ -125,12 +133,10 @@ def run_tap(
         payload["id"] = id
     result = call_tool("ligh_attempt", payload)
     fault = result.get("fault") or ""
-    # Exercise records that we reached and fired on the control. POST verifies outcome.
     target = label or id or ""
     target_seen = target in pre["keys"] if target else False
-    ok = bool(result.get("ok")) or (
-        target_seen and fault in ("motor_no_effect", "motor_failed", "model")
-    )
+    # A seen target is not a successful step. The motor must report a verified effect.
+    ok = bool(result.get("ok")) and fault in ("", "ok")
     return {
         **result,
         "ok": ok,
@@ -158,10 +164,11 @@ def run_type(
         payload["label"] = label
     result = call_tool("ligh_attempt", payload)
     fault = result.get("fault") or ""
-    ok = bool(result.get("ok")) or fault in ("ok", None, "")
-    # Typing often reports intent_met via fingerprint/value change; accept motor ok.
-    if result.get("intent_met") is True:
-        ok = True
+    ok = (
+        bool(result.get("ok"))
+        and fault in ("ok", None, "")
+        and result.get("intent_met") is not False
+    )
     return {**result, "ok": ok, "fault": fault or None}
 
 
@@ -177,6 +184,24 @@ def eval_spec(spec: dict[str, Any], keys: set[str]) -> dict[str, Any]:
         "must_not_see": absent,
         "keys_sample": sorted(keys)[:40],
     }
+
+
+def evaluate_goal_stable(goal: dict[str, Any], settle_ms: int = 3500) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Independent temporal verifier for the same GoalSpec used by Autopilot."""
+    required = max(2, int(goal.get("stable_observations") or 2))
+    deadline = time.monotonic() + max(settle_ms, int(goal.get("stability_window_ms") or 0)) / 1000
+    streak = 0
+    latest_perceive: dict[str, Any] = {}
+    latest_result: dict[str, Any] = {"ok": False}
+    while time.monotonic() < deadline:
+        observation = perceive(min(settle_ms, 1200))
+        latest_perceive = observation
+        latest_result = evaluate_goal(goal, observation.get("perceive") or {})
+        streak = streak + 1 if latest_result["ok"] else 0
+        if streak >= required:
+            return {**latest_result, "stable_observations": streak}, observation
+        time.sleep(0.05)
+    return {**latest_result, "stable_observations": streak}, latest_perceive
 
 
 def run_steps(steps: list[dict[str, Any]], phase: str) -> list[dict[str, Any]]:
@@ -235,8 +260,20 @@ def overlay_visible(task: dict[str, Any], keys: set[str]) -> bool:
     return any(l in keys for l in overlay)
 
 
-def goal_visible(keys: set[str]) -> bool:
-    return bool(keys & {"Hello, world!", "homeTitle", "Home", "homeMessage"})
+def verification_markers(task: dict[str, Any]) -> set[str]:
+    ver = task.get("verification") or {}
+    markers: set[str] = set()
+    for phase in ("preconditions", "postconditions"):
+        spec = ver.get(phase) or {}
+        markers.update(str(v) for v in spec.get("must_see_labels") or [])
+    if task.get("bootstrap_wait_label"):
+        markers.add(str(task["bootstrap_wait_label"]))
+    return markers
+
+
+def goal_visible(task: dict[str, Any], keys: set[str]) -> bool:
+    post = ((task.get("verification") or {}).get("postconditions") or {})
+    return any(str(label) in keys for label in post.get("must_see_labels") or [])
 
 
 def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None, bundle_id: str | None = None) -> dict[str, Any]:
@@ -246,7 +283,8 @@ def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None,
     ver = task.get("verification") or {}
     wait_label = task.get("bootstrap_wait_label") or "Show Onboarding"
 
-    boot = bootstrap_app(app, bundle_id, wait_label=wait_label)
+    markers = verification_markers(task)
+    boot = bootstrap_app(app, bundle_id, wait_label=wait_label, app_markers=markers)
     if not boot.get("foreground_ok"):
         return {
             "verified": False,
@@ -261,13 +299,28 @@ def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None,
         }
 
     setup_trace = run_steps(ver.get("initial_setup") or [], "setup")
+    if setup_trace and not all(s.get("ok") for s in setup_trace):
+        return {
+            "verified": False,
+            "reason": "setup_failed",
+            "phase": "setup",
+            "evidence": setup_trace[-1],
+            "bootstrap": boot,
+            "setup_trace": setup_trace,
+            "exercise_trace": [],
+            "legacy_weak_pass": False,
+            "false_success": False,
+        }
     pre_keys = perceive(2500)["keys"]
     pre = eval_spec(ver.get("preconditions") or {}, pre_keys)
-    # Overlay sometimes opens mid-carousel after agent edits; one recover cycle.
-    if not pre["ok"] and ({"Enable Location", "Skip for Now", "Temperature Preference"} & pre_keys):
+    # If a task-declared overlay persisted, allow one clean relaunch recovery.
+    overlay_markers = set(ver.get("onboarding_overlay_labels") or [])
+    if not pre["ok"] and overlay_markers & pre_keys:
         call_tool("ligh_launch", {"bundle_id": bundle_id})
         time.sleep(1.5)
-        boot2 = bootstrap_app(app, bundle_id, wait_label=wait_label)
+        boot2 = bootstrap_app(
+            app, bundle_id, wait_label=wait_label, app_markers=markers
+        )
         if boot2.get("foreground_ok"):
             boot = boot2
             setup_trace = run_steps(ver.get("initial_setup") or [], "setup")
@@ -276,7 +329,7 @@ def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None,
         return {
             "verified": False,
             "reason": "precondition_not_satisfied",
-            "phase": "pre",
+            "phase": "precondition",
             "evidence": pre,
             "bootstrap": boot,
             "setup_trace": setup_trace,
@@ -286,27 +339,32 @@ def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None,
         }
 
     exercise_trace = run_steps(ver.get("exercise") or [], "exercise")
-    post_keys = perceive(3500)["keys"]
-    post = eval_spec(ver.get("postconditions") or {}, post_keys)
+    exercise_ok = bool(exercise_trace) and all(s.get("ok") for s in exercise_trace)
+    goal_spec = compile_task_goal(task)
+    post, post_observation = evaluate_goal_stable(goal_spec, 3500)
+    post_keys = post_observation.get("keys") or set()
     weak = legacy_weak_pass(task, post_keys)
     overlay = overlay_visible(task, post_keys)
-    home = goal_visible(post_keys)
+    home = goal_visible(task, post_keys)
 
     false_success = weak and (overlay or not post["ok"])
-    verified = post["ok"] and not overlay
+    verified = exercise_ok and post["ok"] and not overlay
 
     reason = "verified" if verified else "postcondition_not_satisfied"
-    if not all(s.get("ok") for s in exercise_trace):
+    phase = "postcondition"
+    if not exercise_ok:
         reason = "exercise_failed"
+        phase = "exercise"
 
     return {
         "verified": verified,
         "reason": reason,
-        "phase": "post",
+        "phase": phase,
         "evidence": {
             "homeTitle": home,
             "onboardingOverlay": overlay,
             "post": post,
+            "goal_spec": goal_spec,
             "legacy_weak_pass": weak,
         },
         "bootstrap": boot,
@@ -325,7 +383,8 @@ def establish_initial_state(task: dict[str, Any] | None = None, *, app: str | No
     ver = task.get("verification") or {}
     wait_label = task.get("bootstrap_wait_label") or "Show Onboarding"
 
-    boot = bootstrap_app(app, bundle_id, wait_label=wait_label)
+    markers = verification_markers(task)
+    boot = bootstrap_app(app, bundle_id, wait_label=wait_label, app_markers=markers)
     if not boot.get("foreground_ok"):
         return {
             "ok": False,
@@ -336,10 +395,14 @@ def establish_initial_state(task: dict[str, Any] | None = None, *, app: str | No
         }
 
     setup_trace = run_steps(ver.get("initial_setup") or [], "setup")
+    setup_ok = not setup_trace or all(s.get("ok") for s in setup_trace)
     pre = eval_spec(ver.get("preconditions") or {}, perceive(2500)["keys"])
     return {
-        "ok": pre["ok"],
-        "reason": "initial_state_ready" if pre["ok"] else "initial_state_failed",
+        "ok": setup_ok and pre["ok"],
+        "reason": "initial_state_ready" if setup_ok and pre["ok"] else (
+            "setup_failed" if not setup_ok else "initial_state_failed"
+        ),
+        "phase": None if setup_ok and pre["ok"] else ("setup" if not setup_ok else "precondition"),
         "bootstrap": boot,
         "setup_trace": setup_trace,
         "preconditions": pre,

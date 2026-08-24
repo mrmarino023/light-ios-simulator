@@ -449,6 +449,9 @@ enum CapCommands {
         /// Acceptance target: visible label.
         #[arg(long)]
         goal_label: Option<String>,
+        /// Complete GoalSpec v2 JSON. Overrides legacy goal-id/goal-label/param.
+        #[arg(long)]
+        goal_spec: Option<String>,
         /// Typed datum for text fields, `value` or `secure:value`. Repeatable.
         #[arg(long = "param")]
         params: Vec<String>,
@@ -1479,6 +1482,7 @@ fn main() -> anyhow::Result<()> {
                     bundle_id,
                     goal_id,
                     goal_label,
+                    goal_spec,
                     params,
                     max_steps,
                     workspace,
@@ -1487,8 +1491,8 @@ fn main() -> anyhow::Result<()> {
                     no_install,
                     launch_args,
                 } => {
-                    if goal_id.is_none() && goal_label.is_none() {
-                        anyhow::bail!("autopilot needs --goal-id or --goal-label");
+                    if goal_spec.is_none() && goal_id.is_none() && goal_label.is_none() {
+                        anyhow::bail!("autopilot needs --goal-spec, --goal-id or --goal-label");
                     }
                     let parsed: Vec<serde_json::Value> = params
                         .iter()
@@ -1497,18 +1501,25 @@ fn main() -> anyhow::Result<()> {
                             None => serde_json::json!({ "value": p, "secure": false }),
                         })
                         .collect();
-                    DaemonRequest::Autopilot {
-                        app,
-                        bundle_id,
-                        goal: serde_json::json!({
+                    let goal = if let Some(spec) = goal_spec {
+                        serde_json::from_str(&spec)
+                            .map_err(|e| anyhow::anyhow!("--goal-spec JSON: {e}"))?
+                    } else {
+                        serde_json::json!({
                             "target_id": goal_id,
                             "target_label": goal_label,
                             "params": parsed,
-                        }),
+                        })
+                    };
+                    DaemonRequest::Autopilot {
+                        app,
+                        bundle_id,
+                        goal,
                         max_steps: Some(max_steps),
                         workspace,
                         settle_ms: Some(settle_ms),
                         timeout_ms: Some(timeout_ms),
+                        deadline_unix_ms: None,
                         install: Some(!no_install),
                         launch_args: if launch_args.is_empty() {
                             None
@@ -1773,6 +1784,14 @@ fn observe_direct(config: &LighConfig, include_ax: bool) -> anyhow::Result<Obser
     let mut snap = ObserveSnapshot {
         schema_version: ligh_core::OBSERVE_SCHEMA_VERSION,
         udid: session.udid.clone(),
+        session_id: Some(session.session_id.clone()),
+        boot_epoch: session.boot_epoch,
+        launch_epoch: session.launch_epoch,
+        screen_epoch: 0,
+        stability_streak: u32::from(booted),
+        motion_score: None,
+        expected_bundle_id: session.app_bundle_id.clone(),
+        observed_app_label: None,
         booted,
         simulator_app_running: sim_app,
         frame,
@@ -1790,6 +1809,7 @@ fn observe_direct(config: &LighConfig, include_ax: bool) -> anyhow::Result<Obser
         overlay: None,
     };
     snap.enrich_v2();
+    snap.observed_app_label = ligh_core::foreground_app_label(snap.accessibility_tree.nodes());
     Ok(snap)
 }
 

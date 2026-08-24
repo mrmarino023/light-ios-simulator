@@ -1,0 +1,39 @@
+{
+  "app": "Kix",
+  "acceptance": "test@kixapp.com / password \u2192 authenticated tab shell",
+  "upstream": "https://github.com/byKosta/Kix-app",
+  "commit": "0bc85035cc779abc4fd6ff05065034932bb4c744",
+  "design": "Diverse flow shapes on one third-party catalog app: auth, notes CRUD, tab navigation, logout. Not five login variants.",
+  "scenarios": [
+    {
+      "id": "login_never_authenticates",
+      "patch": "login-never-authenticates.patch",
+      "flow_shape": "auth_session",
+      "hint_for_humans": "AuthViewModel accepts credentials but never opens the session"
+    },
+    {
+      "id": "notes_tab_missing",
+      "patch": "notes-tab-missing.patch",
+      "flow_shape": "tab_navigation",
+      "hint_for_humans": "Notes tab omitted from MainTabView"
+    },
+    {
+      "id": "notes_add_noop",
+      "patch": "notes-add-noop.patch",
+      "flow_shape": "notes_crud",
+      "hint_for_humans": "NotesManager.addNote discards the note"
+    },
+    {
+      "id": "favorites_tab_missing",
+      "patch": "favorites-tab-missing.patch",
+      "flow_shape": "tab_navigation",
+      "hint_for_humans": "Favorites tab omitted from MainTabView"
+    },
+    {
+      "id": "cart_tab_missing",
+      "patch": "cart-tab-missing.patch",
+      "flow_shape": "tab_navigation",
+      "hint_for_humans": "Cart tab omitted from MainTabView"
+    }
+  ]
+}

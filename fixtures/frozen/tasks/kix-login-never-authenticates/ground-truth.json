@@ -1,0 +1,9 @@
+{
+  "_human_only": "Never pass this file to the agent or include in agent prompts.",
+  "task_id": "kix-login-never-authenticates",
+  "bug_id": "kix_login_never_authenticates",
+  "ground_truth": "AuthViewModel.login() clears errorMessage but returns without calling completion(), so isAuthenticated never becomes true.",
+  "expected_fix": "Call completion() on the successful credential path in AuthViewModel.login().",
+  "patch_file": "fixtures/third-party/Kix/scenarios/login-never-authenticates.patch",
+  "protocol_note": "Honest A/B task on third-party Kix \u2014 diverse flow shapes, not login-only variants."
+}

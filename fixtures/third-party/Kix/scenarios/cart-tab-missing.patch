@@ -1,0 +1,16 @@
+--- a/fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift
++++ b/fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift
+@@ -42,12 +42,7 @@
+                 .tag(3)
+                 .accessibilityIdentifier("tab_menu")
+             
+-            CartView()
+-                .tabItem {
+-                    Label("Cart", systemImage: tabSelection.selectedTab == 4 ? "cart.fill" : "cart")
+-                }
+-                .tag(4)
+-                .accessibilityIdentifier("tab_cart")
++            // BUG: Cart tab omitted — users cannot reach Cart
+         }
+         .accentColor(.purple)
+         .onAppear {

@@ -1,0 +1,9 @@
+{
+  "_human_only": "Never pass this file to the agent or include in agent prompts.",
+  "task_id": "kix-favorites-tab-missing",
+  "bug_id": "kix_favorites_tab_missing",
+  "ground_truth": "MainTabView omits the FavoritesView tab entirely.",
+  "expected_fix": "Restore the FavoritesView tab entry in MainTabView.",
+  "patch_file": "fixtures/third-party/Kix/scenarios/favorites-tab-missing.patch",
+  "protocol_note": "Honest A/B task on third-party Kix \u2014 diverse flow shapes, not login-only variants."
+}

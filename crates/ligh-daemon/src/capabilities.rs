@@ -100,10 +100,10 @@ fn only_app_icon_on_home(snap: &ObserveSnapshot, app_label: &str) -> bool {
 fn ax_has_marker(snap: &ObserveSnapshot, wait_label: Option<&str>, wait_id: Option<&str>) -> bool {
     let nodes = ax_nodes(snap);
     if let Some(id) = wait_id {
-        if nodes.iter().any(|n| {
-            n.get("identifier").and_then(|v| v.as_str()) == Some(id)
-                || n.get("id").and_then(|v| v.as_str()) == Some(id)
-        }) {
+        if nodes
+            .iter()
+            .any(|n| ligh_core::node_matches_identifier(n, id))
+        {
             return true;
         }
     }
@@ -771,9 +771,16 @@ pub(crate) fn run_app(
     }
     if let Ok(cfg) = ligh_core::LighConfig::load() {
         if let Ok(Some(mut s)) = ligh_core::SessionState::load(&cfg.state_dir) {
-            s.app_bundle_id = Some(bid.clone());
-            s.app_path = Some(app_path.clone());
+            s.begin_launch(bid.clone(), Some(app_path.clone()));
             let _ = s.save(&cfg.state_dir);
+            let mut daemon = state.lock().unwrap();
+            daemon.session_id = s.session_id.clone();
+            daemon.boot_epoch = s.boot_epoch;
+            daemon.launch_epoch = s.launch_epoch;
+            daemon.expected_bundle_id = Some(bid.clone());
+            daemon.screen_epoch = daemon.screen_epoch.saturating_add(1).max(1);
+            daemon.stability_streak = 0;
+            daemon.last_screen_fingerprint = None;
         }
     }
 
@@ -972,7 +979,16 @@ pub(crate) fn act_type(
     text: &str,
     settle_ms: u64,
 ) -> CapabilityResult {
-    crate::motor::motor_type(build, state, text, None, None, settle_ms, 12_000)
+    crate::motor::motor_type(
+        build,
+        state,
+        text,
+        None,
+        None,
+        settle_ms,
+        12_000,
+        ligh_core::MotorTypeStrategy::FocusHid,
+    )
 }
 
 fn step_labels(step: &serde_json::Value) -> Vec<String> {
@@ -1110,6 +1126,7 @@ pub(crate) fn run_motor_step(
                 step.get("id").and_then(|v| v.as_str()),
                 settle_ms,
                 timeout_ms,
+                ligh_core::MotorTypeStrategy::FocusHid,
             )
         }
         "key" => {

@@ -1,0 +1,218 @@
+{
+  "app_id": "kix",
+  "app": "Kix",
+  "flow_shape": "catalog_auth_tabs",
+  "goal_id": "tab_home",
+  "reached": true,
+  "ok": true,
+  "steps": 3,
+  "wall_ms": 12676,
+  "pilot_ms": 12602,
+  "llm_tokens": 0,
+  "spec_inputs": {
+    "goal_id": "tab_home",
+    "params": 2
+  },
+  "stop_code": null,
+  "diagnosis": null,
+  "trace": [
+    {
+      "boot_epoch": 1787572940440393,
+      "event": "operation_started",
+      "expected_bundle_id": "mybyKosta.Kix",
+      "launch_epoch": 1,
+      "run_deadline_ms": 222000,
+      "session_id": "session-000659c9c2200349"
+    },
+    {
+      "act": {
+        "id": "login_email_field",
+        "intent": "type",
+        "kind": "text_field",
+        "label": null,
+        "motor_strategy": "focus_hid",
+        "reason": "fill TextField (param 1 of class) via focus_hid",
+        "slot": null,
+        "stop_code": null,
+        "text": "test@kixapp.com"
+      },
+      "action_spec": {
+        "action_id": "action-1-1",
+        "epoch": {
+          "boot_epoch": 1787572940440393,
+          "launch_epoch": 1,
+          "screen_epoch": 4,
+          "session_id": "session-000659c9c2200349"
+        },
+        "operation": {
+          "intent": "type",
+          "motor_strategy": "focus_hid",
+          "slot": null,
+          "text": "test@kixapp.com"
+        },
+        "postconditions": [
+          {
+            "delivery_and_relevant_effect_verified": true
+          }
+        ],
+        "preconditions": [
+          {
+            "epoch_matches": true
+          },
+          {
+            "foreground_owned": true
+          }
+        ],
+        "target": {
+          "identifier": "login_email_field",
+          "role": "TextField",
+          "stable_key": "field|login_email_field|focus_hid"
+        }
+      },
+      "changed": false,
+      "epoch": {
+        "boot_epoch": 1787572940440393,
+        "launch_epoch": 1,
+        "screen_epoch": 4,
+        "session_id": "session-000659c9c2200349"
+      },
+      "fault": "ok",
+      "fired": true,
+      "fp": "fp_d27ec961d7c1781f",
+      "fp_after": "fp_d27ec961d7c1781f",
+      "goal_progress": false,
+      "ms": 1357,
+      "outcome": "delivered_and_verified",
+      "post_snapshot_hash": "fp_d27ec961d7c1781f",
+      "pre_snapshot_hash": "fp_d27ec961d7c1781f",
+      "step": 1
+    },
+    {
+      "act": {
+        "id": "login_password_field",
+        "intent": "type",
+        "kind": "secure_field",
+        "label": null,
+        "motor_strategy": "focus_hid",
+        "reason": "fill SecureField (param 1 of class) via focus_hid",
+        "slot": null,
+        "stop_code": null,
+        "text": "***"
+      },
+      "action_spec": {
+        "action_id": "action-1-2",
+        "epoch": {
+          "boot_epoch": 1787572940440393,
+          "launch_epoch": 1,
+          "screen_epoch": 4,
+          "session_id": "session-000659c9c2200349"
+        },
+        "operation": {
+          "intent": "type",
+          "motor_strategy": "focus_hid",
+          "slot": null,
+          "text": "***"
+        },
+        "postconditions": [
+          {
+            "delivery_and_relevant_effect_verified": true
+          }
+        ],
+        "preconditions": [
+          {
+            "epoch_matches": true
+          },
+          {
+            "foreground_owned": true
+          }
+        ],
+        "target": {
+          "identifier": "login_password_field",
+          "role": "SecureField",
+          "stable_key": "field|login_password_field|focus_hid"
+        }
+      },
+      "changed": false,
+      "epoch": {
+        "boot_epoch": 1787572940440393,
+        "launch_epoch": 1,
+        "screen_epoch": 4,
+        "session_id": "session-000659c9c2200349"
+      },
+      "fault": "ok",
+      "fired": true,
+      "fp": "fp_d27ec961d7c1781f",
+      "fp_after": "fp_d27ec961d7c1781f",
+      "goal_progress": false,
+      "ms": 835,
+      "outcome": "delivered_and_verified",
+      "post_snapshot_hash": "fp_d27ec961d7c1781f",
+      "pre_snapshot_hash": "fp_d27ec961d7c1781f",
+      "step": 2
+    },
+    {
+      "act": {
+        "id": "login_button",
+        "intent": "tap",
+        "kind": "primary_button",
+        "label": "SIGN IN",
+        "motor_strategy": null,
+        "reason": "best-first candidate rank 2 (PrimaryButton)",
+        "slot": null,
+        "stop_code": null,
+        "text": null
+      },
+      "action_spec": {
+        "action_id": "action-1-3",
+        "epoch": {
+          "boot_epoch": 1787572940440393,
+          "launch_epoch": 1,
+          "screen_epoch": 4,
+          "session_id": "session-000659c9c2200349"
+        },
+        "operation": {
+          "intent": "tap",
+          "motor_strategy": null,
+          "slot": null,
+          "text": null
+        },
+        "postconditions": [
+          {
+            "delivery_and_relevant_effect_verified": true
+          }
+        ],
+        "preconditions": [
+          {
+            "epoch_matches": true
+          },
+          {
+            "foreground_owned": true
+          }
+        ],
+        "target": {
+          "identifier": "login_button",
+          "label": "SIGN IN",
+          "role": "PrimaryButton",
+          "stable_key": "fp_d27ec961d7c1781f|tap|PrimaryButton|login_button"
+        }
+      },
+      "changed": true,
+      "epoch": {
+        "boot_epoch": 1787572940440393,
+        "launch_epoch": 1,
+        "screen_epoch": 4,
+        "session_id": "session-000659c9c2200349"
+      },
+      "fault": "ok",
+      "fired": true,
+      "fp": "fp_d27ec961d7c1781f",
+      "fp_after": "fp_2808ce1870f8571e",
+      "goal_progress": true,
+      "ms": 1112,
+      "outcome": "delivered_and_verified",
+      "post_snapshot_hash": "fp_2808ce1870f8571e",
+      "pre_snapshot_hash": "fp_d27ec961d7c1781f",
+      "step": 3
+    }
+  ]
+}

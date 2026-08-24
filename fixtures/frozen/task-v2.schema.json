@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ligh.dev/schemas/frozen-task-v2.json",
+  "title": "FrozenBenchmarkTaskV2",
+  "type": "object",
+  "required": [
+    "id",
+    "app_id",
+    "upstream_url",
+    "upstream_commit",
+    "protocol_version",
+    "agent_prompt",
+    "source_root",
+    "build_script",
+    "app_path",
+    "bundle_id",
+    "initial_state",
+    "verification"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "app_id": { "type": "string", "minLength": 1 },
+    "upstream_url": { "type": "string", "minLength": 1 },
+    "upstream_commit": { "type": "string", "minLength": 1 },
+    "license": { "type": "string" },
+    "protocol_version": { "const": 2 },
+    "flow_shape": { "type": "string" },
+    "agent_prompt": { "type": "string", "minLength": 1 },
+    "source_root": { "type": "string", "minLength": 1 },
+    "build_script": { "type": "string", "minLength": 1 },
+    "app_path": { "type": "string", "minLength": 1 },
+    "bundle_id": { "type": "string", "minLength": 1 },
+    "bug_patch": { "type": "string" },
+    "bootstrap_wait_label": { "type": "string" },
+    "initial_state": { "type": "string", "enum": ["broken"] },
+    "run_goal_params": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["value"],
+        "properties": {
+          "value": { "type": "string" },
+          "secure": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["initial_setup", "preconditions", "exercise", "postconditions"],
+      "properties": {
+        "initial_setup": { "$ref": "#/$defs/steps" },
+        "preconditions": { "$ref": "#/$defs/conditions" },
+        "exercise": { "$ref": "#/$defs/steps", "minItems": 1 },
+        "postconditions": { "$ref": "#/$defs/conditions" },
+        "onboarding_overlay_labels": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "legacy_weak_success_labels": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "harness_success_labels": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "conditions": {
+      "type": "object",
+      "required": ["must_see_labels", "must_not_see_labels"],
+      "properties": {
+        "must_see_labels": { "type": "array", "items": { "type": "string" } },
+        "must_not_see_labels": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "steps": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["action"],
+        "properties": {
+          "action": { "type": "string", "enum": ["tap", "type"] },
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "text": { "type": "string" },
+          "settle_ms": { "type": "integer", "minimum": 0 }
+        },
+        "allOf": [
+          {
+            "if": { "properties": { "action": { "const": "type" } } },
+            "then": { "required": ["text"] }
+          },
+          {
+            "anyOf": [
+              { "required": ["id"] },
+              { "required": ["label"] }
+            ]
+          }
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

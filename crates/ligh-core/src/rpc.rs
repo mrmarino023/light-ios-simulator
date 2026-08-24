@@ -326,6 +326,10 @@ pub enum DaemonRequest {
         settle_ms: Option<u64>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         timeout_ms: Option<u64>,
+        /// Absolute Unix deadline. Relative timeout remains for compatibility; the
+        /// earliest deadline wins.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        deadline_unix_ms: Option<u64>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         install: Option<bool>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -396,6 +400,26 @@ pub enum DaemonRequest {
     Shutdown,
     /// Exit the daemon only — leave the guest booted (stream detaches).
     Quit,
+}
+
+impl DaemonRequest {
+    /// Requests that can mutate simulator, foreground, keyboard, or planner state.
+    /// The daemon holds one exclusive lease for the full request.
+    pub fn requires_operation_lease(&self) -> bool {
+        !matches!(
+            self,
+            Self::Ping
+                | Self::Status
+                | Self::Sense
+                | Self::Screenshot { .. }
+                | Self::FrameMeta
+                | Self::Observe { .. }
+                | Self::Exists { .. }
+                | Self::Perceive { .. }
+                | Self::UxStatus { .. }
+                | Self::UxRegress { .. }
+        )
+    }
 }
 
 fn default_true() -> bool {

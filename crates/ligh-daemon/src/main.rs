@@ -4,6 +4,7 @@
 
 mod capabilities;
 mod cognition;
+mod fault_injection;
 mod motor;
 mod pilot_cap;
 mod qa_cap;
@@ -33,6 +34,15 @@ pub(crate) struct DaemonState {
     pub(crate) sim_width: f64,
     pub(crate) sim_height: f64,
     pub(crate) udid: Option<String>,
+    pub(crate) session_id: String,
+    pub(crate) boot_epoch: u64,
+    pub(crate) launch_epoch: u64,
+    pub(crate) screen_epoch: u64,
+    pub(crate) stability_streak: u32,
+    pub(crate) expected_bundle_id: Option<String>,
+    /// Serializes stateful simulator operations. Clone before locking; never hold DaemonState too.
+    pub(crate) operation_lease: Arc<Mutex<()>>,
+    pub(crate) last_screen_fingerprint: Option<String>,
     /// Previous AX flat nodes for sensation diff.
     pub(crate) last_ax_nodes: Option<Vec<serde_json::Value>>,
     /// Recent sense events (ring, newest last).
@@ -81,10 +91,20 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
         (udid, gpu)
     };
     let booted = !udid.is_empty();
-    let app_bundle_id = LighConfig::load()
+    let persisted = LighConfig::load()
         .ok()
-        .and_then(|c| SessionState::load(&c.state_dir).ok().flatten())
-        .and_then(|s| s.app_bundle_id);
+        .and_then(|c| SessionState::load(&c.state_dir).ok().flatten());
+    let app_bundle_id = persisted.as_ref().and_then(|s| s.app_bundle_id.clone());
+    let (session_id, boot_epoch, launch_epoch, screen_epoch, expected_bundle_id) = {
+        let st = state.lock().unwrap();
+        (
+            Some(st.session_id.clone()).filter(|s| !s.is_empty()),
+            st.boot_epoch,
+            st.launch_epoch,
+            st.screen_epoch,
+            st.expected_bundle_id.clone().or_else(|| app_bundle_id.clone()),
+        )
+    };
     let frame = if gpu.imports_ok > 0 {
         Some(FrameMeta {
             width: gpu.last_width,
@@ -109,6 +129,14 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
     let mut snap = ObserveSnapshot {
         schema_version: ligh_core::OBSERVE_SCHEMA_VERSION,
         udid,
+        session_id,
+        boot_epoch,
+        launch_epoch,
+        screen_epoch,
+        stability_streak: 0,
+        motion_score: None,
+        expected_bundle_id,
+        observed_app_label: None,
         booted,
         simulator_app_running: false,
         frame,
@@ -126,6 +154,20 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
         overlay: None,
     };
     snap.enrich_v2();
+    snap.observed_app_label = ligh_core::foreground_app_label(snap.accessibility_tree.nodes());
+    let fp = ligh_core::screen_fingerprint(snap.accessibility_tree.nodes());
+    let mut st = state.lock().unwrap();
+    if st.last_screen_fingerprint.as_deref() != Some(fp.as_str()) {
+        st.screen_epoch = st.screen_epoch.saturating_add(1).max(1);
+        st.last_screen_fingerprint = Some(fp);
+        st.stability_streak = 1;
+    } else {
+        st.stability_streak = st.stability_streak.saturating_add(1);
+    }
+    snap.screen_epoch = st.screen_epoch;
+    snap.stability_streak = st.stability_streak;
+    drop(st);
+    fault_injection::apply(&mut snap);
     snap
 }
 
@@ -187,6 +229,16 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
         Ok(r) => r,
         Err(e) => return DaemonResponse::err(format!("parse error: {e}")),
     };
+    // Serialize stateful simulator operations. The guard lives through the whole
+    // dispatch, including Autopilot's observe/plan/act/verify transaction.
+    let operation_lease = if req.requires_operation_lease() {
+        Some(state.lock().unwrap().operation_lease.clone())
+    } else {
+        None
+    };
+    let _operation_guard = operation_lease
+        .as_ref()
+        .map(|lease| lease.lock().unwrap_or_else(|e| e.into_inner()));
 
     match req {
         DaemonRequest::Ping => DaemonResponse::ok(serde_json::json!({ "pong": true })),
@@ -215,6 +267,13 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                     "imports_ok": gpu.imports_ok > 0,
                 },
                 "app_bundle_id": session.and_then(|s| s.app_bundle_id),
+                "transaction": {
+                    "session_id": st.session_id,
+                    "boot_epoch": st.boot_epoch,
+                    "launch_epoch": st.launch_epoch,
+                    "screen_epoch": st.screen_epoch,
+                    "expected_bundle_id": st.expected_bundle_id,
+                },
             }))
         }
 
@@ -244,6 +303,13 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                             let stats = comp.stats();
                             let mut st = state.lock().unwrap();
                             st.udid = Some(udid.clone());
+                            st.session_id = session.session_id.clone();
+                            st.boot_epoch = session.boot_epoch;
+                            st.launch_epoch = session.launch_epoch;
+                            st.expected_bundle_id = session.app_bundle_id.clone();
+                            st.screen_epoch = 0;
+                            st.stability_streak = 0;
+                            st.last_screen_fingerprint = None;
                             let (pw, ph) = preset.hid_size_from_framebuffer(
                                 stats.last_width.max(1),
                                 stats.last_height.max(1),
@@ -300,9 +366,14 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                         });
                     if let Some(ref bid) = bundle_id {
                         let mut s = session.clone();
-                        s.app_bundle_id = Some(bid.clone());
-                        s.app_path = Some(app_path.clone());
+                        s.begin_launch(bid.clone(), Some(app_path.clone()));
                         let _ = s.save(&cfg.state_dir);
+                        let mut st = state.lock().unwrap();
+                        st.launch_epoch = s.launch_epoch;
+                        st.expected_bundle_id = Some(bid.clone());
+                        st.screen_epoch = st.screen_epoch.saturating_add(1);
+                        st.stability_streak = 0;
+                        st.last_screen_fingerprint = None;
                     }
                     DaemonResponse::ok(serde_json::json!({
                         "udid": session.udid,
@@ -326,8 +397,14 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                     // Persist bundle id
                     if let Ok(cfg) = LighConfig::load() {
                         if let Ok(Some(mut s)) = SessionState::load(&cfg.state_dir) {
-                            s.app_bundle_id = Some(bundle_id.clone());
+                            s.begin_launch(bundle_id.clone(), s.app_path.clone());
                             let _ = s.save(&cfg.state_dir);
+                            let mut st = state.lock().unwrap();
+                            st.launch_epoch = s.launch_epoch;
+                            st.expected_bundle_id = Some(bundle_id.clone());
+                            st.screen_epoch = st.screen_epoch.saturating_add(1);
+                            st.stability_streak = 0;
+                            st.last_screen_fingerprint = None;
                         }
                     }
                     DaemonResponse::ok(serde_json::json!({ "bundle_id": bundle_id }))
@@ -859,7 +936,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             launch_args,
         } => {
             let settle = settle_ms.unwrap_or(3500);
-            let timeout = timeout_ms.unwrap_or(8000);
+            let timeout = timeout_ms.unwrap_or(20000);
             let do_install = install.unwrap_or(true);
             let state_c = state.clone();
             let build = move || build_observe_once(&state_c, true);
@@ -1155,6 +1232,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             workspace,
             settle_ms,
             timeout_ms,
+            deadline_unix_ms,
             install,
             launch_args,
         } => {
@@ -1163,8 +1241,22 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 Err(e) => return DaemonResponse::err(format!("goal: {e}")),
             };
             let settle = settle_ms.unwrap_or(1500);
-            let timeout = timeout_ms.unwrap_or(8000);
+            let now_ms = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_millis() as u64)
+                .unwrap_or(0);
+            let absolute_remaining = deadline_unix_ms.map(|d| d.saturating_sub(now_ms));
+            let action_timeout = timeout_ms.unwrap_or(8000);
             let steps = max_steps.unwrap_or(24);
+            let compatibility_run_budget = action_timeout
+                .saturating_mul(steps.max(1) as u64)
+                .saturating_add(30_000);
+            let run_timeout = absolute_remaining
+                .map(|absolute| absolute.min(compatibility_run_budget))
+                .unwrap_or(compatibility_run_budget);
+            if run_timeout == 0 {
+                return DaemonResponse::err("deadline exceeded before autopilot started");
+            }
             let ws = workspace.as_deref().map(std::path::Path::new);
             let state_c = state.clone();
             let build = move || build_observe_once(&state_c, true);
@@ -1177,7 +1269,8 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 &parsed,
                 steps,
                 settle,
-                timeout,
+                action_timeout.min(run_timeout),
+                run_timeout,
                 install.unwrap_or(true),
                 launch_args.as_deref(),
             );
@@ -1341,11 +1434,13 @@ fn main() -> anyhow::Result<()> {
     HostSession::set_frame_handler(move |id, w, h| comp.ingest(id, w, h));
 
     let mut udid: Option<String> = None;
+    let mut persisted_session: Option<SessionState> = None;
     let sim_width = 393f64;
     let sim_height = 852f64;
 
     if let Ok(cfg) = LighConfig::load() {
         if let Ok(Some(session)) = SessionState::load(&cfg.state_dir) {
+            persisted_session = Some(session.clone());
             if ligh_sim::Simctl::is_booted(&session.udid).unwrap_or(false) {
                 match HostSession::stream_start(&session.udid) {
                     Ok(host) => {
@@ -1361,12 +1456,29 @@ fn main() -> anyhow::Result<()> {
             }
         }
     }
+    let epoch_seed = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_micros() as u64)
+        .unwrap_or(1);
 
     let state = Arc::new(Mutex::new(DaemonState {
         compositor: compositor.clone(),
         sim_width,
         sim_height,
         udid,
+        session_id: persisted_session
+            .as_ref()
+            .map(|s| s.session_id.clone())
+            .unwrap_or_else(|| format!("daemon-{epoch_seed:016x}")),
+        boot_epoch: persisted_session.as_ref().map(|s| s.boot_epoch).unwrap_or(epoch_seed),
+        launch_epoch: persisted_session.as_ref().map(|s| s.launch_epoch).unwrap_or(0),
+        screen_epoch: 0,
+        stability_streak: 0,
+        expected_bundle_id: persisted_session
+            .as_ref()
+            .and_then(|s| s.app_bundle_id.clone()),
+        operation_lease: Arc::new(Mutex::new(())),
+        last_screen_fingerprint: None,
         last_ax_nodes: None,
         sense_buf: Vec::new(),
     }));

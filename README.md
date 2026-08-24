@@ -38,6 +38,79 @@ LIGH gives the agent a local control plane: persistent `lighd` on CoreSimulator,
 
 ---
 
+## Positioning
+
+### One sentence
+
+**LIGH is a local iOS execution substrate for coding agents:** the model fixes
+Swift, and the host autonomously runs, uses and verifies the app on Simulator.
+
+### What LIGH is
+
+- A **persistent local control plane** on top of CoreSimulator (`lighd`)
+- A **host Autopilot** that takes a goal plus typed data, discovers the UI path
+  at runtime, and spends **zero LLM UI tokens**
+- A **strict verifier** that fail-closes and accepts a working patch
+- A system optimized for the real coding-agent loop:
+
+```text
+read → edit → build → run → use → verify → fix
+```
+
+### What LIGH is not
+
+- Not a generic WebDriver replacement for every mobile automation job
+- Not a recorder or YAML-flow authoring tool
+- Not an LLM memory layer over app screens
+- Not a cloud device farm
+
+### Why this exists
+
+The hard part is not making a model write Swift. The hard part is making it
+**use the app it just built quickly enough to stay inside a debugging loop**.
+
+That is the wedge:
+
+- traditional mobile automation optimizes for **test authoring + CI**
+- LIGH optimizes for **local fix → run → verify for coding agents**
+
+### Honest competitive position
+
+- **vs Appium / WDA:** LIGH is narrower, but much better aligned with local
+  coding-agent execution. Appium wins on breadth, language ecosystem and general
+  automation; LIGH wins when the job is “fix the app and prove the fix on the
+  simulator now.” Our execution-layer benchmark is ~4.7× faster on the same
+  semantic workflow.
+- **vs Maestro / Maestro MCP:** Maestro is currently the strongest adjacent
+  competitor for agentic mobile QA. It is excellent when the deliverable is a
+  **repeatable YAML test flow** you keep in CI. LIGH is stronger when the
+  deliverable is a **working code fix** and the main bottleneck is the agent's
+  local execution loop. The host Autopilot removes UI micro-decisions from the
+  model instead of generating a persistent scripted flow.
+- **vs XCUITest / Detox / Espresso:** those are test frameworks, not agent
+  control planes. They are great when humans write and maintain tests. LIGH is
+  for the different job where an agent must inspect the app, change source, run
+  it, and verify the result autonomously.
+
+### The sharp claim
+
+LIGH should be read as:
+
+> the fastest honest way to let a coding agent locally use and verify the iOS
+> app it is actively changing
+
+not as:
+
+> the best general-purpose mobile test framework
+
+That broader claim would be false.
+
+Milestone note: [`docs/MILESTONE_HOST_AUTOPILOT.md`](docs/MILESTONE_HOST_AUTOPILOT.md).
+Validation week (do not change the architecture): [`docs/VALIDATION_WEEK.md`](docs/VALIDATION_WEEK.md) —
+run `./scripts/validation-week.sh`.
+
+---
+
 ## What we measured
 
 ### Execution layer — observe → act → verify
@@ -99,14 +172,22 @@ Reproduce with `./scripts/gate-killer-loop-ab-v2.sh` (needs
 `OPENAI_API_KEY`). The artifact is published regardless of outcome and only
 passes when Autopilot both verifies and reaches the 3× threshold.
 
-The same policy also passes the no-special-cases generality gate on **5/5
-apps**, covering five different flow shapes:
+The same policy also passes the no-special-cases generality gate on **6/6
+apps**, covering six different flow shapes:
 
 - **LighFixture** — form: type + submit, 2 actions, 11.5 s
-- **LighOnboard** — multi-screen wizard, 4 actions, 17.1 s
-- **LighModal** — sheet presentation + confirmation, 2 actions, 12.6 s
-- **LighFeed** — list → detail navigation, 1 action, 10.2 s
-- **XCUITestDemo** — third-party OSS login with credentials, 3 actions, 10.6 s
+- **LighOnboard** — multi-screen wizard, 4 actions, 14.2 s
+- **LighModal** — sheet presentation + confirmation, 2 actions, 10.0 s
+- **LighFeed** — list → detail navigation, 1 action, 9.4 s
+- **XCUITestDemo** — third-party OSS login with credentials, 3 actions, 11.2 s
+- **Kix** — third-party catalog + auth + tabs, 3 actions, 12.7 s
+
+Kix was the hole: login worked, then Autopilot wandered catalog cards because
+SwiftUI tab bars walk as a childless `AXGroup` and XCTest ids like `tab_home`
+show up in AXP as the SF Symbol plus the visible label (`house.fill` / `Home`).
+The host now hit-tests childless tab/nav/tool bars and binds `tab_*` goal ids
+to tab-chrome labels only. Reproduce Kix with
+`LIGH_PILOT_APPS=kix ./scripts/gate-autopilot-generality.sh`.
 
 There are no per-app branches or recorded flows in Autopilot. Every run receives
 only an acceptance goal plus typed data; Rust discovers the path at runtime and

@@ -74,6 +74,7 @@ hybrid = json.load(open(hybrid_path)) if include_hybrid and __import__("os").pat
 def arm_summary(d):
     actions = d.get("agent_actions") or []
     used_exercise = any((a.get("action") == "exercise_app") for a in actions)
+    disqualified = honest and used_exercise
     return {
         "verified": d.get("verified"),
         "claim_pass": d.get("claim_pass"),
@@ -85,16 +86,25 @@ def arm_summary(d):
         "verification_attempts": d.get("verification_attempts"),
         "perception_channels": d.get("perception_channels"),
         "used_exercise_app": used_exercise,
+        "disqualified": disqualified,
+        "protocol_violations": (["exercise_app_used"] if disqualified else d.get("protocol_violations") or []),
         "faults": len(d.get("faults") or []),
         "llm_tokens": d.get("llm_tokens"),
         "wall_time_ms": d.get("wall_time_ms"),
         "human_interventions": d.get("human_interventions", 0),
         "protocol": d.get("protocol"),
+        "protocol_version": d.get("protocol_version"),
+        "model": d.get("model"),
+        "prompt_hash": d.get("prompt_hash"),
+        "system_prompt_hash": d.get("system_prompt_hash"),
+        "git_sha": d.get("git_sha"),
     }
 
+ligh_summary = arm_summary(ligh)
+base_summary = arm_summary(base)
 runs = {
-    "ligh": {"pass": ligh_pass == 1, **arm_summary(ligh), "artifact": ligh_path},
-    "baseline": {"pass": base_pass == 1, **arm_summary(base), "artifact": base_path},
+    "ligh": {"pass": ligh_pass == 1 and not ligh_summary["disqualified"], **ligh_summary, "artifact": ligh_path},
+    "baseline": {"pass": base_pass == 1 and not base_summary["disqualified"], **base_summary, "artifact": base_path},
 }
 if include_hybrid:
     runs["hybrid"] = {"pass": hybrid_pass == 1, **arm_summary(hybrid), "artifact": hybrid_path}
@@ -109,6 +119,8 @@ report = {
         "exercise_app_disabled": honest,
         "shared_minimal_prompt": honest,
         "agent_must_drive_ui": honest,
+        "source_hint_policy": "stripped_symmetrically",
+        "coaching_policy": "stripped_symmetrically",
     } if honest else None,
     "runs": runs,
     "interpretation": (

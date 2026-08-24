@@ -61,6 +61,10 @@ bool ligh_host_hid_type(const char *udid, const char *text, LighHostError *err);
 /// Single USB HID keyboard usage (down+up). e.g. 0x2A delete, 0x28 return.
 bool ligh_host_hid_key(const char *udid, uint32_t usage, LighHostError *err);
 
+/// Hold `mod_usage` while tapping `key_usage` (e.g. Left GUI 0xE3 + V 0x19 = paste).
+bool ligh_host_hid_chord(const char *udid, uint32_t mod_usage, uint32_t key_usage,
+                         LighHostError *err);
+
 /// Perform accessibility press/activate on element by identifier or label (headless AX).
 bool ligh_host_ax_press(const char *udid, const char *target, int by_label, LighHostError *err);
 

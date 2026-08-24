@@ -1,9 +1,10 @@
 {
   "gate": "autopilot_generality",
   "claim": "One generic Feel-IR policy reaches the acceptance target on every app, with no per-app steps and zero LLM tokens",
-  "apps_total": 5,
-  "apps_reached": 5,
+  "apps_total": 6,
+  "apps_reached": 6,
   "flow_shapes_covered": [
+    "catalog_auth_tabs",
     "form",
     "list_drill_down",
     "login_credentials",
@@ -19,8 +20,8 @@
       "reached": true,
       "ok": true,
       "steps": 2,
-      "wall_ms": 11506,
-      "pilot_ms": 11445,
+      "wall_ms": 11457,
+      "pilot_ms": 11395,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "LighDone",
@@ -30,20 +31,73 @@
       "diagnosis": null,
       "trace": [
         {
+          "boot_epoch": 1787569312706212,
+          "event": "operation_started",
+          "expected_bundle_id": "dev.ligh.Fixture",
+          "launch_epoch": 1,
+          "run_deadline_ms": 222000,
+          "session_id": "session-000659c8e9e52ea4"
+        },
+        {
           "act": {
             "id": "NameField",
             "intent": "type",
             "kind": "text_field",
             "label": "NameField",
             "reason": "fill TextField (param 1 of class)",
+            "slot": null,
             "stop_code": null,
             "text": "pilot"
           },
+          "action_spec": {
+            "action_id": "action-1-1",
+            "epoch": {
+              "boot_epoch": 1787569312706212,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c8e9e52ea4"
+            },
+            "operation": {
+              "intent": "type",
+              "slot": null,
+              "text": "pilot"
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "NameField",
+              "label": "NameField",
+              "role": "TextField",
+              "stable_key": "field|NameField"
+            }
+          },
           "changed": false,
+          "epoch": {
+            "boot_epoch": 1787569312706212,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8e9e52ea4"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_6b0db857f2d2985e",
           "fp_after": "fp_6b0db857f2d2985e",
-          "ms": 1894,
+          "goal_progress": false,
+          "ms": 1336,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_6b0db857f2d2985e",
+          "pre_snapshot_hash": "fp_6b0db857f2d2985e",
           "step": 1
         },
         {
@@ -52,29 +106,61 @@
             "intent": "tap",
             "kind": "primary_button",
             "label": "GoNext",
-            "reason": "salience rank 2 (PrimaryButton)",
+            "reason": "best-first candidate rank 2 (PrimaryButton)",
+            "slot": null,
             "stop_code": null,
             "text": null
           },
+          "action_spec": {
+            "action_id": "action-1-2",
+            "epoch": {
+              "boot_epoch": 1787569312706212,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c8e9e52ea4"
+            },
+            "operation": {
+              "intent": "tap",
+              "slot": null,
+              "text": null
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "GoNext",
+              "label": "GoNext",
+              "role": "PrimaryButton",
+              "stable_key": "fp_6b0db857f2d2985e|tap|PrimaryButton|GoNext"
+            }
+          },
           "changed": true,
+          "epoch": {
+            "boot_epoch": 1787569312706212,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8e9e52ea4"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_6b0db857f2d2985e",
           "fp_after": "fp_b298712fd4e2ab33",
-          "ms": 357,
+          "goal_progress": true,
+          "ms": 800,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_b298712fd4e2ab33",
+          "pre_snapshot_hash": "fp_6b0db857f2d2985e",
           "step": 2
-        },
-        {
-          "act": {
-            "id": null,
-            "intent": "stop",
-            "kind": null,
-            "label": null,
-            "reason": "acceptance target LighDone present",
-            "stop_code": "goal_visible",
-            "text": null
-          },
-          "fp": "fp_b298712fd4e2ab33",
-          "step": 3
         }
       ]
     },
@@ -86,8 +172,8 @@
       "reached": true,
       "ok": true,
       "steps": 4,
-      "wall_ms": 17099,
-      "pilot_ms": 17030,
+      "wall_ms": 14207,
+      "pilot_ms": 14134,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "HomeReady",
@@ -97,20 +183,73 @@
       "diagnosis": null,
       "trace": [
         {
+          "boot_epoch": 1787569389226553,
+          "event": "operation_started",
+          "expected_bundle_id": "dev.ligh.Onboard",
+          "launch_epoch": 1,
+          "run_deadline_ms": 222000,
+          "session_id": "session-000659c8ee74ca39"
+        },
+        {
           "act": {
             "id": "OnboardContinue",
             "intent": "tap",
             "kind": "primary_button",
             "label": "Continue",
-            "reason": "salience rank 1 (PrimaryButton)",
+            "reason": "best-first candidate rank 1 (PrimaryButton)",
+            "slot": null,
             "stop_code": null,
             "text": null
           },
+          "action_spec": {
+            "action_id": "action-1-1",
+            "epoch": {
+              "boot_epoch": 1787569389226553,
+              "launch_epoch": 1,
+              "screen_epoch": 5,
+              "session_id": "session-000659c8ee74ca39"
+            },
+            "operation": {
+              "intent": "tap",
+              "slot": null,
+              "text": null
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "OnboardContinue",
+              "label": "Continue",
+              "role": "PrimaryButton",
+              "stable_key": "fp_ab0895f8ab1dcb92|tap|PrimaryButton|OnboardContinue"
+            }
+          },
           "changed": true,
+          "epoch": {
+            "boot_epoch": 1787569389226553,
+            "launch_epoch": 1,
+            "screen_epoch": 5,
+            "session_id": "session-000659c8ee74ca39"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_ab0895f8ab1dcb92",
           "fp_after": "fp_6773b114c7c21f15",
-          "ms": 2493,
+          "goal_progress": false,
+          "ms": 1955,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_6773b114c7c21f15",
+          "pre_snapshot_hash": "fp_ab0895f8ab1dcb92",
           "step": 1
         },
         {
@@ -120,14 +259,58 @@
             "kind": "text_field",
             "label": null,
             "reason": "fill TextField (param 1 of class)",
+            "slot": null,
             "stop_code": null,
             "text": "pilot"
           },
+          "action_spec": {
+            "action_id": "action-1-2",
+            "epoch": {
+              "boot_epoch": 1787569389226553,
+              "launch_epoch": 1,
+              "screen_epoch": 6,
+              "session_id": "session-000659c8ee74ca39"
+            },
+            "operation": {
+              "intent": "type",
+              "slot": null,
+              "text": "pilot"
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "OnboardNameField",
+              "role": "TextField",
+              "stable_key": "field|OnboardNameField"
+            }
+          },
           "changed": false,
+          "epoch": {
+            "boot_epoch": 1787569389226553,
+            "launch_epoch": 1,
+            "screen_epoch": 6,
+            "session_id": "session-000659c8ee74ca39"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_6773b114c7c21f15",
           "fp_after": "fp_6773b114c7c21f15",
-          "ms": 3070,
+          "goal_progress": false,
+          "ms": 1107,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_6773b114c7c21f15",
+          "pre_snapshot_hash": "fp_6773b114c7c21f15",
           "step": 2
         },
         {
@@ -136,15 +319,60 @@
             "intent": "tap",
             "kind": "primary_button",
             "label": "Next",
-            "reason": "salience rank 2 (PrimaryButton)",
+            "reason": "best-first candidate rank 2 (PrimaryButton)",
+            "slot": null,
             "stop_code": null,
             "text": null
           },
+          "action_spec": {
+            "action_id": "action-1-3",
+            "epoch": {
+              "boot_epoch": 1787569389226553,
+              "launch_epoch": 1,
+              "screen_epoch": 6,
+              "session_id": "session-000659c8ee74ca39"
+            },
+            "operation": {
+              "intent": "tap",
+              "slot": null,
+              "text": null
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "OnboardNext",
+              "label": "Next",
+              "role": "PrimaryButton",
+              "stable_key": "fp_6773b114c7c21f15|tap|PrimaryButton|OnboardNext"
+            }
+          },
           "changed": true,
+          "epoch": {
+            "boot_epoch": 1787569389226553,
+            "launch_epoch": 1,
+            "screen_epoch": 6,
+            "session_id": "session-000659c8ee74ca39"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_6773b114c7c21f15",
           "fp_after": "fp_4cf50893082415a3",
-          "ms": 1861,
+          "goal_progress": false,
+          "ms": 1832,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_4cf50893082415a3",
+          "pre_snapshot_hash": "fp_6773b114c7c21f15",
           "step": 3
         },
         {
@@ -153,29 +381,61 @@
             "intent": "tap",
             "kind": "button",
             "label": "Finish",
-            "reason": "salience rank 1 (Button)",
+            "reason": "best-first candidate rank 1 (Button)",
+            "slot": null,
             "stop_code": null,
             "text": null
           },
+          "action_spec": {
+            "action_id": "action-1-4",
+            "epoch": {
+              "boot_epoch": 1787569389226553,
+              "launch_epoch": 1,
+              "screen_epoch": 7,
+              "session_id": "session-000659c8ee74ca39"
+            },
+            "operation": {
+              "intent": "tap",
+              "slot": null,
+              "text": null
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "OnboardFinish",
+              "label": "Finish",
+              "role": "Button",
+              "stable_key": "fp_4cf50893082415a3|tap|Button|OnboardFinish"
+            }
+          },
           "changed": true,
+          "epoch": {
+            "boot_epoch": 1787569389226553,
+            "launch_epoch": 1,
+            "screen_epoch": 7,
+            "session_id": "session-000659c8ee74ca39"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_4cf50893082415a3",
           "fp_after": "fp_2b03c8b62402be70",
-          "ms": 297,
+          "goal_progress": true,
+          "ms": 296,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_2b03c8b62402be70",
+          "pre_snapshot_hash": "fp_4cf50893082415a3",
           "step": 4
-        },
-        {
-          "act": {
-            "id": null,
-            "intent": "stop",
-            "kind": null,
-            "label": null,
-            "reason": "acceptance target HomeReady present",
-            "stop_code": "goal_visible",
-            "text": null
-          },
-          "fp": "fp_2b03c8b62402be70",
-          "step": 5
         }
       ]
     },
@@ -187,8 +447,8 @@
       "reached": true,
       "ok": true,
       "steps": 2,
-      "wall_ms": 12600,
-      "pilot_ms": 12518,
+      "wall_ms": 10035,
+      "pilot_ms": 9986,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "ModalConfirmed",
@@ -198,20 +458,73 @@
       "diagnosis": null,
       "trace": [
         {
+          "boot_epoch": 1787569468257679,
+          "event": "operation_started",
+          "expected_bundle_id": "dev.ligh.Modal",
+          "launch_epoch": 1,
+          "run_deadline_ms": 222000,
+          "session_id": "session-000659c8f32ab58f"
+        },
+        {
           "act": {
             "id": "OpenSheet",
             "intent": "tap",
             "kind": "button",
             "label": "OpenSheet",
-            "reason": "salience rank 1 (Button)",
+            "reason": "best-first candidate rank 1 (Button)",
+            "slot": null,
             "stop_code": null,
             "text": null
           },
+          "action_spec": {
+            "action_id": "action-1-1",
+            "epoch": {
+              "boot_epoch": 1787569468257679,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c8f32ab58f"
+            },
+            "operation": {
+              "intent": "tap",
+              "slot": null,
+              "text": null
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "OpenSheet",
+              "label": "OpenSheet",
+              "role": "Button",
+              "stable_key": "fp_f09fd088f763b6c0|tap|Button|OpenSheet"
+            }
+          },
           "changed": true,
+          "epoch": {
+            "boot_epoch": 1787569468257679,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8f32ab58f"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_f09fd088f763b6c0",
           "fp_after": "fp_ba2d47f0d2002f52",
-          "ms": 370,
+          "goal_progress": false,
+          "ms": 359,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_ba2d47f0d2002f52",
+          "pre_snapshot_hash": "fp_f09fd088f763b6c0",
           "step": 1
         },
         {
@@ -220,29 +533,61 @@
             "intent": "tap",
             "kind": "button",
             "label": "ConfirmAction",
-            "reason": "salience rank 1 (Button)",
+            "reason": "best-first candidate rank 1 (Button)",
+            "slot": null,
             "stop_code": null,
             "text": null
           },
+          "action_spec": {
+            "action_id": "action-1-2",
+            "epoch": {
+              "boot_epoch": 1787569468257679,
+              "launch_epoch": 1,
+              "screen_epoch": 5,
+              "session_id": "session-000659c8f32ab58f"
+            },
+            "operation": {
+              "intent": "tap",
+              "slot": null,
+              "text": null
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "ConfirmAction",
+              "label": "ConfirmAction",
+              "role": "Button",
+              "stable_key": "fp_ba2d47f0d2002f52|tap|Button|ConfirmAction"
+            }
+          },
           "changed": true,
+          "epoch": {
+            "boot_epoch": 1787569468257679,
+            "launch_epoch": 1,
+            "screen_epoch": 5,
+            "session_id": "session-000659c8f32ab58f"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_ba2d47f0d2002f52",
           "fp_after": "fp_df7dcce197701e0c",
-          "ms": 808,
+          "goal_progress": false,
+          "ms": 839,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_df7dcce197701e0c",
+          "pre_snapshot_hash": "fp_ba2d47f0d2002f52",
           "step": 2
-        },
-        {
-          "act": {
-            "id": null,
-            "intent": "stop",
-            "kind": null,
-            "label": null,
-            "reason": "acceptance target ModalConfirmed present",
-            "stop_code": "goal_visible",
-            "text": null
-          },
-          "fp": "fp_f81deb774bb59cc5",
-          "step": 3
         }
       ]
     },
@@ -254,8 +599,8 @@
       "reached": true,
       "ok": true,
       "steps": 1,
-      "wall_ms": 10158,
-      "pilot_ms": 10087,
+      "wall_ms": 9389,
+      "pilot_ms": 9334,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "PostDetail",
@@ -265,34 +610,74 @@
       "diagnosis": null,
       "trace": [
         {
+          "boot_epoch": 1787569542422398,
+          "event": "operation_started",
+          "expected_bundle_id": "dev.ligh.Feed",
+          "launch_epoch": 1,
+          "run_deadline_ms": 222000,
+          "session_id": "session-000659c8f7965f7e"
+        },
+        {
           "act": {
             "id": "post-1",
             "intent": "tap",
             "kind": "button",
             "label": "Post 1",
-            "reason": "salience rank 1 (Button)",
+            "reason": "best-first candidate rank 1 (Button)",
+            "slot": null,
             "stop_code": null,
             "text": null
           },
+          "action_spec": {
+            "action_id": "action-1-1",
+            "epoch": {
+              "boot_epoch": 1787569542422398,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c8f7965f7e"
+            },
+            "operation": {
+              "intent": "tap",
+              "slot": null,
+              "text": null
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "post-1",
+              "label": "Post 1",
+              "role": "Button",
+              "stable_key": "fp_7587f6aae345346f|tap|Button|post-1"
+            }
+          },
           "changed": true,
+          "epoch": {
+            "boot_epoch": 1787569542422398,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8f7965f7e"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_7587f6aae345346f",
           "fp_after": "fp_3878c6cafe950b2d",
-          "ms": 596,
+          "goal_progress": true,
+          "ms": 595,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_3878c6cafe950b2d",
+          "pre_snapshot_hash": "fp_7587f6aae345346f",
           "step": 1
-        },
-        {
-          "act": {
-            "id": null,
-            "intent": "stop",
-            "kind": null,
-            "label": null,
-            "reason": "acceptance target PostDetail present",
-            "stop_code": "goal_visible",
-            "text": null
-          },
-          "fp": "fp_3878c6cafe950b2d",
-          "step": 2
         }
       ]
     },
@@ -304,8 +689,8 @@
       "reached": true,
       "ok": true,
       "steps": 3,
-      "wall_ms": 10620,
-      "pilot_ms": 10553,
+      "wall_ms": 11173,
+      "pilot_ms": 11114,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "homeTitle",
@@ -315,20 +700,72 @@
       "diagnosis": null,
       "trace": [
         {
+          "boot_epoch": 1787569616420712,
+          "event": "operation_started",
+          "expected_bundle_id": "com.himali.XCUITestDemo",
+          "launch_epoch": 1,
+          "run_deadline_ms": 222000,
+          "session_id": "session-000659c8fbff7f68"
+        },
+        {
           "act": {
             "id": "usernameTextField",
             "intent": "type",
             "kind": "text_field",
             "label": null,
             "reason": "fill TextField (param 1 of class)",
+            "slot": null,
             "stop_code": null,
             "text": "alice"
           },
+          "action_spec": {
+            "action_id": "action-1-1",
+            "epoch": {
+              "boot_epoch": 1787569616420712,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c8fbff7f68"
+            },
+            "operation": {
+              "intent": "type",
+              "slot": null,
+              "text": "alice"
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "usernameTextField",
+              "role": "TextField",
+              "stable_key": "field|usernameTextField"
+            }
+          },
           "changed": false,
+          "epoch": {
+            "boot_epoch": 1787569616420712,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8fbff7f68"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_67f84fe6fa9605dc",
           "fp_after": "fp_67f84fe6fa9605dc",
-          "ms": 950,
+          "goal_progress": false,
+          "ms": 1111,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_67f84fe6fa9605dc",
+          "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
           "step": 1
         },
         {
@@ -338,14 +775,58 @@
             "kind": "secure_field",
             "label": null,
             "reason": "fill SecureField (param 1 of class)",
+            "slot": null,
             "stop_code": null,
             "text": "***"
           },
+          "action_spec": {
+            "action_id": "action-1-2",
+            "epoch": {
+              "boot_epoch": 1787569616420712,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c8fbff7f68"
+            },
+            "operation": {
+              "intent": "type",
+              "slot": null,
+              "text": "***"
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "passwordSecureField",
+              "role": "SecureField",
+              "stable_key": "field|passwordSecureField"
+            }
+          },
           "changed": false,
+          "epoch": {
+            "boot_epoch": 1787569616420712,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8fbff7f68"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_67f84fe6fa9605dc",
           "fp_after": "fp_67f84fe6fa9605dc",
-          "ms": 602,
+          "goal_progress": false,
+          "ms": 621,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_67f84fe6fa9605dc",
+          "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
           "step": 2
         },
         {
@@ -354,38 +835,288 @@
             "intent": "tap",
             "kind": "primary_button",
             "label": "Login",
-            "reason": "salience rank 2 (PrimaryButton)",
+            "reason": "best-first candidate rank 2 (PrimaryButton)",
+            "slot": null,
             "stop_code": null,
             "text": null
           },
+          "action_spec": {
+            "action_id": "action-1-3",
+            "epoch": {
+              "boot_epoch": 1787569616420712,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c8fbff7f68"
+            },
+            "operation": {
+              "intent": "tap",
+              "slot": null,
+              "text": null
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "loginButton",
+              "label": "Login",
+              "role": "PrimaryButton",
+              "stable_key": "fp_67f84fe6fa9605dc|tap|PrimaryButton|loginButton"
+            }
+          },
           "changed": true,
+          "epoch": {
+            "boot_epoch": 1787569616420712,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8fbff7f68"
+          },
+          "fault": "ok",
           "fired": true,
           "fp": "fp_67f84fe6fa9605dc",
           "fp_after": "fp_19f1529abee7518a",
-          "ms": 629,
+          "goal_progress": true,
+          "ms": 757,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_19f1529abee7518a",
+          "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
           "step": 3
+        }
+      ]
+    },
+    {
+      "app_id": "kix",
+      "app": "Kix",
+      "flow_shape": "catalog_auth_tabs",
+      "goal_id": "tab_home",
+      "reached": true,
+      "ok": true,
+      "steps": 3,
+      "wall_ms": 12676,
+      "pilot_ms": 12602,
+      "llm_tokens": 0,
+      "spec_inputs": {
+        "goal_id": "tab_home",
+        "params": 2
+      },
+      "stop_code": null,
+      "diagnosis": null,
+      "trace": [
+        {
+          "boot_epoch": 1787572940440393,
+          "event": "operation_started",
+          "expected_bundle_id": "mybyKosta.Kix",
+          "launch_epoch": 1,
+          "run_deadline_ms": 222000,
+          "session_id": "session-000659c9c2200349"
         },
         {
           "act": {
-            "id": null,
-            "intent": "stop",
-            "kind": null,
+            "id": "login_email_field",
+            "intent": "type",
+            "kind": "text_field",
             "label": null,
-            "reason": "acceptance target homeTitle present",
-            "stop_code": "goal_visible",
+            "motor_strategy": "focus_hid",
+            "reason": "fill TextField (param 1 of class) via focus_hid",
+            "slot": null,
+            "stop_code": null,
+            "text": "test@kixapp.com"
+          },
+          "action_spec": {
+            "action_id": "action-1-1",
+            "epoch": {
+              "boot_epoch": 1787572940440393,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c9c2200349"
+            },
+            "operation": {
+              "intent": "type",
+              "motor_strategy": "focus_hid",
+              "slot": null,
+              "text": "test@kixapp.com"
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "login_email_field",
+              "role": "TextField",
+              "stable_key": "field|login_email_field|focus_hid"
+            }
+          },
+          "changed": false,
+          "epoch": {
+            "boot_epoch": 1787572940440393,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c9c2200349"
+          },
+          "fault": "ok",
+          "fired": true,
+          "fp": "fp_d27ec961d7c1781f",
+          "fp_after": "fp_d27ec961d7c1781f",
+          "goal_progress": false,
+          "ms": 1357,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_d27ec961d7c1781f",
+          "pre_snapshot_hash": "fp_d27ec961d7c1781f",
+          "step": 1
+        },
+        {
+          "act": {
+            "id": "login_password_field",
+            "intent": "type",
+            "kind": "secure_field",
+            "label": null,
+            "motor_strategy": "focus_hid",
+            "reason": "fill SecureField (param 1 of class) via focus_hid",
+            "slot": null,
+            "stop_code": null,
+            "text": "***"
+          },
+          "action_spec": {
+            "action_id": "action-1-2",
+            "epoch": {
+              "boot_epoch": 1787572940440393,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c9c2200349"
+            },
+            "operation": {
+              "intent": "type",
+              "motor_strategy": "focus_hid",
+              "slot": null,
+              "text": "***"
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "login_password_field",
+              "role": "SecureField",
+              "stable_key": "field|login_password_field|focus_hid"
+            }
+          },
+          "changed": false,
+          "epoch": {
+            "boot_epoch": 1787572940440393,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c9c2200349"
+          },
+          "fault": "ok",
+          "fired": true,
+          "fp": "fp_d27ec961d7c1781f",
+          "fp_after": "fp_d27ec961d7c1781f",
+          "goal_progress": false,
+          "ms": 835,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_d27ec961d7c1781f",
+          "pre_snapshot_hash": "fp_d27ec961d7c1781f",
+          "step": 2
+        },
+        {
+          "act": {
+            "id": "login_button",
+            "intent": "tap",
+            "kind": "primary_button",
+            "label": "SIGN IN",
+            "motor_strategy": null,
+            "reason": "best-first candidate rank 2 (PrimaryButton)",
+            "slot": null,
+            "stop_code": null,
             "text": null
           },
-          "fp": "fp_19f1529abee7518a",
-          "step": 4
+          "action_spec": {
+            "action_id": "action-1-3",
+            "epoch": {
+              "boot_epoch": 1787572940440393,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659c9c2200349"
+            },
+            "operation": {
+              "intent": "tap",
+              "motor_strategy": null,
+              "slot": null,
+              "text": null
+            },
+            "postconditions": [
+              {
+                "delivery_and_relevant_effect_verified": true
+              }
+            ],
+            "preconditions": [
+              {
+                "epoch_matches": true
+              },
+              {
+                "foreground_owned": true
+              }
+            ],
+            "target": {
+              "identifier": "login_button",
+              "label": "SIGN IN",
+              "role": "PrimaryButton",
+              "stable_key": "fp_d27ec961d7c1781f|tap|PrimaryButton|login_button"
+            }
+          },
+          "changed": true,
+          "epoch": {
+            "boot_epoch": 1787572940440393,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c9c2200349"
+          },
+          "fault": "ok",
+          "fired": true,
+          "fp": "fp_d27ec961d7c1781f",
+          "fp_after": "fp_2808ce1870f8571e",
+          "goal_progress": true,
+          "ms": 1112,
+          "outcome": "delivered_and_verified",
+          "post_snapshot_hash": "fp_2808ce1870f8571e",
+          "pre_snapshot_hash": "fp_d27ec961d7c1781f",
+          "step": 3
         }
       ]
     }
   ],
   "verdict": {
     "all_reached": true,
-    "distinct_flow_shapes": 5,
+    "distinct_flow_shapes": 6,
     "zero_llm": true,
-    "median_wall_ms": 11506
+    "median_wall_ms": 11457
   },
   "claim_pass": true
 }

@@ -1,0 +1,18 @@
+--- a/fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift
++++ b/fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift
+@@ -27,14 +27,7 @@
+                 .tag(1)
+                 .accessibilityIdentifier("tab_notes")
+             
+-            FavoritesView()
+-                .environmentObject(appState.favoritesManager)
+-                .tabItem {
+-                    Label("Favorites", systemImage: tabSelection.selectedTab == 2 ? "heart.fill" : "heart")
+-                }
+-                .tag(2)
+-                .accessibilityIdentifier("tab_favorites")
+-            
++            // BUG: Favorites tab omitted — users cannot reach Favorites
+             MenuView()
+                 .tabItem {
+                     Label("Menu", systemImage: tabSelection.selectedTab == 3 ? "line.3.horizontal" : "line.3.horizontal")

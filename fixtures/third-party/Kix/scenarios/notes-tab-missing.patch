@@ -1,0 +1,18 @@
+--- a/fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift
++++ b/fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift
+@@ -19,14 +19,7 @@
+                 .tag(0)
+                 .accessibilityIdentifier("tab_home")
+             
+-            NotesView()
+-                .environmentObject(tabSelection)
+-                .tabItem {
+-                    Label("Notes", systemImage: tabSelection.selectedTab == 1 ? "note.text" : "note.text")
+-                }
+-                .tag(1)
+-                .accessibilityIdentifier("tab_notes")
+-            
++            // BUG: Notes tab omitted — users cannot reach Notes
+             FavoritesView()
+                 .environmentObject(appState.favoritesManager)
+                 .tabItem {

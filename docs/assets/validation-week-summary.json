@@ -1,0 +1,150 @@
+{
+  "gate": "validation_week",
+  "generated_at": "2026-08-24T13:42:40Z",
+  "git_sha": "faa0b885867fa4f47e76723edd4c73b3c8988b69",
+  "claim": "For coding-agent iOS bugfix tasks, delegating UI operation to a deterministic host can make the fix-run-verify loop materially faster and cheaper than letting the LLM drive every UI step.",
+  "week_complete": false,
+  "claim_stronger": false,
+  "claim_sample_sufficient": false,
+  "claim_refusal_reason": "paired_n_below_minimum:1<5",
+  "paired_min_n": 5,
+  "stop_conditions_hit": [],
+  "coverage": {
+    "apps_defined": 4,
+    "third_party_apps": 3,
+    "runnable_tasks": 15,
+    "planned_tasks": 9,
+    "runnable_per_core_app": {
+      "lighonboard": 1,
+      "xcuitestdemo": 4,
+      "kix": 6
+    },
+    "tasks_per_app_ok": true,
+    "runnable_bar_met": false,
+    "priority_tasks": [
+      "login-never-navigates",
+      "login-button-disabled",
+      "login-delayed-ui",
+      "kix-login-never-authenticates",
+      "kix-notes-tab-missing",
+      "kix-notes-add-noop",
+      "kix-favorites-tab-missing",
+      "kix-cart-tab-missing",
+      "onboarding-home-broken"
+    ],
+    "autopilot_repeats_by_task": {
+      "login-never-navigates": 1
+    },
+    "priority_tasks_with_enough_repeats": [],
+    "week_complete": false,
+    "gaps": [
+      "need 5 runnable tasks per core app; have {'lighonboard': 1, 'xcuitestdemo': 4, 'kix': 6}",
+      "need 5 autopilot repeats on 6 priority tasks; enough on []"
+    ],
+    "by_app": {
+      "xcuitestdemo": {
+        "runnable": 4,
+        "planned": 1,
+        "bugfix": 3,
+        "recovery": 1,
+        "navigation": 1
+      },
+      "kix": {
+        "runnable": 6,
+        "planned": 0,
+        "bugfix": 5,
+        "recovery": 0,
+        "navigation": 1
+      },
+      "onboardingdemo": {
+        "runnable": 1,
+        "planned": 4,
+        "bugfix": 2,
+        "recovery": 2,
+        "navigation": 1
+      },
+      "lighonboard": {
+        "runnable": 1,
+        "planned": 4,
+        "bugfix": 1,
+        "recovery": 3,
+        "navigation": 1
+      },
+      "lighfixture": {
+        "runnable": 1,
+        "planned": 0,
+        "bugfix": 0,
+        "recovery": 0,
+        "navigation": 1
+      },
+      "lighmodal": {
+        "runnable": 1,
+        "planned": 0,
+        "bugfix": 0,
+        "recovery": 0,
+        "navigation": 1
+      },
+      "lighfeed": {
+        "runnable": 1,
+        "planned": 0,
+        "bugfix": 0,
+        "recovery": 0,
+        "navigation": 1
+      }
+    }
+  },
+  "arms": {
+    "autopilot": {
+      "runs": 1,
+      "passes": 1,
+      "pass_rate": 1.0,
+      "median_wall_ms": 41862.0,
+      "p90_wall_ms": 41862.0,
+      "median_tokens": 9034.0,
+      "p90_tokens": 9034.0,
+      "median_patches": 1.0,
+      "median_builds": 1.0,
+      "top1_acceptance": 1.0,
+      "diagnosis_classes": {
+        "ok": 1
+      }
+    },
+    "baseline": {
+      "runs": 1,
+      "passes": 1,
+      "pass_rate": 1.0,
+      "median_wall_ms": 152391.0,
+      "p90_wall_ms": 152391.0,
+      "median_tokens": 67040.0,
+      "p90_tokens": 67040.0,
+      "median_patches": 1.0,
+      "median_builds": 1.0,
+      "top1_acceptance": 1.0,
+      "diagnosis_classes": {
+        "ok": 1
+      }
+    }
+  },
+  "navigation_smoke": {
+    "runs": 6,
+    "passes": 6,
+    "pass_rate": 1.0,
+    "median_wall_ms": 12053.0,
+    "p90_wall_ms": 14887.5,
+    "median_tokens": 0.0,
+    "p90_tokens": 0.0,
+    "median_patches": 0.0,
+    "median_builds": null,
+    "top1_acceptance": 0.0,
+    "diagnosis_classes": {
+      "ok": 6
+    }
+  },
+  "speedup_vs_vision": 3.64,
+  "token_ratio_vs_vision": 7.42,
+  "run_count": 8,
+  "paired_bugfix_pairs": 1,
+  "paired_bugfix_runs": 2,
+  "rejected_pairs": [],
+  "interpretation": "Week is complete only when the minimum bar is met. Speedup/token ratios use complete task+repeat bugfix pairs only; claims require at least N=5 pairs; navigation smoke is reported separately and never mixed in."
+}

@@ -170,14 +170,12 @@ impl GpuSession {
         let (point_width, point_height) = preset.hid_size_from_framebuffer(sim_width, sim_height);
 
         if let Ok(config) = LighConfig::load() {
-            let _ = SessionState {
-                udid: udid.clone(),
-                device: preset,
-                name: device_name.clone(),
-                slim_applied: false,
-                app_bundle_id: None,
-                app_path: None,
-            }
+            let _ = SessionState::fresh(
+                udid.clone(),
+                preset,
+                device_name.clone(),
+                false,
+            )
             .save(&config.state_dir);
         }
 

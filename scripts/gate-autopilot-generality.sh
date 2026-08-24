@@ -17,7 +17,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="${LIGH_PILOT_OUT:-$ROOT/docs/assets/autopilot-generality-latest.json}"
 TRACE_DIR="${LIGH_PILOT_TRACES:-$ROOT/docs/assets/autopilot-generality-traces}"
-APPS="${LIGH_PILOT_APPS:-lighfixture lighonboard lighmodal lighfeed xcuitestdemo}"
+APPS="${LIGH_PILOT_APPS:-lighfixture lighonboard lighmodal lighfeed xcuitestdemo kix}"
 MAX_STEPS="${LIGH_PILOT_MAX_STEPS:-24}"
 
 fail() { echo "✗ $*" >&2; exit 1; }
@@ -68,6 +68,12 @@ app_config() {
       BUILD_SCRIPT="$ROOT/scripts/build-xcuitestdemo.sh"; BUILD_ARG=""
       APP_PATH="$ROOT/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app"
       WORKSPACE="$ROOT/fixtures/third-party/XCUITestDemo" ;;
+    kix)
+      NAME="Kix"; BUNDLE="mybyKosta.Kix"; GOAL="tab_home"
+      SHAPE="catalog_auth_tabs"; PARAMS=(--param "test@kixapp.com" --param "secure:password")
+      BUILD_SCRIPT="$ROOT/scripts/build-kix.sh"; BUILD_ARG=""
+      APP_PATH="$ROOT/fixtures/third-party/Kix/build/Kix.app"
+      WORKSPACE="$ROOT/fixtures/third-party/Kix" ;;
     *) fail "unknown app id: $1" ;;
   esac
 }

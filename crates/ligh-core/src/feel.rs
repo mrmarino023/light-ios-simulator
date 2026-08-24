@@ -8,9 +8,55 @@
 use serde::{Deserialize, Serialize};
 
 use crate::observe::ObserveSnapshot;
-use crate::qa::{Affordance, AffordanceKind, PerceiveView};
+use crate::qa::{infer_affordances, Affordance, AffordanceKind, PerceiveView};
 
-pub const FEEL_SCHEMA_VERSION: u32 = 1;
+pub const FEEL_SCHEMA_VERSION: u32 = 2;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorldElement {
+    pub stable_key: String,
+    pub ax_path: String,
+    pub kind: AffordanceKind,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub identifier: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub label: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub frame_bucket: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub value_hash: Option<String>,
+    pub enabled: bool,
+    pub focused: bool,
+    pub editable: bool,
+    pub on_screen: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub overlay_scope: Option<String>,
+    /// True when this element is tab-bar chrome (container or item).
+    #[serde(default)]
+    pub tab_chrome: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct WorldModel {
+    pub screen_epoch: u64,
+    pub structural_fingerprint: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub expected_bundle_id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub observed_app_label: Option<String>,
+    pub ownership_confidence: f64,
+    pub elements: Vec<WorldElement>,
+    pub has_scroll_container: bool,
+    pub has_tab_bar: bool,
+    pub can_navigate_back: bool,
+    pub stability_streak: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub motion_score: Option<f64>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub semantic_events: Vec<String>,
+}
 
 /// Temporal / trust phase of the live scene.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -58,6 +104,7 @@ pub struct FeelIR {
     pub block: Option<FeelBlock>,
     pub delta: FeelDelta,
     pub feel: FeelMeta,
+    pub world: WorldModel,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -83,6 +130,167 @@ pub struct FeelMeta {
     pub phase: FeelPhase,
     pub keyboard: bool,
     pub ready: bool,
+}
+
+fn value_hash(value: &str) -> String {
+    let mut hash: u64 = 0xcbf29ce484222325;
+    for b in value.as_bytes() {
+        hash ^= *b as u64;
+        hash = hash.wrapping_mul(0x100000001b3);
+    }
+    format!("v_{hash:016x}")
+}
+
+fn world_from_snapshot(snap: &ObserveSnapshot, fingerprint: &str) -> WorldModel {
+    let nodes = snap.accessibility_tree.nodes();
+    let affordances = infer_affordances(nodes, nodes.len().max(1));
+    let mut elements = Vec::with_capacity(affordances.len());
+    for affordance in affordances {
+        let (index, raw) = nodes
+            .iter()
+            .enumerate()
+            .find(|(_, node)| {
+                let node_id = node
+                    .get("identifier")
+                    .and_then(|v| v.as_str())
+                    .or_else(|| node.get("id").and_then(|v| v.as_str()));
+                let node_label = node.get("label").and_then(|v| v.as_str());
+                affordance.id.as_deref().map_or(true, |id| node_id == Some(id))
+                    && affordance
+                        .label
+                        .as_deref()
+                        .map_or(true, |label| node_label == Some(label))
+            })
+            .map(|(i, node)| (i, Some(node)))
+            .unwrap_or((elements.len(), None));
+        let role = raw
+            .and_then(|n| n.get("role"))
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
+        let frame_bucket = raw
+            .and_then(|n| n.get("frame"))
+            .and_then(|v| v.as_object())
+            .map(|f| {
+                let x = f.get("x").and_then(|v| v.as_f64()).unwrap_or(0.0) / 24.0;
+                let y = f.get("y").and_then(|v| v.as_f64()).unwrap_or(0.0) / 24.0;
+                format!("{}:{}", x.floor() as i64, y.floor() as i64)
+            });
+        let stable_key = if let Some(id) = &affordance.id {
+            format!("id:{id}")
+        } else {
+            format!(
+                "path:{index}:{}:{}:{}",
+                role.as_deref().unwrap_or("?"),
+                affordance.label.as_deref().unwrap_or(""),
+                frame_bucket.as_deref().unwrap_or("?")
+            )
+        };
+        let enabled = raw
+            .and_then(|n| n.get("enabled"))
+            .and_then(|v| v.as_bool())
+            .unwrap_or(true);
+        elements.push(WorldElement {
+            stable_key,
+            ax_path: format!("/{index}"),
+            kind: affordance.kind,
+            identifier: affordance.id,
+            label: affordance.label,
+            role,
+            frame_bucket,
+            value_hash: affordance.value.as_deref().map(value_hash),
+            enabled,
+            focused: affordance.focused,
+            editable: matches!(
+                affordance.kind,
+                AffordanceKind::TextField
+                    | AffordanceKind::SecureField
+                    | AffordanceKind::SearchField
+            ),
+            on_screen: affordance.hittable,
+            overlay_scope: snap.overlay.clone().filter(|o| o != "none"),
+            tab_chrome: raw.map(crate::observe::is_tab_bar_node).unwrap_or(false),
+        });
+    }
+    // Identifier-bearing nodes that top-k scoring dropped still exist in AX.
+    // Goal matching and "acceptance not in tree" must see them.
+    let known: std::collections::HashSet<String> = elements
+        .iter()
+        .filter_map(|e| e.identifier.clone())
+        .collect();
+    for (index, node) in nodes.iter().enumerate() {
+        let Some(id) = node
+            .get("identifier")
+            .and_then(|v| v.as_str())
+            .filter(|s| !s.is_empty())
+        else {
+            continue;
+        };
+        if known.contains(id) {
+            continue;
+        }
+        let role = node
+            .get("role")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
+        let label = node
+            .get("label")
+            .and_then(|v| v.as_str())
+            .map(str::to_string);
+        let hittable = node.get("hittable").and_then(|v| v.as_bool()).unwrap_or(true);
+        let tab = crate::observe::is_tab_bar_node(node);
+        elements.push(WorldElement {
+            stable_key: format!("id:{id}"),
+            ax_path: format!("/{index}"),
+            kind: if tab {
+                AffordanceKind::Button
+            } else {
+                AffordanceKind::Other
+            },
+            identifier: Some(id.to_string()),
+            label,
+            role,
+            frame_bucket: None,
+            value_hash: node
+                .get("value")
+                .and_then(|v| v.as_str())
+                .map(value_hash),
+            enabled: node.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true),
+            focused: node.get("focused").and_then(|v| v.as_bool()).unwrap_or(false),
+            editable: false,
+            on_screen: hittable,
+            overlay_scope: snap.overlay.clone().filter(|o| o != "none"),
+            tab_chrome: tab,
+        });
+    }
+    let has_scroll_container = nodes.iter().any(|n| {
+        n.get("role")
+            .and_then(|v| v.as_str())
+            .map(|r| r.to_ascii_lowercase().contains("scroll"))
+            .unwrap_or(false)
+    });
+    let has_tab_bar = nodes.iter().any(crate::observe::is_tab_bar_node);
+    let can_navigate_back = elements
+        .iter()
+        .any(|e| e.kind == AffordanceKind::NavBack && e.on_screen);
+    let observed_non_system = snap
+        .observed_app_label
+        .as_deref()
+        .map(|l| l != "SpringBoard" && l != "Home")
+        .unwrap_or(false);
+    WorldModel {
+        screen_epoch: snap.screen_epoch,
+        structural_fingerprint: fingerprint.to_string(),
+        expected_bundle_id: snap.expected_bundle_id.clone(),
+        observed_app_label: snap.observed_app_label.clone(),
+        ownership_confidence: if observed_non_system { 0.8 } else { 0.0 },
+        elements,
+        has_scroll_container,
+        has_tab_bar,
+        can_navigate_back,
+        stability_streak: snap.stability_streak.max(u32::from(snap.settled)),
+        motion_score: snap.motion_score,
+        semantic_events: snap.events.iter().map(|e| e.kind.clone()).collect(),
+    }
 }
 
 /// Suggested next host act derived from FeelIR (zero-LLM).
@@ -147,8 +355,11 @@ pub fn build_feel(
         .map(|s| s.keyboard_visible)
         .unwrap_or(false);
 
-    let mut scored: Vec<(f64, &Affordance)> = view
-        .affordances
+    let planner_affordances = infer_affordances(
+        snap.accessibility_tree.nodes(),
+        snap.accessibility_tree.nodes().len().max(1),
+    );
+    let mut scored: Vec<(f64, &Affordance)> = planner_affordances
         .iter()
         .filter(|a| a.hittable)
         .map(|a| (kind_weight(a.kind, a.focused), a))
@@ -157,7 +368,6 @@ pub fn build_feel(
 
     let salience: Vec<SalienceItem> = scored
         .into_iter()
-        .take(8)
         .enumerate()
         .map(|(i, (w, a))| SalienceItem {
             rank: (i as u32) + 1,
@@ -171,6 +381,22 @@ pub fn build_feel(
     let fp = view.location.fingerprint.clone();
     let fingerprint_changed = prev_fp.map(|p| p != fp).unwrap_or(false);
 
+    let mut world = world_from_snapshot(snap, &fp);
+    if fingerprint_changed {
+        world.semantic_events.push("navigation_occurred".into());
+    }
+    if view
+        .since_last
+        .iter()
+        .any(|event| event.contains("keyboard"))
+    {
+        world.semantic_events.push("keyboard_changed".into());
+    }
+    if view.since_last.iter().any(|event| event == "action_result") {
+        world.semantic_events.push("value_or_action_committed".into());
+    }
+    world.semantic_events.sort();
+    world.semantic_events.dedup();
     FeelIR {
         schema: FEEL_SCHEMA_VERSION,
         place: FeelPlace {
@@ -195,6 +421,7 @@ pub fn build_feel(
             keyboard,
             ready: view.ready && !view.eyes_unusable,
         },
+        world,
     }
 }
 
@@ -256,6 +483,14 @@ mod tests {
         ObserveSnapshot {
             schema_version: 2,
             udid: "test".into(),
+            session_id: Some("test".into()),
+            boot_epoch: 1,
+            launch_epoch: 1,
+            screen_epoch: 1,
+            stability_streak: 2,
+            motion_score: Some(0.0),
+            expected_bundle_id: Some("me.demo".into()),
+            observed_app_label: Some("Demo".into()),
             booted: true,
             simulator_app_running: false,
             frame: None,
@@ -342,5 +577,33 @@ mod tests {
         let feel = build_feel(&v, &snap_ready(), None, None);
         assert_eq!(feel.feel.phase, FeelPhase::Blocked);
         assert_eq!(suggest_act(&feel).unwrap().intent, "dismiss");
+    }
+
+    #[test]
+    fn world_detects_tab_bar_and_keeps_tab_identifier() {
+        let mut snap = snap_ready();
+        if let AccessibilityTree::Available { nodes, .. } = &mut snap.accessibility_tree {
+            nodes.push(json!({
+                "role": "AXGroup",
+                "label": "Tab Bar",
+                "hittable": true,
+                "enabled": true
+            }));
+            nodes.push(json!({
+                "role": "AXTabButton",
+                "identifier": "tab_home",
+                "label": "Home",
+                "traits": "tabbar",
+                "hittable": true,
+                "enabled": true
+            }));
+        }
+        let feel = build_feel(&view_onboarding(), &snap, None, None);
+        assert!(feel.world.has_tab_bar);
+        assert!(feel
+            .world
+            .elements
+            .iter()
+            .any(|e| e.identifier.as_deref() == Some("tab_home")));
     }
 }

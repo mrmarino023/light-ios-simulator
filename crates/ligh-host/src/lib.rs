@@ -421,6 +421,52 @@ impl HidInput {
         Ok(())
     }
 
+    /// Hold a modifier usage while tapping a key (USB HID). Left GUI is 0xE3.
+    pub fn chord(udid: &str, mod_usage: u32, key_usage: u32) -> Result<(), LighError> {
+        HostSession::init()?;
+        let _guard = bridge_lock();
+        let c_udid = CString::new(udid).map_err(|e| LighError::Simctl(e.to_string()))?;
+        let mut err = ffi::LighHostError {
+            message: std::ptr::null(),
+            code: 0,
+        };
+        if unsafe { ffi::ligh_host_hid_chord(c_udid.as_ptr(), mod_usage, key_usage, &mut err) } {
+            Ok(())
+        } else {
+            Err(host_err(&err, "ligh_host_hid_chord"))
+        }
+    }
+
+    /// Layout-independent insert: sim pasteboard + Cmd-A/Cmd-V.
+    pub fn paste_text(udid: &str, text: &str) -> Result<(), LighError> {
+        let mut child = std::process::Command::new("xcrun")
+            .args(["simctl", "pbcopy", udid])
+            .stdin(std::process::Stdio::piped())
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .map_err(|e| LighError::Simctl(format!("simctl pbcopy spawn: {e}")))?;
+        if let Some(mut stdin) = child.stdin.take() {
+            use std::io::Write;
+            stdin
+                .write_all(text.as_bytes())
+                .map_err(|e| LighError::Simctl(format!("simctl pbcopy write: {e}")))?;
+        }
+        let status = child
+            .wait()
+            .map_err(|e| LighError::Simctl(format!("simctl pbcopy wait: {e}")))?;
+        if !status.success() {
+            return Err(LighError::Simctl(format!(
+                "simctl pbcopy failed: {status}"
+            )));
+        }
+        const GUI: u32 = 0xE3;
+        Self::chord(udid, GUI, 0x04)?; // Cmd+A
+        std::thread::sleep(std::time::Duration::from_millis(40));
+        Self::chord(udid, GUI, 0x19)?; // Cmd+V
+        Ok(())
+    }
+
     pub fn key_named(udid: &str, name: &str) -> Result<(), LighError> {
         let usage = match name.to_ascii_lowercase().as_str() {
             "return" | "enter" => 0x28u32,

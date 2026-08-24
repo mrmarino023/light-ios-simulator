@@ -1,0 +1,13 @@
+--- a/fixtures/third-party/Kix/Kix/Core/Models/NotesManager.swift
++++ b/fixtures/third-party/Kix/Kix/Core/Models/NotesManager.swift
+@@ -15,8 +15,8 @@
+     }
+     
+     func addNote(text: String) {
+-        let note = Note(text: text)
+-        notes.insert(note, at: 0)
++        // BUG: Add appears to succeed but note is discarded
++        return
+     }
+     
+     func updateNote(_ note: Note, newText: String) {

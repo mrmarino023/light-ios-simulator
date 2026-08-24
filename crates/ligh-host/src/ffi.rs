@@ -51,6 +51,12 @@ extern "C" {
     pub fn ligh_host_hid_prepare(udid: *const i8, err: *mut LighHostError) -> bool;
     pub fn ligh_host_hid_type(udid: *const i8, text: *const i8, err: *mut LighHostError) -> bool;
     pub fn ligh_host_hid_key(udid: *const i8, usage: u32, err: *mut LighHostError) -> bool;
+    pub fn ligh_host_hid_chord(
+        udid: *const i8,
+        mod_usage: u32,
+        key_usage: u32,
+        err: *mut LighHostError,
+    ) -> bool;
     pub fn ligh_host_hid_pointer(
         udid: *const i8,
         norm_x: f64,

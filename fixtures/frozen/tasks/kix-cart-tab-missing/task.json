@@ -1,0 +1,77 @@
+{
+  "id": "kix-cart-tab-missing",
+  "app_id": "kix",
+  "upstream_url": "https://github.com/byKosta/Kix-app",
+  "upstream_commit": "0bc85035cc779abc4fd6ff05065034932bb4c744",
+  "license": "sample-no-upstream-license",
+  "protocol_version": 2,
+  "flow_shape": "tab_navigation",
+  "agent_prompt": "The Kix Cart tab is missing after login \u2014 users cannot open Cart from the tab bar. Find and fix the issue under fixtures/third-party/Kix/, rebuild, exercise login then open Cart, and verify. Credentials: email test@kixapp.com, password password. Success = Cart screen visible (cart_header or cart_empty_label).",
+  "source_root": "fixtures/third-party/Kix/Kix",
+  "build_script": "scripts/build-kix.sh",
+  "app_path": "fixtures/third-party/Kix/build/Kix.app",
+  "bundle_id": "mybyKosta.Kix",
+  "bug_patch": "fixtures/third-party/Kix/scenarios/cart-tab-missing.patch",
+  "bootstrap_wait_label": "Welcome Back",
+  "initial_state": "broken",
+  "run_goal_params": [
+    {
+      "value": "test@kixapp.com"
+    },
+    {
+      "value": "password",
+      "secure": true
+    }
+  ],
+  "verification": {
+    "initial_setup": [],
+    "preconditions": {
+      "must_see_labels": [
+        "Welcome Back",
+        "SIGN IN"
+      ],
+      "must_not_see_labels": [
+        "cart_header",
+        "cart_empty_label"
+      ]
+    },
+    "exercise": [
+      {
+        "action": "type",
+        "id": "login_email_field",
+        "text": "test@kixapp.com",
+        "settle_ms": 1500
+      },
+      {
+        "action": "type",
+        "id": "login_password_field",
+        "text": "password",
+        "settle_ms": 1500
+      },
+      {
+        "action": "tap",
+        "id": "login_button",
+        "label": "SIGN IN",
+        "settle_ms": 3500
+      },
+      {
+        "action": "tap",
+        "label": "Cart",
+        "settle_ms": 2500
+      }
+    ],
+    "postconditions": {
+      "must_see_labels": [
+        "cart_header",
+        "Cart"
+      ],
+      "must_not_see_labels": [
+        "login_button"
+      ]
+    },
+    "onboarding_overlay_labels": []
+  },
+  "legacy_weak_success_labels": [
+    "cart_header"
+  ]
+}

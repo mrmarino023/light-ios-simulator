@@ -1,0 +1,34 @@
+{
+  "id": "login-button-disabled",
+  "app_id": "xcuitestdemo",
+  "upstream_url": "https://github.com/himalimarasinghe/XCUITestDemo",
+  "upstream_commit": "third-party-vendored",
+  "license": "sample",
+  "protocol_version": 2,
+  "agent_prompt": "The XCUITestDemo login flow is broken — the Login control does not submit even with valid credentials, so the user never reaches the Home screen. Find and fix the issue in the Swift source under fixtures/third-party/XCUITestDemo/, rebuild the app, exercise login in the Simulator, and verify. Known good credentials: username alice, password secret. Success = Home screen visible (homeTitle) after Login.",
+  "source_root": "fixtures/third-party/XCUITestDemo/XCUITestDemo",
+  "build_script": "scripts/build-xcuitestdemo.sh",
+  "app_path": "fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app",
+  "bundle_id": "com.himali.XCUITestDemo",
+  "bug_patch": "fixtures/third-party/XCUITestDemo/scenarios/login-button-disabled.patch",
+  "bootstrap_wait_label": "Login",
+  "initial_state": "broken",
+  "verification": {
+    "initial_setup": [],
+    "preconditions": {
+      "must_see_labels": ["Welcome", "Login"],
+      "must_not_see_labels": ["homeTitle", "Home"]
+    },
+    "exercise": [
+      {"action": "type", "id": "usernameTextField", "text": "alice", "settle_ms": 1500},
+      {"action": "type", "id": "passwordSecureField", "text": "secret", "settle_ms": 1500},
+      {"action": "tap", "id": "loginButton", "label": "Login", "settle_ms": 3500}
+    ],
+    "postconditions": {
+      "must_see_labels": ["homeTitle", "Home"],
+      "must_not_see_labels": ["loginButton"]
+    },
+    "onboarding_overlay_labels": []
+  },
+  "legacy_weak_success_labels": ["Home", "homeTitle"]
+}

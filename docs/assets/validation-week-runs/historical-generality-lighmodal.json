@@ -1,0 +1,20 @@
+{
+  "app": "lighmodal",
+  "task": "lighmodal-happy-path",
+  "arm": "autopilot",
+  "model": null,
+  "git_sha": "faa0b885867fa4f47e76723edd4c73b3c8988b69",
+  "wall_time_ms": 12600,
+  "llm_tokens": 0,
+  "pass": true,
+  "diagnosis_class": "ok",
+  "patches": 0,
+  "builds": 0,
+  "run_id": "historical-generality-lighmodal",
+  "repeat_index": 1,
+  "kind": "navigation",
+  "false_success": false,
+  "verification_reason": null,
+  "historical": true,
+  "source": "docs/assets/autopilot-generality-latest.json"
+}

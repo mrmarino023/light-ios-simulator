@@ -1,0 +1,9 @@
+{
+  "_human_only": "Never pass this file to the agent or include in agent prompts.",
+  "task_id": "login-delayed-ui",
+  "bug_id": "login_delayed_ui",
+  "ground_truth": "LoginViewModel.login() sleeps 18 seconds before updating isLoggedIn, so the Home screen appears after the harness timeout.",
+  "expected_fix": "Restore a short delay (or none) in LoginViewModel.login() instead of the 18s sleep.",
+  "patch_file": "fixtures/third-party/XCUITestDemo/scenarios/login-delayed-ui.patch",
+  "protocol_note": "Honest A/B task — agent must drive UI via perceive/attempt, vision, or host Autopilot; no host exercise_app."
+}

@@ -1,0 +1,11 @@
+--- a/fixtures/third-party/Kix/Kix/Features/Menu/MenuView.swift
++++ b/fixtures/third-party/Kix/Kix/Features/Menu/MenuView.swift
+@@ -103,7 +103,7 @@
+                                 title: Text("Logout"),
+                                 message: Text("Are you sure you want to logout?"),
+                                 primaryButton: .destructive(Text("Logout")) {
+-                                    appState.isAuthenticated = false
++                                    // BUG: logout UI fires but session remains
+                                 },
+                                 secondaryButton: .cancel()
+                             )

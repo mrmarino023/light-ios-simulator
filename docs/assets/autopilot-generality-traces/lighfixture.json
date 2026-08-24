@@ -1,15 +1,32 @@
 {
+  "action_outcome": "delivered_and_verified",
   "capability": "autopilot",
   "detail": {
-    "elapsed_ms": 11445,
+    "elapsed_ms": 11395,
     "goal": {
-      "target_id": "LighDone",
-      "target_label": null
+      "allow_destructive": false,
+      "params": [
+        {
+          "secure": false,
+          "value": "pilot"
+        }
+      ],
+      "stability_window_ms": 150,
+      "stable_observations": 2,
+      "target_id": "LighDone"
     },
     "llm_tokens": 0,
     "reached": true,
     "steps": 2,
     "trace": [
+      {
+        "boot_epoch": 1787569312706212,
+        "event": "operation_started",
+        "expected_bundle_id": "dev.ligh.Fixture",
+        "launch_epoch": 1,
+        "run_deadline_ms": 222000,
+        "session_id": "session-000659c8e9e52ea4"
+      },
       {
         "act": {
           "id": "NameField",
@@ -17,14 +34,59 @@
           "kind": "text_field",
           "label": "NameField",
           "reason": "fill TextField (param 1 of class)",
+          "slot": null,
           "stop_code": null,
           "text": "pilot"
         },
+        "action_spec": {
+          "action_id": "action-1-1",
+          "epoch": {
+            "boot_epoch": 1787569312706212,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8e9e52ea4"
+          },
+          "operation": {
+            "intent": "type",
+            "slot": null,
+            "text": "pilot"
+          },
+          "postconditions": [
+            {
+              "delivery_and_relevant_effect_verified": true
+            }
+          ],
+          "preconditions": [
+            {
+              "epoch_matches": true
+            },
+            {
+              "foreground_owned": true
+            }
+          ],
+          "target": {
+            "identifier": "NameField",
+            "label": "NameField",
+            "role": "TextField",
+            "stable_key": "field|NameField"
+          }
+        },
         "changed": false,
+        "epoch": {
+          "boot_epoch": 1787569312706212,
+          "launch_epoch": 1,
+          "screen_epoch": 4,
+          "session_id": "session-000659c8e9e52ea4"
+        },
+        "fault": "ok",
         "fired": true,
         "fp": "fp_6b0db857f2d2985e",
         "fp_after": "fp_6b0db857f2d2985e",
-        "ms": 1894,
+        "goal_progress": false,
+        "ms": 1336,
+        "outcome": "delivered_and_verified",
+        "post_snapshot_hash": "fp_6b0db857f2d2985e",
+        "pre_snapshot_hash": "fp_6b0db857f2d2985e",
         "step": 1
       },
       {
@@ -33,33 +95,67 @@
           "intent": "tap",
           "kind": "primary_button",
           "label": "GoNext",
-          "reason": "salience rank 2 (PrimaryButton)",
+          "reason": "best-first candidate rank 2 (PrimaryButton)",
+          "slot": null,
           "stop_code": null,
           "text": null
         },
+        "action_spec": {
+          "action_id": "action-1-2",
+          "epoch": {
+            "boot_epoch": 1787569312706212,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8e9e52ea4"
+          },
+          "operation": {
+            "intent": "tap",
+            "slot": null,
+            "text": null
+          },
+          "postconditions": [
+            {
+              "delivery_and_relevant_effect_verified": true
+            }
+          ],
+          "preconditions": [
+            {
+              "epoch_matches": true
+            },
+            {
+              "foreground_owned": true
+            }
+          ],
+          "target": {
+            "identifier": "GoNext",
+            "label": "GoNext",
+            "role": "PrimaryButton",
+            "stable_key": "fp_6b0db857f2d2985e|tap|PrimaryButton|GoNext"
+          }
+        },
         "changed": true,
+        "epoch": {
+          "boot_epoch": 1787569312706212,
+          "launch_epoch": 1,
+          "screen_epoch": 4,
+          "session_id": "session-000659c8e9e52ea4"
+        },
+        "fault": "ok",
         "fired": true,
         "fp": "fp_6b0db857f2d2985e",
         "fp_after": "fp_b298712fd4e2ab33",
-        "ms": 357,
+        "goal_progress": true,
+        "ms": 800,
+        "outcome": "delivered_and_verified",
+        "post_snapshot_hash": "fp_b298712fd4e2ab33",
+        "pre_snapshot_hash": "fp_6b0db857f2d2985e",
         "step": 2
-      },
-      {
-        "act": {
-          "id": null,
-          "intent": "stop",
-          "kind": null,
-          "label": null,
-          "reason": "acceptance target LighDone present",
-          "stop_code": "goal_visible",
-          "text": null
-        },
-        "fp": "fp_b298712fd4e2ab33",
-        "step": 3
       }
-    ]
+    ],
+    "trace_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighFixture/.ligh/runs/autopilot-session-000659c8e9e52ea4-1787569322961.jsonl"
   },
   "fault": "ok",
+  "fault_owner": "none",
   "observe": {
     "accessibility_tree": {
       "element_count": 5,
@@ -414,6 +510,7 @@
     ],
     "app_bundle_id": "dev.ligh.Fixture",
     "ax_quality": "ready",
+    "boot_epoch": 1787569312706212,
     "booted": true,
     "events": [
       {
@@ -422,7 +519,7 @@
           "from": null,
           "to": "Done"
         },
-        "t": 1787557967.676014
+        "t": 1787569325.381609
       },
       {
         "kind": "action_result",
@@ -434,7 +531,7 @@
           },
           "ok": true
         },
-        "t": 1787557967.072734
+        "t": 1787569324.332206
       },
       {
         "kind": "action_result",
@@ -447,18 +544,21 @@
           },
           "ok": true
         },
-        "t": 1787557967.436053
+        "t": 1787569325.02796
       }
     ],
+    "expected_bundle_id": "dev.ligh.Fixture",
     "eyes_unusable": false,
     "frame": {
-      "fps": 48.56830791722138,
+      "fps": 50.76129732961043,
       "h": 2556,
-      "id": 670,
+      "id": 678,
       "imports_ok": true,
       "w": 1179
     },
-    "observe_ms": 0.00033299999999999996,
+    "launch_epoch": 1,
+    "observe_ms": 0.000375,
+    "observed_app_label": "LighFixture",
     "overlay": "none",
     "path": "lighd",
     "phase": "ready",
@@ -469,8 +569,11 @@
       "surface": "app"
     },
     "schema_version": 2,
+    "screen_epoch": 5,
+    "session_id": "session-000659c8e9e52ea4",
     "settled": true,
     "simulator_app_running": false,
+    "stability_streak": 8,
     "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
   },
   "ok": true,

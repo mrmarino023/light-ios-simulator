@@ -199,14 +199,15 @@ impl SimSupervisor {
         app_bundle_id: Option<String>,
         app_path: Option<std::path::PathBuf>,
     ) -> Result<SessionState, LighError> {
-        let session = SessionState {
-            udid: device.udid.clone(),
-            device: preset,
-            name: device.name.clone(),
+        let mut session = SessionState::fresh(
+            device.udid.clone(),
+            preset,
+            device.name.clone(),
             slim_applied,
-            app_bundle_id,
-            app_path,
-        };
+        );
+        if let Some(bundle_id) = app_bundle_id {
+            session.begin_launch(bundle_id, app_path);
+        }
         session.save(&self.config.state_dir)?;
         Ok(session)
     }

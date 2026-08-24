@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use crate::observe::{
-    build_actionable_topk, detect_surface, is_chrome_node, is_editable_role, ObserveSnapshot,
+    build_actionable_topk, detect_surface, is_chrome_node, is_editable_role, is_tab_bar_node, ObserveSnapshot,
     SenseEvent,
 };
 
@@ -174,6 +174,8 @@ pub fn infer_affordances(nodes: &[Value], cap: usize) -> Vec<Affordance> {
             } else {
                 AffordanceKind::TextField
             }
+        } else if is_tab_bar_node(&n) {
+            AffordanceKind::Button
         } else if role.contains("button") {
             if is_primary_cta_label(lab_str) {
                 AffordanceKind::PrimaryButton
@@ -356,10 +358,9 @@ fn event_summary(events: &[SenseEvent]) -> Vec<String> {
 }
 
 fn node_has_id(nodes: &[Value], needle: &str) -> bool {
-    nodes.iter().any(|n| {
-        n.get("identifier").and_then(|v| v.as_str()) == Some(needle)
-            || n.get("id").and_then(|v| v.as_str()) == Some(needle)
-    })
+    nodes
+        .iter()
+        .any(|n| crate::observe::node_matches_identifier(n, needle))
 }
 
 fn node_has_label_contains(nodes: &[Value], needle: &str) -> bool {
@@ -606,6 +607,14 @@ mod tests {
         let mut s = ObserveSnapshot {
             schema_version: 2,
             udid: "test".into(),
+            session_id: Some("test".into()),
+            boot_epoch: 1,
+            launch_epoch: 1,
+            screen_epoch: 1,
+            stability_streak: 2,
+            motion_score: None,
+            expected_bundle_id: Some("com.test.app".into()),
+            observed_app_label: Some("Test".into()),
             booted: true,
             simulator_app_running: false,
             frame: None,

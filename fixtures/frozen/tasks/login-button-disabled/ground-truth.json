@@ -1,0 +1,9 @@
+{
+  "_human_only": "Never pass this file to the agent or include in agent prompts.",
+  "task_id": "login-button-disabled",
+  "bug_id": "login_button_disabled",
+  "ground_truth": "LoginView applies .disabled(true) on the Login button, so the primary CTA never fires.",
+  "expected_fix": "Remove the unconditional .disabled(true) on the Login button in ContentView.swift.",
+  "patch_file": "fixtures/third-party/XCUITestDemo/scenarios/login-button-disabled.patch",
+  "protocol_note": "Honest A/B task — agent must drive UI via perceive/attempt, vision, or host Autopilot; no host exercise_app."
+}

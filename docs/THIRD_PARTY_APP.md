@@ -19,6 +19,8 @@ Your app must expose stable **accessibility identifiers** (or labels) for:
 
 App: [himalidev/XCUITestDemo](https://github.com/himalidev/XCUITestDemo) — login flow with `accessibilityIdentifier`s (not written for LIGH).
 
+Also vendored: [byKosta/Kix-app](https://github.com/byKosta/Kix-app) — catalog / auth / tabs / notes (`fixtures/third-party/Kix`). Build with `./scripts/build-kix.sh`.
+
 Published: [`docs/assets/third-party-bakeoff-latest.json`](../docs/assets/third-party-bakeoff-latest.json)
 
 ## Run (your app)

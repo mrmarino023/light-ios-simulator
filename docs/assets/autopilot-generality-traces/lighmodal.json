@@ -1,30 +1,86 @@
 {
+  "action_outcome": "delivered_and_verified",
   "capability": "autopilot",
   "detail": {
-    "elapsed_ms": 12518,
+    "elapsed_ms": 9986,
     "goal": {
-      "target_id": "ModalConfirmed",
-      "target_label": null
+      "allow_destructive": false,
+      "stability_window_ms": 150,
+      "stable_observations": 2,
+      "target_id": "ModalConfirmed"
     },
     "llm_tokens": 0,
     "reached": true,
     "steps": 2,
     "trace": [
       {
+        "boot_epoch": 1787569468257679,
+        "event": "operation_started",
+        "expected_bundle_id": "dev.ligh.Modal",
+        "launch_epoch": 1,
+        "run_deadline_ms": 222000,
+        "session_id": "session-000659c8f32ab58f"
+      },
+      {
         "act": {
           "id": "OpenSheet",
           "intent": "tap",
           "kind": "button",
           "label": "OpenSheet",
-          "reason": "salience rank 1 (Button)",
+          "reason": "best-first candidate rank 1 (Button)",
+          "slot": null,
           "stop_code": null,
           "text": null
         },
+        "action_spec": {
+          "action_id": "action-1-1",
+          "epoch": {
+            "boot_epoch": 1787569468257679,
+            "launch_epoch": 1,
+            "screen_epoch": 4,
+            "session_id": "session-000659c8f32ab58f"
+          },
+          "operation": {
+            "intent": "tap",
+            "slot": null,
+            "text": null
+          },
+          "postconditions": [
+            {
+              "delivery_and_relevant_effect_verified": true
+            }
+          ],
+          "preconditions": [
+            {
+              "epoch_matches": true
+            },
+            {
+              "foreground_owned": true
+            }
+          ],
+          "target": {
+            "identifier": "OpenSheet",
+            "label": "OpenSheet",
+            "role": "Button",
+            "stable_key": "fp_f09fd088f763b6c0|tap|Button|OpenSheet"
+          }
+        },
         "changed": true,
+        "epoch": {
+          "boot_epoch": 1787569468257679,
+          "launch_epoch": 1,
+          "screen_epoch": 4,
+          "session_id": "session-000659c8f32ab58f"
+        },
+        "fault": "ok",
         "fired": true,
         "fp": "fp_f09fd088f763b6c0",
         "fp_after": "fp_ba2d47f0d2002f52",
-        "ms": 370,
+        "goal_progress": false,
+        "ms": 359,
+        "outcome": "delivered_and_verified",
+        "post_snapshot_hash": "fp_ba2d47f0d2002f52",
+        "pre_snapshot_hash": "fp_f09fd088f763b6c0",
         "step": 1
       },
       {
@@ -33,33 +89,67 @@
           "intent": "tap",
           "kind": "button",
           "label": "ConfirmAction",
-          "reason": "salience rank 1 (Button)",
+          "reason": "best-first candidate rank 1 (Button)",
+          "slot": null,
           "stop_code": null,
           "text": null
         },
+        "action_spec": {
+          "action_id": "action-1-2",
+          "epoch": {
+            "boot_epoch": 1787569468257679,
+            "launch_epoch": 1,
+            "screen_epoch": 5,
+            "session_id": "session-000659c8f32ab58f"
+          },
+          "operation": {
+            "intent": "tap",
+            "slot": null,
+            "text": null
+          },
+          "postconditions": [
+            {
+              "delivery_and_relevant_effect_verified": true
+            }
+          ],
+          "preconditions": [
+            {
+              "epoch_matches": true
+            },
+            {
+              "foreground_owned": true
+            }
+          ],
+          "target": {
+            "identifier": "ConfirmAction",
+            "label": "ConfirmAction",
+            "role": "Button",
+            "stable_key": "fp_ba2d47f0d2002f52|tap|Button|ConfirmAction"
+          }
+        },
         "changed": true,
+        "epoch": {
+          "boot_epoch": 1787569468257679,
+          "launch_epoch": 1,
+          "screen_epoch": 5,
+          "session_id": "session-000659c8f32ab58f"
+        },
+        "fault": "ok",
         "fired": true,
         "fp": "fp_ba2d47f0d2002f52",
         "fp_after": "fp_df7dcce197701e0c",
-        "ms": 808,
+        "goal_progress": false,
+        "ms": 839,
+        "outcome": "delivered_and_verified",
+        "post_snapshot_hash": "fp_df7dcce197701e0c",
+        "pre_snapshot_hash": "fp_ba2d47f0d2002f52",
         "step": 2
-      },
-      {
-        "act": {
-          "id": null,
-          "intent": "stop",
-          "kind": null,
-          "label": null,
-          "reason": "acceptance target ModalConfirmed present",
-          "stop_code": "goal_visible",
-          "text": null
-        },
-        "fp": "fp_f81deb774bb59cc5",
-        "step": 3
       }
-    ]
+    ],
+    "trace_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighModal/.ligh/runs/autopilot-session-000659c8f32ab58f-1787569477697.jsonl"
   },
   "fault": "ok",
+  "fault_owner": "none",
   "observe": {
     "accessibility_tree": {
       "element_count": 5,
@@ -414,6 +504,7 @@
     ],
     "app_bundle_id": "dev.ligh.Modal",
     "ax_quality": "ready",
+    "boot_epoch": 1787569468257679,
     "booted": true,
     "events": [
       {
@@ -422,7 +513,7 @@
           "from": null,
           "to": "Modal"
         },
-        "t": 1787558132.054383
+        "t": 1787569479.33066
       },
       {
         "kind": "action_result",
@@ -435,7 +526,7 @@
           },
           "ok": true
         },
-        "t": 1787558130.776026
+        "t": 1787569478.092945
       },
       {
         "kind": "action_result",
@@ -448,18 +539,21 @@
           },
           "ok": true
         },
-        "t": 1787558131.625374
+        "t": 1787569478.951433
       }
     ],
+    "expected_bundle_id": "dev.ligh.Modal",
     "eyes_unusable": false,
     "frame": {
-      "fps": 52.407851036515986,
+      "fps": 61.61728214025834,
       "h": 2556,
-      "id": 785,
+      "id": 723,
       "imports_ok": true,
       "w": 1179
     },
-    "observe_ms": 0.00033299999999999996,
+    "launch_epoch": 1,
+    "observe_ms": 0.000459,
+    "observed_app_label": "LighModal",
     "overlay": "none",
     "path": "lighd",
     "phase": "ready",
@@ -470,8 +564,11 @@
       "surface": "app"
     },
     "schema_version": 2,
+    "screen_epoch": 7,
+    "session_id": "session-000659c8f32ab58f",
     "settled": true,
     "simulator_app_running": false,
+    "stability_streak": 5,
     "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
   },
   "ok": true,

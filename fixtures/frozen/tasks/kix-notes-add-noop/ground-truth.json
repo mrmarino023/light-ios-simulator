@@ -1,0 +1,9 @@
+{
+  "_human_only": "Never pass this file to the agent or include in agent prompts.",
+  "task_id": "kix-notes-add-noop",
+  "bug_id": "kix_notes_add_noop",
+  "ground_truth": "NotesManager.addNote returns without inserting the note.",
+  "expected_fix": "Insert the new Note into notes in NotesManager.addNote.",
+  "patch_file": "fixtures/third-party/Kix/scenarios/notes-add-noop.patch",
+  "protocol_note": "Honest A/B task on third-party Kix \u2014 diverse flow shapes, not login-only variants."
+}

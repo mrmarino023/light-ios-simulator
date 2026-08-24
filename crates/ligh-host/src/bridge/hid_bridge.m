@@ -447,3 +447,37 @@ bool ligh_host_hid_key(const char *udid, uint32_t usage, LighHostError *err) {
     usleep(8000);
     return true;
 }
+
+bool ligh_host_hid_chord(const char *udid, uint32_t mod_usage, uint32_t key_usage,
+                         LighHostError *err) {
+    if (!mod_usage || !key_usage) {
+        if (err) { err->code = 47; err->message = "invalid chord usage"; }
+        return false;
+    }
+    if (!ligh_load_private_frameworks(NULL)) {
+        if (err) { err->code = 20; err->message = "frameworks not loaded"; }
+        return false;
+    }
+    id client = ensure_hid_client(udid);
+    if (!client) {
+        if (err) { err->code = 21; err->message = "HID client unavailable"; }
+        return false;
+    }
+    if (!g_kbd_arb) {
+        if (err) { err->code = 45; err->message = "IndigoHIDMessageForKeyboardArbitrary missing"; }
+        return false;
+    }
+    void *md = g_kbd_arb(mod_usage, 1);
+    if (md) send_message(md, client);
+    usleep(8000);
+    void *kd = g_kbd_arb(key_usage, 1);
+    if (kd) send_message(kd, client);
+    usleep(12000);
+    void *ku = g_kbd_arb(key_usage, 2);
+    if (ku) send_message(ku, client);
+    usleep(4000);
+    void *mu = g_kbd_arb(mod_usage, 2);
+    if (mu) send_message(mu, client);
+    usleep(8000);
+    return true;
+}

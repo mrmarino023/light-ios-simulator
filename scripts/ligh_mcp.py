@@ -190,6 +190,8 @@ def compact_autopilot(raw: dict[str, Any]) -> dict[str, Any]:
         "steps": detail.get("steps"),
         "elapsed_ms": detail.get("elapsed_ms"),
         "llm_tokens": detail.get("llm_tokens", 0),
+        "trace_path": detail.get("trace_path"),
+        "fault_owner": detail.get("fault_owner"),
     }
     # The pilot can die before it ever plans (install/launch). Surface that as infra,
     # so the agent does not read an environment failure as a bug in its own patch.
@@ -573,6 +575,36 @@ TOOLS = [
                 "bundle_id": {"type": "string"},
                 "goal_id": {"type": "string", "description": "Acceptance target: accessibility identifier"},
                 "goal_label": {"type": "string", "description": "Acceptance target: visible label"},
+                "goal_spec": {
+                    "type": "object",
+                    "description": (
+                        "GoalSpec v2: all/none predicates, expected_bundle_id, temporal stability, "
+                        "typed slots and destructive-action policy. Overrides legacy goal fields."
+                    ),
+                    "properties": {
+                        "all": {"type": "array", "items": {"type": "object"}},
+                        "none": {"type": "array", "items": {"type": "object"}},
+                        "starting": {"type": "array", "items": {"type": "object"}},
+                        "expected_bundle_id": {"type": "string"},
+                        "stable_observations": {"type": "integer", "minimum": 2},
+                        "stability_window_ms": {"type": "integer", "minimum": 1},
+                        "slots": {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {"type": "string"},
+                                    "value": {"type": "string"},
+                                    "secure": {"type": "boolean"},
+                                    "kind_hint": {"type": "string"},
+                                    "constraints": {"type": "array", "items": {"type": "string"}},
+                                },
+                                "required": ["name", "value"],
+                            },
+                        },
+                        "allow_destructive": {"type": "boolean"},
+                    },
+                },
                 "params": {
                     "type": "array",
                     "description": "Data for text fields, in form order: [{value, secure}]",
@@ -874,10 +906,11 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
             cmd += ["--wait-label", str(args["wait_label"])]
         return ligh(*cmd, timeout=180)
     if name == "ligh_cap_autopilot":
+        goal_spec = args.get("goal_spec")
         goal_id = str(args.get("goal_id") or "")
         goal_label = str(args.get("goal_label") or "")
-        if not goal_id and not goal_label:
-            return {"ok": False, "fault": "infra", "error": "need goal_id or goal_label"}
+        if not isinstance(goal_spec, dict) and not goal_id and not goal_label:
+            return {"ok": False, "fault": "infra", "error": "need goal_spec, goal_id or goal_label"}
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 1500)
         to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 8000)
         st = str(args.get("max_steps") if args.get("max_steps") is not None else 24)
@@ -885,6 +918,9 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
             "--json", "cap", "autopilot",
             "--max-steps", st, "--settle-ms", ms, "--timeout-ms", to,
         ]
+        if isinstance(goal_spec, dict):
+            import json as _json
+            cmd += ["--goal-spec", _json.dumps(goal_spec, separators=(",", ":"))]
         if goal_id:
             cmd += ["--goal-id", goal_id]
         if goal_label:

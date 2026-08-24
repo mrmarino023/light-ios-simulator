@@ -11,6 +11,78 @@ use serde::{Deserialize, Serialize};
 
 use crate::observe::ObserveSnapshot;
 
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
+pub struct EpochStamp {
+    #[serde(default)]
+    pub session_id: String,
+    #[serde(default)]
+    pub boot_epoch: u64,
+    #[serde(default)]
+    pub launch_epoch: u64,
+    #[serde(default)]
+    pub screen_epoch: u64,
+}
+
+impl EpochStamp {
+    pub fn from_snapshot(s: &ObserveSnapshot) -> Self {
+        Self {
+            session_id: s.session_id.clone().unwrap_or_default(),
+            boot_epoch: s.boot_epoch,
+            launch_epoch: s.launch_epoch,
+            screen_epoch: s.screen_epoch,
+        }
+    }
+
+    pub fn same_target_epoch(&self, other: &Self) -> bool {
+        self == other && !self.session_id.is_empty()
+    }
+}
+
+/// Motor delivery is intentionally distinct from UI effect and goal progress.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ActionOutcome {
+    DeliveredAndVerified,
+    DeliveredNoEffect,
+    NotDelivered,
+    TargetStale,
+    WrongSurface,
+    TransitionInProgress,
+    InfrastructureFault,
+}
+
+impl ActionOutcome {
+    pub fn memory_committable(self) -> bool {
+        matches!(self, Self::DeliveredAndVerified)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct TargetIdentity {
+    pub stable_key: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identifier: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub label: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub role: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub frame_bucket: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct ActionSpec {
+    pub action_id: String,
+    pub epoch: EpochStamp,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub target: Option<TargetIdentity>,
+    pub operation: serde_json::Value,
+    #[serde(default)]
+    pub preconditions: Vec<serde_json::Value>,
+    #[serde(default)]
+    pub postconditions: Vec<serde_json::Value>,
+}
+
 /// Session lifecycle owned by `lighd`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
@@ -91,7 +163,40 @@ pub enum FaultClass {
     Blocked,
     /// HID/AX reported success but observable UI state did not change.
     MotorNoEffect,
+    /// Action was resolved against an invalidated screen/launch/session epoch.
+    StaleSnapshot,
+    /// Scene is changing; caller may settle and retry within budget.
+    TransitionInProgress,
     Model,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum FaultDomain {
+    #[default]
+    None,
+    Session,
+    Perception,
+    Planning,
+    Motor,
+    App,
+    Verification,
+    Model,
+}
+
+impl FaultDomain {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::None => "none",
+            Self::Session => "session",
+            Self::Perception => "perception",
+            Self::Planning => "planning",
+            Self::Motor => "motor",
+            Self::App => "app",
+            Self::Verification => "verification",
+            Self::Model => "model",
+        }
+    }
 }
 
 impl FaultClass {
@@ -106,6 +211,8 @@ impl FaultClass {
             Self::AppNotRunning => "app_not_running",
             Self::MotorRejected => "motor_rejected",
             Self::MotorNoEffect => "motor_no_effect",
+            Self::StaleSnapshot => "stale_snapshot",
+            Self::TransitionInProgress => "transition_in_progress",
             Self::Timeout => "timeout",
             Self::Blocked => "blocked",
             Self::Model => "model",
@@ -122,12 +229,33 @@ impl FaultClass {
             Self::Infra | Self::EyesUnusable | Self::Timeout | Self::Blocked
         )
     }
+
+    pub fn owner(self) -> FaultDomain {
+        match self {
+            Self::Ok => FaultDomain::None,
+            Self::Infra
+            | Self::Timeout
+            | Self::WrongSurface
+            | Self::AppNotForeground
+            | Self::AppNotRunning => {
+                FaultDomain::Session
+            }
+            Self::EyesUnusable | Self::TransitionInProgress => FaultDomain::Perception,
+            Self::TargetMissing => FaultDomain::Planning,
+            Self::MotorRejected
+            | Self::MotorNoEffect
+            | Self::StaleSnapshot
+            | Self::Blocked => FaultDomain::Motor,
+            Self::Model => FaultDomain::Model,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CapabilityResult {
     pub ok: bool,
     pub fault: FaultClass,
+    pub fault_owner: FaultDomain,
     pub phase: SessionPhase,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub surface: Option<String>,
@@ -137,6 +265,8 @@ pub struct CapabilityResult {
     pub capability: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub detail: Option<serde_json::Value>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub action_outcome: Option<ActionOutcome>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub observe: Option<ObserveSnapshot>,
 }
@@ -153,11 +283,13 @@ impl CapabilityResult {
         Self {
             ok: true,
             fault: FaultClass::Ok,
+            fault_owner: FaultDomain::None,
             phase,
             surface,
             overlay,
             capability: Some(capability.into()),
             detail: Some(detail),
+            action_outcome: None,
             observe,
         }
     }
@@ -171,16 +303,35 @@ impl CapabilityResult {
         observe: Option<ObserveSnapshot>,
     ) -> Self {
         let overlay = observe.as_ref().map(overlay_from_snapshot);
+        let action_outcome = Some(match fault {
+            FaultClass::StaleSnapshot => ActionOutcome::TargetStale,
+            FaultClass::WrongSurface
+            | FaultClass::AppNotForeground
+            | FaultClass::AppNotRunning => ActionOutcome::WrongSurface,
+            FaultClass::TransitionInProgress => ActionOutcome::TransitionInProgress,
+            FaultClass::Infra | FaultClass::EyesUnusable | FaultClass::Timeout => {
+                ActionOutcome::InfrastructureFault
+            }
+            FaultClass::MotorNoEffect => ActionOutcome::DeliveredNoEffect,
+            _ => ActionOutcome::NotDelivered,
+        });
         Self {
             ok: false,
             fault,
+            fault_owner: fault.owner(),
             phase,
             surface,
             overlay,
             capability: Some(capability.into()),
             detail: Some(detail),
+            action_outcome,
             observe,
         }
+    }
+
+    pub fn with_action_outcome(mut self, outcome: ActionOutcome) -> Self {
+        self.action_outcome = Some(outcome);
+        self
     }
 }
 
@@ -241,6 +392,14 @@ mod tests {
         let mut s = ObserveSnapshot {
             schema_version: 2,
             udid: "x".into(),
+            session_id: Some("test".into()),
+            boot_epoch: 1,
+            launch_epoch: 1,
+            screen_epoch: 1,
+            stability_streak: 2,
+            motion_score: None,
+            expected_bundle_id: None,
+            observed_app_label: None,
             booted: true,
             simulator_app_running: false,
             frame: None,
@@ -296,5 +455,40 @@ mod tests {
         assert!(FaultClass::Blocked.is_infra());
         assert!(!FaultClass::TargetMissing.is_infra());
         assert!(!FaultClass::Ok.is_infra());
+    }
+
+    #[test]
+    fn target_epoch_invalidates_on_any_session_transition() {
+        let original = EpochStamp {
+            session_id: "s1".into(),
+            boot_epoch: 1,
+            launch_epoch: 2,
+            screen_epoch: 3,
+        };
+        assert!(original.same_target_epoch(&original));
+        let mut relaunched = original.clone();
+        relaunched.launch_epoch += 1;
+        assert!(!original.same_target_epoch(&relaunched));
+        let mut navigated = original.clone();
+        navigated.screen_epoch += 1;
+        assert!(!original.same_target_epoch(&navigated));
+    }
+
+    #[test]
+    fn injected_faults_have_deterministic_owners() {
+        let cases = [
+            (FaultClass::Infra, FaultDomain::Session),
+            (FaultClass::WrongSurface, FaultDomain::Session),
+            (FaultClass::EyesUnusable, FaultDomain::Perception),
+            (FaultClass::TransitionInProgress, FaultDomain::Perception),
+            (FaultClass::TargetMissing, FaultDomain::Planning),
+            (FaultClass::MotorRejected, FaultDomain::Motor),
+            (FaultClass::MotorNoEffect, FaultDomain::Motor),
+            (FaultClass::StaleSnapshot, FaultDomain::Motor),
+            (FaultClass::Model, FaultDomain::Model),
+        ];
+        for (fault, expected) in cases {
+            assert_eq!(fault.owner(), expected, "{fault:?}");
+        }
     }
 }

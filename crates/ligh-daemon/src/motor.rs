@@ -8,8 +8,9 @@ use std::time::{Duration, Instant};
 
 use ligh_core::{
     build_actionable_topk, find_hittable_label_in_dump, find_id_in_dump,
-    find_label_in_dump, find_onscreen_id_in_dump, overlay_from_snapshot, rank_candidates,
-    CapabilityResult, FaultClass, ObserveSnapshot, Overlay, SessionPhase,
+    find_label_in_dump, find_onscreen_id_in_dump, is_editable_role, overlay_from_snapshot,
+    rank_candidates, ActionOutcome, CapabilityResult, FaultClass, MotorTypeStrategy,
+    ObserveSnapshot, Overlay, SessionPhase,
 };
 use ligh_host::{AxDump, HidInput};
 use serde_json::json;
@@ -64,8 +65,7 @@ fn snap_on_sheet(snap: &ObserveSnapshot) -> bool {
 
 fn id_still_actionable(snap: &ObserveSnapshot, id: &str) -> bool {
     snap.accessibility_tree.nodes().iter().any(|n| {
-        n.get("identifier").and_then(|v| v.as_str()) == Some(id)
-            && ligh_core::node_viewport_hittable(n)
+        ligh_core::node_matches_identifier(n, id) && ligh_core::node_viewport_hittable(n)
     })
 }
 
@@ -230,26 +230,42 @@ fn find_node<'a>(
     id: Option<&str>,
 ) -> Option<&'a serde_json::Value> {
     let nodes = dump_nodes(dump)?;
-    if let Some(eid) = id {
-        return nodes.iter().find(|n| {
-            n.get("identifier").and_then(|v| v.as_str()) == Some(eid)
-                || n.get("id").and_then(|v| v.as_str()) == Some(eid)
-        });
-    }
-    if let Some(lab) = label {
+    let mut hits: Vec<&serde_json::Value> = if let Some(eid) = id {
+        nodes
+            .iter()
+            .filter(|n| {
+                n.get("identifier").and_then(|v| v.as_str()) == Some(eid)
+                    || n.get("id").and_then(|v| v.as_str()) == Some(eid)
+            })
+            .collect()
+    } else if let Some(lab) = label {
         let needle = lab.to_ascii_lowercase();
-        return nodes.iter().find(|n| {
-            n.get("label")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_ascii_lowercase().contains(&needle))
-                .unwrap_or(false)
-                || n.get("identifier")
+        nodes
+            .iter()
+            .filter(|n| {
+                n.get("label")
                     .and_then(|v| v.as_str())
                     .map(|s| s.to_ascii_lowercase().contains(&needle))
                     .unwrap_or(false)
-        });
+                    || n.get("identifier")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_ascii_lowercase().contains(&needle))
+                        .unwrap_or(false)
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+    if hits.is_empty() {
+        return None;
     }
-    None
+    hits.sort_by_key(|n| {
+        let role = n.get("role").and_then(|v| v.as_str()).unwrap_or("");
+        let editable = node_editable(n) || is_editable_role(role);
+        let focused = n.get("focused").and_then(|v| v.as_bool()).unwrap_or(false);
+        (u8::from(!editable), u8::from(!focused))
+    });
+    Some(hits[0])
 }
 
 fn resolve_from_dump(
@@ -556,26 +572,167 @@ fn motor_fire_verified(
     ))
 }
 
-fn field_reflects_text(snap: &ObserveSnapshot, id: &str, text: &str) -> bool {
-    let Some(node) = snap_node_sources(snap).find(|n| node_matches_target(n, None, Some(id))) else {
-        return false;
-    };
-    let val = node
-        .get("value")
-        .and_then(|v| v.as_str())
-        .unwrap_or("");
+fn node_center_norm(n: &serde_json::Value) -> Option<(f64, f64)> {
+    let cn = n.get("center_norm")?;
+    Some((
+        cn.get("x").and_then(|v| v.as_f64())?,
+        cn.get("y").and_then(|v| v.as_f64())?,
+    ))
+}
+
+fn typeable_nodes<'a>(
+    snap: &'a ObserveSnapshot,
+    label: Option<&str>,
+    id: Option<&str>,
+) -> Vec<&'a serde_json::Value> {
+    let all: Vec<&serde_json::Value> = snap_node_sources(snap).collect();
+    let mut exact: Vec<&serde_json::Value> = all
+        .iter()
+        .copied()
+        .filter(|n| node_matches_target(n, label, id) && node_editable(n))
+        .collect();
+    if !exact.is_empty() {
+        return exact;
+    }
+    if let Some(anchor) = all.iter().copied().find(|n| node_matches_target(n, label, id)) {
+        let ac = node_center_norm(anchor);
+        exact = all
+            .iter()
+            .copied()
+            .filter(|n| node_editable(n))
+            .collect();
+        exact.sort_by(|a, b| {
+            let da = match (ac, node_center_norm(a)) {
+                (Some((ax, ay)), Some((bx, by))) => (ax - bx).hypot(ay - by),
+                _ => f64::MAX,
+            };
+            let db = match (ac, node_center_norm(b)) {
+                (Some((ax, ay)), Some((bx, by))) => (ax - bx).hypot(ay - by),
+                _ => f64::MAX,
+            };
+            da.partial_cmp(&db).unwrap_or(std::cmp::Ordering::Equal)
+        });
+        return exact.into_iter().take(2).collect();
+    }
+    all.into_iter()
+        .filter(|n| {
+            node_editable(n)
+                && (n.get("focused").and_then(|v| v.as_bool()) == Some(true)
+                    || node_matches_target(n, label, id))
+        })
+        .collect()
+}
+
+fn value_committed(node: &serde_json::Value, id: Option<&str>, text: &str) -> bool {
+    let val = node.get("value").and_then(|v| v.as_str()).unwrap_or("");
     let ph = node
         .get("placeholder")
         .and_then(|v| v.as_str())
         .unwrap_or("");
-    if val.eq_ignore_ascii_case(ph) || val.is_empty() {
+    if val.is_empty() || val.eq_ignore_ascii_case(ph) {
         return false;
     }
-    if id.to_ascii_lowercase().contains("secure") || ph.eq_ignore_ascii_case("password") {
+    let secure = id
+        .map(|s| s.to_ascii_lowercase().contains("secure") || s.to_ascii_lowercase().contains("password"))
+        .unwrap_or(false)
+        || ph.eq_ignore_ascii_case("password")
+        || node
+            .get("role")
+            .and_then(|v| v.as_str())
+            .is_some_and(|r| r.to_ascii_lowercase().contains("secure"));
+    if secure {
         return val.chars().count() >= text.chars().count();
     }
     val.to_ascii_lowercase()
         .contains(&text.to_ascii_lowercase())
+}
+
+fn field_value_hash(node: &serde_json::Value) -> String {
+    format!(
+        "{}|{}",
+        node.get("value").and_then(|v| v.as_str()).unwrap_or(""),
+        node.get("placeholder")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+    )
+}
+
+fn typeable_hashes(
+    snap: &ObserveSnapshot,
+    label: Option<&str>,
+    id: Option<&str>,
+) -> Vec<String> {
+    typeable_nodes(snap, label, id)
+        .into_iter()
+        .map(field_value_hash)
+        .collect()
+}
+
+fn deliver_typed_text(
+    udid: &str,
+    text: &str,
+    strategy: MotorTypeStrategy,
+) -> Result<(), ligh_core::LighError> {
+    let paste = matches!(strategy, MotorTypeStrategy::ClearRetype)
+        || !hid_type_is_layout_stable(text);
+    if paste {
+        HidInput::paste_text(udid, text)
+    } else {
+        HidInput::type_text(udid, text)
+    }
+}
+
+fn hid_type_is_layout_stable(text: &str) -> bool {
+    text.chars().all(|c| {
+        c.is_ascii_alphanumeric()
+            || c == '.'
+            || c == '-'
+            || c == '_'
+            || c == ' '
+            || c == '\n'
+            || c == '\t'
+    })
+}
+
+fn keyboard_up(snap: &ObserveSnapshot) -> bool {
+    snap.scene
+        .as_ref()
+        .map(|s| s.keyboard_visible)
+        .unwrap_or(false)
+        || matches!(overlay_from_snapshot(snap), Overlay::Keyboard)
+}
+
+/// Type is a verified commit: focused/typeable identity plus value change,
+/// or value containing the typed text. Keyboard alone is not enough.
+fn type_commit_verified(
+    before: &ObserveSnapshot,
+    after: &ObserveSnapshot,
+    label: Option<&str>,
+    id: Option<&str>,
+    text: &str,
+) -> Option<&'static str> {
+    if typeable_nodes(after, label, id)
+        .into_iter()
+        .any(|n| value_committed(n, id, text))
+    {
+        return Some("field_value");
+    }
+    let before_h = typeable_hashes(before, label, id);
+    let after_h = typeable_hashes(after, label, id);
+    let hash_changed = !after_h.is_empty() && after_h != before_h;
+    let focused = target_focused_editable(after, label, id) || any_focused_editable(after);
+    if hash_changed && (focused || keyboard_up(after)) {
+        // Hash change is not a commit unless the new value actually contains
+        // the typed text (or secure length). Shift punctuation is layout-sensitive;
+        // a garbled glyph must not count as success.
+        if typeable_nodes(after, label, id)
+            .into_iter()
+            .any(|n| value_committed(n, id, text))
+        {
+            return Some("value_hash");
+        }
+    }
+    None
 }
 
 /// Focus an editable target (idempotent — no fault if already focused).
@@ -738,7 +895,8 @@ pub(crate) fn motor_tap(
                         "verified": true,
                     }),
                     Some(last_snap),
-                );
+                )
+                .with_action_outcome(ActionOutcome::DeliveredAndVerified);
             }
             std::thread::sleep(Duration::from_millis(120));
             last_snap = build();
@@ -771,7 +929,8 @@ pub(crate) fn motor_tap(
                 "verified": true,
             }),
             Some(snap),
-        ),
+        )
+        .with_action_outcome(ActionOutcome::DeliveredAndVerified),
         Err(e) => CapabilityResult::fail(
             e.fault,
             e.phase,
@@ -784,6 +943,7 @@ pub(crate) fn motor_tap(
 }
 
 /// Atomic focus + type with field-value verification (Motor 2.0).
+/// Strategy is chosen by the planner; the motor does not retry the same method.
 pub(crate) fn motor_type(
     build: &dyn Fn() -> ObserveSnapshot,
     state: &Arc<Mutex<DaemonState>>,
@@ -792,125 +952,175 @@ pub(crate) fn motor_type(
     id: Option<&str>,
     settle_ms: u64,
     timeout_ms: u64,
+    strategy: MotorTypeStrategy,
 ) -> CapabilityResult {
     let ready = ensure_ready(build, state, settle_ms.min(800), 0);
     if !ready.ok {
         return ready;
     }
-    let udid = match state.lock().unwrap().current_udid() {
-        Ok(u) => u,
-        Err(e) => {
-            return CapabilityResult::fail(
-                FaultClass::Infra,
-                SessionPhase::Dead,
-                None,
-                "act_type",
-                json!({ "error": e }),
-                ready.observe,
-            );
+    let (udid, w, h) = {
+        let st = state.lock().unwrap();
+        match st.current_udid() {
+            Ok(u) => (u, st.sim_width, st.sim_height),
+            Err(e) => {
+                return CapabilityResult::fail(
+                    FaultClass::Infra,
+                    SessionPhase::Dead,
+                    None,
+                    "act_type",
+                    json!({ "error": e }),
+                    ready.observe,
+                );
+            }
         }
     };
 
-    if id.is_some() || label.is_some() {
-        let deadline = Instant::now() + Duration::from_millis(timeout_ms.max(8000));
-        let mut last_snap = ready.observe.clone().unwrap_or_else(|| build());
-        for attempt in 0..4u32 {
-            if Instant::now() >= deadline {
-                break;
-            }
-            let fr = motor_ensure_focus_editable(build, state, label, id, settle_ms, 4000);
-            if !fr.ok && attempt + 1 >= 4 {
-                return fr;
-            }
-            std::thread::sleep(Duration::from_millis(120));
-            if !target_focused_editable(&build(), label, id) {
-                continue;
-            }
-            if let Err(e) = HidInput::type_text(&udid, text) {
-                return CapabilityResult::fail(
-                    FaultClass::MotorRejected,
-                    SessionPhase::Degraded,
-                    ready.surface.clone(),
-                    "act_type",
-                    json!({ "error": e.to_string(), "attempt": attempt }),
-                    Some(last_snap),
-                );
-            }
-            let poll_until = Instant::now() + Duration::from_millis(2200);
-            while Instant::now() < poll_until {
-                last_snap = settle_eyes(build, 220);
-                if let Some(eid) = id {
-                    if field_reflects_text(&last_snap, eid, text) {
-                        state.lock().unwrap().push_action_result(
-                            true,
-                            "act_type",
-                            json!({ "text": text, "attempt": attempt }),
-                        );
-                        return CapabilityResult::success(
-                            phase_of(&last_snap),
-                            surface_of(&last_snap),
-                            "act_type",
-                            json!({
-                                "text": text,
-                                "verified": "field_value",
-                                "motor": "focus_type",
-                                "attempt": attempt,
-                            }),
-                            Some(last_snap),
-                        );
-                    }
-                }
-                std::thread::sleep(Duration::from_millis(100));
-            }
+    if id.is_none() && label.is_none() {
+        let pre = ready.observe.clone().unwrap_or_else(|| build());
+        if !any_focused_editable(&pre) {
+            return CapabilityResult::fail(
+                FaultClass::MotorRejected,
+                phase_of(&pre),
+                surface_of(&pre),
+                "act_type",
+                json!({
+                    "error": "no focused editable field — tap target before type",
+                    "actionable_topk": slim_topk(&pre, 8),
+                }),
+                Some(pre),
+            );
         }
-        return CapabilityResult::fail(
-            FaultClass::MotorNoEffect,
-            phase_of(&last_snap),
-            surface_of(&last_snap),
+        if let Err(e) = HidInput::type_text(&udid, text) {
+            return CapabilityResult::fail(
+                FaultClass::MotorRejected,
+                SessionPhase::Degraded,
+                ready.surface.clone(),
+                "act_type",
+                json!({ "error": e.to_string() }),
+                ready.observe,
+            );
+        }
+        let snap = settle_eyes(build, settle_ms.min(800));
+        return CapabilityResult::success(
+            phase_of(&snap),
+            surface_of(&snap),
             "act_type",
-            json!({
-                "error": "focus_type: field value unchanged after retries",
-                "id": id,
-                "label": label,
-                "text": text,
-                "actionable_topk": slim_topk(&last_snap, 8),
-            }),
-            Some(last_snap),
-        );
+            json!({ "text": text, "verified": "host_accepted", "motor": "type" }),
+            Some(snap),
+        )
+        .with_action_outcome(ActionOutcome::DeliveredAndVerified);
     }
 
-    let pre = ready.observe.clone().unwrap_or_else(|| build());
-    if !any_focused_editable(&pre) {
-        return CapabilityResult::fail(
-            FaultClass::MotorRejected,
-            phase_of(&pre),
-            surface_of(&pre),
-            "act_type",
-            json!({
-                "error": "no focused editable field — tap target before type",
-                "actionable_topk": slim_topk(&pre, 8),
-            }),
-            Some(pre),
-        );
+    let before = ready.observe.clone().unwrap_or_else(|| build());
+    let target = match AxDump::dump(&udid).ok().and_then(|dump| resolve_from_dump(&dump, label, id))
+    {
+        Some(t) => t,
+        None => {
+            return CapabilityResult::fail(
+                FaultClass::TargetMissing,
+                phase_of(&before),
+                surface_of(&before),
+                "act_type",
+                json!({ "error": "typeable node not on screen", "id": id, "label": label }),
+                Some(before),
+            )
+            .with_action_outcome(ActionOutcome::NotDelivered);
+        }
+    };
+
+    let (tap_x, tap_y) = match strategy {
+        MotorTypeStrategy::CoordOffsetHid => (target.nx, (target.ny + 0.012).min(0.92)),
+        _ => (target.nx, target.ny),
+    };
+    let wait_keyboard = matches!(
+        strategy,
+        MotorTypeStrategy::TapThenHid | MotorTypeStrategy::CoordOffsetHid
+    );
+
+    // AX press is not trusted as first responder. Always HID-tap the typeable node.
+    let _ = HidInput::tap(&udid, tap_x, tap_y, w, h);
+    std::thread::sleep(Duration::from_millis(180));
+    if matches!(strategy, MotorTypeStrategy::FocusHid) {
+        if let Some(eid) = id {
+            let _ = AxDump::press_id(&udid, eid);
+            std::thread::sleep(Duration::from_millis(80));
+        }
     }
-    if let Err(e) = HidInput::type_text(&udid, text) {
+
+    let focus_deadline = Instant::now() + Duration::from_millis(if wait_keyboard { 1600 } else { 700 });
+    let mut last_snap = settle_eyes(build, 120);
+    while Instant::now() < focus_deadline {
+        last_snap = build();
+        if target_focused_editable(&last_snap, label, id) || any_focused_editable(&last_snap) {
+            break;
+        }
+        if wait_keyboard && keyboard_up(&last_snap) {
+            break;
+        }
+        std::thread::sleep(Duration::from_millis(60));
+    }
+
+    if let Err(e) = deliver_typed_text(&udid, text, strategy) {
         return CapabilityResult::fail(
             FaultClass::MotorRejected,
             SessionPhase::Degraded,
             ready.surface.clone(),
             "act_type",
-            json!({ "error": e.to_string() }),
-            ready.observe,
-        );
+            json!({
+                "error": e.to_string(),
+                "strategy": strategy.as_str(),
+            }),
+            Some(last_snap),
+        )
+        .with_action_outcome(ActionOutcome::NotDelivered);
     }
-    let snap = settle_eyes(build, settle_ms.min(800));
-    CapabilityResult::success(
-        phase_of(&snap),
-        surface_of(&snap),
+
+    let poll_until = Instant::now() + Duration::from_millis(timeout_ms.min(2200).max(900));
+    while Instant::now() < poll_until {
+        last_snap = settle_eyes(build, settle_ms.min(220));
+        if let Some(signal) = type_commit_verified(&before, &last_snap, label, id, text) {
+            state.lock().unwrap().push_action_result(
+                true,
+                "act_type",
+                json!({ "text": text, "strategy": strategy.as_str(), "verified": signal }),
+            );
+            return CapabilityResult::success(
+                phase_of(&last_snap),
+                surface_of(&last_snap),
+                "act_type",
+                json!({
+                    "text": text,
+                    "verified": signal,
+                    "motor": "type_commit",
+                    "strategy": strategy.as_str(),
+                    "id": id,
+                    "label": label,
+                }),
+                Some(last_snap),
+            )
+            .with_action_outcome(ActionOutcome::DeliveredAndVerified);
+        }
+        std::thread::sleep(Duration::from_millis(80));
+    }
+
+    CapabilityResult::fail(
+        FaultClass::MotorNoEffect,
+        phase_of(&last_snap),
+        surface_of(&last_snap),
         "act_type",
-        json!({ "text": text, "verified": "host_accepted", "motor": "type" }),
-        Some(snap),
+        json!({
+            "error": "type commit failed: field value unchanged",
+            "id": id,
+            "label": label,
+            "text": text,
+            "strategy": strategy.as_str(),
+            "keyboard": keyboard_up(&last_snap),
+            "focused": target_focused_editable(&last_snap, label, id),
+            "actionable_topk": slim_topk(&last_snap, 8),
+        }),
+        Some(last_snap),
     )
+    .with_action_outcome(ActionOutcome::DeliveredNoEffect)
 }
 
 /// Wait until label/id is on a clear path (resolve + settle overlay).

@@ -13,6 +13,7 @@ Agent receives task.json prompt only. ground-truth.json is never loaded here.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import re
@@ -26,10 +27,12 @@ sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 from killer_loop_task import load_task, list_swift_sources, safe_source_path  # noqa: E402
 from killer_loop_verify import establish_initial_state, run_steps, strict_verify  # noqa: E402
+from goal_spec import compile_task_goal  # noqa: E402
 from ligh_mcp import call_tool, ligh_result_path  # noqa: E402
 
 ARM = os.environ.get("LIGH_KILLER_ARM", "ligh").lower()
 HONEST = os.environ.get("LIGH_KILLER_HONEST", "0") == "1"
+SCORED = os.environ.get("LIGH_KILLER_SCORED", "1" if HONEST else "0") == "1"
 MODEL = os.environ.get("OPENAI_MODEL", "gpt-5-mini")
 OPENAI_URL = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1/chat/completions")
 MAX_STEPS = int(os.environ.get("LIGH_KILLER_MAX_STEPS", "28"))
@@ -41,27 +44,47 @@ BUILD_SCRIPT = TASK["build_script"]
 PROTOCOL_VERSION = TASK.get("protocol_version", 1)
 
 
-def goal_targets() -> tuple[str | None, str | None]:
-    """Acceptance target from the task spec — the same criterion the verifier uses.
+def hash_text(value: str) -> str:
+    return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
-    This is the success condition, not a path: both arms are told what success looks
-    like, and neither is told which controls to touch.
-    """
-    post = (TASK.get("verification") or {}).get("postconditions") or {}
-    labels = [str(x) for x in (post.get("must_see_labels") or [])]
-    return (labels[0] if labels else None), (labels[1] if len(labels) > 1 else None)
+
+def current_git_sha() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+        ).strip()
+    except Exception:
+        return "unknown"
+
+
+def strip_scored_coaching(value: Any) -> Any:
+    """Remove host coaching from scored tool output before either arm sees it."""
+    if isinstance(value, dict):
+        return {
+            key: strip_scored_coaching(item)
+            for key, item in value.items()
+            if key not in {"source_hint", "coaching", "suggestion"}
+        }
+    if isinstance(value, list):
+        return [strip_scored_coaching(item) for item in value]
+    return value
 
 
 def system_prompt() -> str:
     sources = "\n".join(f"- {p}" for p in list_swift_sources(TASK["source_root"])[:12])
     if ARM == "autopilot":
-        goal_id, _ = goal_targets()
+        compiled_goal = json.dumps(compile_task_goal(TASK), separators=(",", ":"))
+        failure_contract = (
+            "run_goal returns reached plus a modality-neutral diagnosis."
+            if SCORED
+            else "run_goal returns reached plus, on failure, a diagnosis and source_hint pointing at the code."
+        )
         ui = f"""UI control: you do NOT drive the UI. The host does.
 Action: run_goal — the host installs, launches, discovers the path and verifies the goal.
-  {{"action":"run_goal","goal_id":"{goal_id or 'homeTitle'}","params":[{{"value":"alice"}},{{"value":"secret","secure":true}}]}}
+  {{"action":"run_goal","goal_spec":{compiled_goal}}}
 Pass only the acceptance target and the data the flow needs (read them from the task).
 Never pass a step list: the host finds the path itself. There are no taps for you to make.
-run_goal returns reached plus, on failure, a diagnosis and source_hint pointing at the code."""
+{failure_contract}"""
     elif ARM == "baseline":
         ui = """UI control: screenshot + vision coordinates ONLY (no accessibility tree for planning).
 Actions: screenshot, vision_tap, vision_type, dismiss (keyboard)."""
@@ -90,10 +113,15 @@ After bootstrap_app: call exercise_app (host-owned taps) then verify — do not 
         code_actions = "read_file, write_file, build_app, bootstrap_app, exercise_app, verify, done"
 
     if ARM == "autopilot":
-        rules = """Rules:
+        scored_failure_rule = (
+            "  diagnosis is modality-neutral; infer any source change from repository evidence."
+            if SCORED
+            else "  source_hint: they tell you which state failed to change and where to look. Fix the cause,"
+        )
+        rules = f"""Rules:
 - Your job is the Swift bug, nothing else. Read the source, make a minimal fix, rebuild.
 - After build_app succeeds call run_goal. If it reports reached=false, read diagnosis and
-  source_hint: they tell you which state failed to change and where to look. Fix the cause,
+{scored_failure_rule}
   do not retry the same edit.
 - run_goal automatically invokes the strict harness when it reaches the target. A passing
   harness ends the session immediately; no extra confirmation or second patch is needed.
@@ -274,6 +302,14 @@ AUTOPILOT_ALLOWED = {"read_file", "write_file", "build_app", "run_goal", "verify
 
 def run_action(act: dict[str, Any]) -> dict[str, Any]:
     action = (act.get("action") or "").lower()
+    if SCORED and action == "exercise_app":
+        return {
+            "ok": False,
+            "error": "exercise_app disqualifies scored benchmark runs",
+            "host_owned": False,
+            "protocol": "scored",
+            "protocol_violation": "exercise_app_used",
+        }
     # The autopilot arm is a restricted API by construction: the LLM cannot touch the
     # UI even if it tries, so the comparison measures the architecture, not the prompt.
     if ARM == "autopilot" and action not in AUTOPILOT_ALLOWED:
@@ -323,36 +359,22 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
         if action == "run_goal":
             if ARM != "autopilot":
                 return {"ok": False, "error": "run_goal is only available in the autopilot arm"}
-            spec_id, spec_label = goal_targets()
-            goal_id = act.get("goal_id") or spec_id
-            goal_label = act.get("goal_label") or (None if act.get("goal_id") else spec_label)
-            params = act.get("params")
-            if not isinstance(params, list):
-                params = []
+            goal_spec = compile_task_goal(TASK)
             r = call_tool(
                 "ligh_cap_autopilot",
                 {
                     "app": APP,
                     "bundle_id": BUNDLE_ID,
-                    "goal_id": goal_id,
-                    "goal_label": goal_label,
-                    "params": params,
+                    "goal_spec": goal_spec,
                     "max_steps": 24,
                     "settle_ms": 1500,
                     "timeout_ms": 8000,
                 },
             )
-            r["goal_source"] = "agent" if act.get("goal_id") or act.get("goal_label") else "task_spec"
+            r["goal_source"] = "task_goal_spec_v2"
             return r
 
         if action == "exercise_app":
-            if HONEST:
-                return {
-                    "ok": False,
-                    "error": "exercise_app disabled in honest protocol — drive UI with attempt/vision yourself",
-                    "host_owned": False,
-                    "protocol": "honest",
-                }
             # Host-owned exercise (product path): task verification steps, zero LLM taps.
             ver = TASK.get("verification") or {}
             setup = run_steps(ver.get("initial_setup") or [], "setup")
@@ -529,6 +551,41 @@ def summarize_trace(trace: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def outcome_contract(
+    *, verified: bool, false_success: bool, verify: dict[str, Any], trace: list[dict[str, Any]]
+) -> dict[str, Any]:
+    violations = sorted(
+        {
+            str((row.get("result") or {}).get("protocol_violation"))
+            for row in trace
+            if (row.get("result") or {}).get("protocol_violation")
+        }
+    )
+    phase = verify.get("phase")
+    phase = {"pre": "precondition", "post": "postcondition"}.get(phase, phase)
+    if violations:
+        phase = "protocol"
+    elif not verified and not phase:
+        phase = "agent"
+    if verified and not false_success and not violations:
+        failure_class = "ok"
+        phase = None
+    elif violations or false_success:
+        failure_class = "harness_wrong"
+    elif phase in ("bootstrap", "setup"):
+        failure_class = "infra_flake"
+    elif phase in ("precondition", "exercise", "postcondition"):
+        failure_class = "planner_wrong_path"
+    else:
+        failure_class = "unclassified"
+    return {
+        "failure_phase": phase,
+        "failure_class": failure_class,
+        "protocol_violations": violations,
+        "scored_eligible": SCORED and not violations,
+    }
+
+
 def main() -> int:
     goal = TASK["agent_prompt"]
     t0 = time.time()
@@ -565,6 +622,8 @@ def main() -> int:
         tokens_in += chat["usage"]["prompt_tokens"]
         tokens_out += chat["usage"]["completion_tokens"]
         result = run_action(act)
+        if SCORED:
+            result = strip_scored_coaching(result)
         if result.get("_b64"):
             last_b64 = result.pop("_b64")
         trace.append({"step": step, "action": act, "result": {k: v for k, v in result.items() if k != "_b64"}})
@@ -648,15 +707,21 @@ def main() -> int:
         trace.append({"step": "final", "strict_verify": verify})
 
     false_success = bool(verify.get("false_success"))
-    claim_pass = verified and not false_success
+    contract = outcome_contract(
+        verified=verified, false_success=false_success, verify=verify, trace=trace
+    )
+    claim_pass = verified and not false_success and not contract["protocol_violations"]
     summary = summarize_trace(trace)
     doc = {
+        "artifact_schema_version": 2,
         "gate": "killer_loop",
-        "protocol": "honest" if HONEST else "product",
+        "protocol": "scored" if SCORED else ("honest" if HONEST else "product"),
         "protocol_version": PROTOCOL_VERSION,
         "arm": ARM,
         "task": TASK["id"],
         "task_prompt": goal,
+        "prompt_hash": hash_text(goal),
+        "system_prompt_hash": hash_text(system_prompt()),
         "app_id": TASK["app_id"],
         "app_commit": TASK["upstream_commit"],
         "upstream_url": TASK["upstream_url"],
@@ -671,11 +736,13 @@ def main() -> int:
         "legacy_weak_pass": verify.get("legacy_weak_pass"),
         "exercise_executed": verify.get("exercise_trace"),
         "model": MODEL,
+        "git_sha": current_git_sha(),
         "wall_time_ms": int((time.time() - t0) * 1000),
         "llm_tokens": tokens_in + tokens_out,
         "tokens": {"in": tokens_in, "out": tokens_out, "total": tokens_in + tokens_out},
         "steps_used": len(trace),
         "strict_verify": verify,
+        **contract,
         **summary,
         "trace": trace[-24:],
     }
@@ -707,13 +774,22 @@ def _result_doc(
     tokens_out: int,
 ) -> dict[str, Any]:
     summary = summarize_trace(trace)
+    contract = outcome_contract(
+        verified=verified,
+        false_success=bool(verify.get("false_success")),
+        verify=verify,
+        trace=trace,
+    )
     return {
+        "artifact_schema_version": 2,
         "gate": "killer_loop",
-        "protocol": "honest" if HONEST else "product",
+        "protocol": "scored" if SCORED else ("honest" if HONEST else "product"),
         "protocol_version": PROTOCOL_VERSION,
         "arm": ARM,
         "task": TASK["id"],
         "task_prompt": goal,
+        "prompt_hash": hash_text(goal),
+        "system_prompt_hash": hash_text(system_prompt()),
         "app_id": TASK["app_id"],
         "app_commit": TASK["upstream_commit"],
         "upstream_url": TASK["upstream_url"],
@@ -725,11 +801,13 @@ def _result_doc(
         "verification_reason": verify.get("reason"),
         "verification_evidence": verify.get("evidence"),
         "model": MODEL,
+        "git_sha": current_git_sha(),
         "wall_time_ms": int((time.time() - t0) * 1000),
         "llm_tokens": tokens_in + tokens_out,
         "tokens": {"in": tokens_in, "out": tokens_out, "total": tokens_in + tokens_out},
         "steps_used": len(trace),
         "strict_verify": verify,
+        **contract,
         **summary,
         "trace": trace,
     }
