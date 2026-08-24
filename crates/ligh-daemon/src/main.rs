@@ -8,6 +8,7 @@ mod device_hub;
 mod fault_injection;
 mod hybrid_physical;
 mod motor;
+mod physical_motor;
 mod pilot_cap;
 mod qa_cap;
 mod ux_cap;
@@ -50,6 +51,8 @@ pub(crate) struct DaemonState {
     pub(crate) last_ax_nodes: Option<Vec<serde_json::Value>>,
     /// Recent sense events (ring, newest last).
     pub(crate) sense_buf: Vec<SenseEvent>,
+    pub(crate) physical_hub: Arc<device_hub::DeviceHub>,
+    pub(crate) physical_arms: Arc<wda::WdaArms>,
 }
 
 impl DaemonState {
@@ -483,19 +486,72 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             };
             let w = st.sim_width;
             let h = st.sim_height;
+            let hub = st.physical_hub.clone();
+            let physical_arms = st.physical_arms.clone();
             drop(st);
-            let before_sig = if ligh_host::physical_ui_active() {
-                build_observe_once(&state, true)
-                    .screen_sig
-                    .unwrap_or_default()
+
+            if ligh_host::physical_ui_active() {
+                let timeout = timeout_ms.unwrap_or(2000);
+                let result = if let Some(ref lab) = label {
+                    physical_motor::tap_label(
+                        &state,
+                        &hub,
+                        &physical_arms,
+                        &udid,
+                        lab,
+                        id.as_deref(),
+                        w,
+                        h,
+                        timeout,
+                    )
+                } else {
+                    let (nx, ny, waited_ms, used_id) = if let Some(ref eid) = id {
+                        let timeout = Duration::from_millis(timeout);
+                        match AxDump::wait_id(&udid, eid, timeout) {
+                            Ok((x, y, waited)) => (
+                                x,
+                                y,
+                                Some(waited.as_secs_f64() * 1000.0),
+                                Some(eid.clone()),
+                            ),
+                            Err(e) => return DaemonResponse::err(e),
+                        }
+                    } else if normalized {
+                        (x, y, None, None)
+                    } else {
+                        let ww = w.max(1.0);
+                        let hh = h.max(1.0);
+                        (x / ww, y / hh, None, None)
+                    };
+                    physical_motor::tap_coord(&state, &hub, &physical_arms, nx, ny, w, h).map(
+                        |mut detail| {
+                            if let Some(ms) = waited_ms {
+                                detail["waited_ms"] = serde_json::json!(ms);
+                            }
+                            if let Some(ref eid) = used_id {
+                                detail["id"] = serde_json::json!(eid);
+                            }
+                            detail
+                        },
+                    )
+                };
+                match result {
+                    Ok(mut detail) => {
+                        let snap = build_observe_once(&state, true);
+                        detail["actionable_n"] = serde_json::json!(snap.actionable_topk.len());
+                        state.lock().unwrap().push_action_result(true, "tap", detail.clone());
+                        DaemonResponse::ok(detail)
+                    }
+                    Err(e) => {
+                        state.lock().unwrap().push_action_result(
+                            false,
+                            "tap",
+                            serde_json::json!({ "error": e.to_string() }),
+                        );
+                        DaemonResponse::err(e)
+                    }
+                }
             } else {
-                String::new()
-            };
-            // Label/id taps: AX activate first (in-app DevDriver or Simulator AX).
-            // Coordinate HID on RN often hits a glyph child and never fires onPress.
-            // On physical, always go through HidInput (WDA arms) + effect check — never
-            // trust DevDriver press ACK alone.
-            if !ligh_host::physical_ui_active() {
             if let Some(ref lab) = label {
                 if AxDump::press_label(&udid, lab).is_ok() {
                     let detail = serde_json::json!({
@@ -512,7 +568,6 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                     state.lock().unwrap().push_action_result(true, "tap", detail.clone());
                     return DaemonResponse::ok(detail);
                 }
-            }
             }
             let (nx, ny, waited_ms, used_label, used_id) = if let Some(ref lab) = label {
                 // Prefer label — semantic and stable across transitions.
@@ -564,31 +619,10 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             };
             match HidInput::tap(&udid, nx, ny, w, h) {
                 Ok(_) => {
-                    let mut detail = serde_json::json!({
+                    let detail = serde_json::json!({
                         "x": nx, "y": ny, "label": used_label, "id": used_id, "waited_ms": waited_ms,
-                        "motor": if ligh_host::physical_ui_active() { "physical" } else { "sim" },
+                        "motor": "sim",
                     });
-                    if ligh_host::physical_ui_active() {
-                        let before_sig = before_sig.clone();
-                        std::thread::sleep(Duration::from_millis(280));
-                        let after = build_observe_once(&state, true);
-                        let after_sig = after.screen_sig.clone().unwrap_or_default();
-                        detail["before_sig"] = serde_json::json!(before_sig);
-                        detail["after_sig"] = serde_json::json!(after_sig);
-                        detail["actionable_n"] = serde_json::json!(after.actionable_topk.len());
-                        if !before_sig.is_empty() && before_sig == after_sig {
-                            let err = ligh_core::LighError::NotReady(
-                                "physical tap had no UI effect (screen_sig unchanged) — arms did not move the tree".into(),
-                            );
-                            state.lock().unwrap().push_action_result(
-                                false,
-                                "tap",
-                                detail.clone(),
-                            );
-                            return DaemonResponse::err(err);
-                        }
-                        detail["effect"] = serde_json::json!("ok");
-                    }
                     state.lock().unwrap().push_action_result(true, "tap", detail.clone());
                     DaemonResponse::ok(detail)
                 }
@@ -600,6 +634,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                     );
                     DaemonResponse::err(e)
                 }
+            }
             }
         }
 
@@ -843,39 +878,38 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             };
             let w = st.sim_width;
             let h = st.sim_height;
+            let hub = st.physical_hub.clone();
+            let physical_arms = st.physical_arms.clone();
             drop(st);
-            let before_sig = if ligh_host::physical_ui_active() {
-                build_observe_once(&state, true)
-                    .screen_sig
-                    .unwrap_or_default()
+            if ligh_host::physical_ui_active() {
+                match physical_motor::swipe(&state, &hub, &physical_arms, fnx, fny, tnx, tny, w, h) {
+                    Ok(mut detail) => {
+                        detail["from"] = serde_json::json!([fnx, fny]);
+                        detail["to"] = serde_json::json!([tnx, tny]);
+                        state.lock().unwrap().push_action_result(true, "swipe", detail.clone());
+                        DaemonResponse::ok(detail)
+                    }
+                    Err(e) => {
+                        state.lock().unwrap().push_action_result(
+                            false,
+                            "swipe",
+                            serde_json::json!({ "error": e.to_string() }),
+                        );
+                        DaemonResponse::err(e)
+                    }
+                }
             } else {
-                String::new()
-            };
             match HidInput::swipe(&udid, fnx, fny, tnx, tny, w, h) {
                 Ok(_) => {
-                    let mut detail = serde_json::json!({
+                    let detail = serde_json::json!({
                         "from": [fnx, fny], "to": [tnx, tny],
-                        "motor": if ligh_host::physical_ui_active() { "physical" } else { "sim" },
+                        "motor": "sim",
                     });
-                    if ligh_host::physical_ui_active() {
-                        std::thread::sleep(Duration::from_millis(320));
-                        let after = build_observe_once(&state, true);
-                        let after_sig = after.screen_sig.clone().unwrap_or_default();
-                        detail["before_sig"] = serde_json::json!(before_sig);
-                        detail["after_sig"] = serde_json::json!(after_sig);
-                        if !before_sig.is_empty() && before_sig == after_sig {
-                            let err = ligh_core::LighError::NotReady(
-                                "physical swipe had no UI effect (screen_sig unchanged)".into(),
-                            );
-                            state.lock().unwrap().push_action_result(false, "swipe", detail);
-                            return DaemonResponse::err(err);
-                        }
-                        detail["effect"] = serde_json::json!("ok");
-                    }
                     state.lock().unwrap().push_action_result(true, "swipe", detail.clone());
                     DaemonResponse::ok(detail)
                 }
                 Err(e) => DaemonResponse::err(e),
+            }
             }
         }
 
@@ -1590,6 +1624,9 @@ fn main() -> anyhow::Result<()> {
         .map(|d| d.as_micros() as u64)
         .unwrap_or(1);
 
+    let hub = device_hub::DeviceHub::start(device_hub::device_port());
+    let arms = Arc::new(wda::WdaArms::new());
+
     let state = Arc::new(Mutex::new(DaemonState {
         compositor: compositor.clone(),
         sim_width,
@@ -1610,6 +1647,8 @@ fn main() -> anyhow::Result<()> {
         last_screen_fingerprint: None,
         last_ax_nodes: None,
         sense_buf: Vec::new(),
+        physical_hub: hub.clone(),
+        physical_arms: arms.clone(),
     }));
 
     // DisplayRing — keep IOSurface imports hot (~60 Hz).
@@ -1618,25 +1657,22 @@ fn main() -> anyhow::Result<()> {
         std::thread::sleep(Duration::from_millis(16));
     });
 
-    // Physical: DevDriver eyes (AX) + WDA arms (real tap/swipe). Fake UITouch
-    // alone ACK'd without moving RN — WDA is the agent hand on device.
-    let hub = device_hub::DeviceHub::start(device_hub::device_port());
-    let arms = Arc::new(wda::WdaArms::new());
-    let hybrid = hybrid_physical::HybridPhysical::new(hub.clone(), arms.clone());
+    // Physical: DevDriver eyes + cascade hands (in-app activate → WDA fallback).
+    let hybrid = hybrid_physical::HybridPhysical::new(hub, arms.clone());
     ligh_host::set_physical_ui(Some(hybrid));
     // Warm WDA in background when UDID is configured.
     std::thread::spawn(move || {
         wda::load_wda_dotenv();
         let udid = std::env::var("LIGH_WDA_UDID").unwrap_or_default();
         if udid.is_empty() {
-            info!("LIGH_WDA_UDID unset — physical taps will connect WDA on first act if Appium is up");
+            info!("LIGH_WDA_UDID unset — WDA used only as cascade fallback");
             return;
         }
         let bundle = std::env::var("LIGH_WDA_BUNDLE").ok();
         for attempt in 1..=30 {
             match arms.ensure(&udid, bundle.as_deref()) {
                 Ok(()) => {
-                    info!(attempt, "WDA arms ready");
+                    info!(attempt, "WDA arms ready (cascade fallback)");
                     return;
                 }
                 Err(e) => {

@@ -507,6 +507,14 @@ impl PhysicalUi for DeviceHub {
     }
 }
 
+impl DeviceHub {
+    /// VoiceOver-style activate — preferred for RN tab bars / Pressables.
+    pub fn activate_label(&self, label: &str) -> Result<(), LighError> {
+        self.rpc(json!({"op": "activate", "target": label}))?;
+        Ok(())
+    }
+}
+
 fn advertise_mdns(port: u16, slot: &Mutex<Option<Child>>) {
     match Command::new("dns-sd")
         .args([

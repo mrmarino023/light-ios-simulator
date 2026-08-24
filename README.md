@@ -336,10 +336,13 @@ More detail: [`docs/QA_LAYER.md`](docs/QA_LAYER.md) · [`docs/ARCHITECTURE.md`](
 ```bash
 git clone https://github.com/mrmarino023/light-ios-simulator.git
 cd light-ios-simulator
-./scripts/install.sh
+./scripts/ligh-init.sh
+# or: ligh init
 unset CARGO_TARGET_DIR && cargo build --release -p ligh-cli -p ligh-daemon
 ./scripts/developer-trial.sh
 ```
+
+Impact bench: `ligh bench holy` → [`docs/assets/holy-shit-bench-latest.json`](docs/assets/holy-shit-bench-latest.json)
 
 Paste MCP config from `./scripts/print-cursor-mcp.sh` into **Cursor → Settings → MCP**.
 

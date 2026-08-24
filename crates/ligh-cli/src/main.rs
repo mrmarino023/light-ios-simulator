@@ -76,6 +76,12 @@ enum Commands {
         #[command(subcommand)]
         command: BenchCommands,
     },
+    /// 5-minute onboarding: build, doctor, daemon, MCP snippet, optional Expo sync.
+    Init {
+        /// Path to an Expo app — vendors `@mm-labs/ligh-expo` into packages/.
+        #[arg(value_name = "EXPO_APP")]
+        expo_app: Option<String>,
+    },
     Sim {
         #[command(subcommand)]
         command: SimCommands,
@@ -568,6 +574,18 @@ enum BenchCommands {
         #[arg(long)]
         no_wda: bool,
     },
+    /// Impact bench: sim micro + optional killer-loop A/B → docs/assets/holy-shit-bench-latest.json
+    Holy {
+        /// Microbench iterations per op.
+        #[arg(long, default_value_t = 12)]
+        iterations: u32,
+        /// Run physical tab micro (needs DevDriver + optional WDA).
+        #[arg(long)]
+        physical: bool,
+        /// Skip killer-loop A/B (needs OPENAI_API_KEY).
+        #[arg(long)]
+        skip_killer: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -846,7 +864,46 @@ fn main() -> anyhow::Result<()> {
                     },
                 )?;
             }
+            BenchCommands::Holy {
+                iterations,
+                physical,
+                skip_killer,
+            } => {
+                let root = std::env::current_dir()?;
+                let script = root.join("scripts/holy-shit-bench.sh");
+                if !script.is_file() {
+                    anyhow::bail!("missing {}", script.display());
+                }
+                let mut cmd = std::process::Command::new(script);
+                cmd.env("LIGH_HOLY_ITER", iterations.to_string());
+                if physical {
+                    cmd.env("LIGH_HOLY_PHYSICAL", "1");
+                }
+                if skip_killer {
+                    cmd.env("LIGH_HOLY_SKIP_KILLER", "1");
+                }
+                let status = cmd.status()?;
+                if !status.success() {
+                    anyhow::bail!("holy-shit bench failed (exit {status})");
+                }
+            }
         },
+
+        Commands::Init { expo_app } => {
+            let root = std::env::current_dir()?;
+            let script = root.join("scripts/ligh-init.sh");
+            if !script.is_file() {
+                anyhow::bail!("missing {}", script.display());
+            }
+            let mut cmd = std::process::Command::new(script);
+            if let Some(app) = expo_app {
+                cmd.arg(app);
+            }
+            let status = cmd.status()?;
+            if !status.success() {
+                anyhow::bail!("ligh init failed (exit {status})");
+            }
+        }
 
         Commands::Sim { command } => match command {
             SimCommands::Measure => {

@@ -27,13 +27,22 @@ DevDriver   WDA / Appium XCUITest
 | Role | Path | Why |
 |------|------|-----|
 | **Eyes** | `@mm-labs/ligh-expo` DevDriver → AX dump over LAN (`:7700`) | Fast in-app tree; Metro-shaped transport |
-| **Hands (physical)** | Appium → WebDriverAgent → real taps/swipes | Fake in-app `UITouch` ACK'd without moving RN tab bars |
+| **Hands (physical)** | Cascade: `activate` → DevDriver tap → **WDA fallback** | In-app fast path; WDA only when effect fails |
 | **Hands (Simulator)** | IndigoHID | Unchanged; not WDA |
 | **Law** | `screen_sig` before/after every physical act | ACK without ΔUI = fail closed (`effect` ≠ ok) |
 
-`HybridPhysical` in `lighd` wires this: DevDriver for `dump` / perceive, WDA for
-`tap` / `swipe` / type. Transport reports `lan` (eyes only) or `lan+wda` (arms
-online).
+`HybridPhysical` + `physical_motor`: DevDriver for eyes + first motor attempt; WDA
+only when in-app paths do not change `screen_sig`. Motors in JSON:
+`devdriver_activate`, `devdriver_tap`, `wda_tap`, `wda_label`.
+
+### Motor cascade
+
+```text
+activate (VoiceOver-style) → DevDriver tap → WDA tap → WDA label
+         ↓ screen_sig effect check (~480ms poll budget) per attempt
+```
+
+Benchmark: `./scripts/holy-shit-bench.sh` or `ligh bench holy [--physical]`.
 
 ### What failed (and must not return)
 
@@ -76,12 +85,21 @@ npm publish of `@mm-labs/ligh-expo` is optional; vendoring via
 
 ## Run physical arms
 
-1. **Phone:** Developer Mode on; trust the computer; install a **dev client**
+1. **Quick start (sim + optional Expo app):**
+
+```bash
+./scripts/ligh-init.sh
+# or with Expo vendoring:
+./scripts/ligh-init.sh /path/to/YourExpoApp
+# equivalent: ligh init [/path/to/ExpoApp]
+```
+
+2. **Phone:** Developer Mode on; trust the computer; install a **dev client**
    with the LIGH plugin; open your app (Mae-class Expo app).
-2. **Trust WDA:** first Appium session installs `WebDriverAgentRunner` — accept
+3. **Trust WDA:** first Appium session installs `WebDriverAgentRunner` — accept
    UI testing / trust the developer on device or acts hang with
    `Not authorized for performing UI testing actions`.
-3. **Mac env** — copy and edit:
+4. **Mac env** — copy and edit:
 
 ```bash
 cp scripts/wda.env.example ~/.ligh/wda.env

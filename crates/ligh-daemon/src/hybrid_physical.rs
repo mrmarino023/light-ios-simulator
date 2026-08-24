@@ -1,7 +1,4 @@
-//! Hybrid physical UI: DevDriver eyes + WDA arms.
-//!
-//! Dump/perceive stays on the in-app DevDriver (fast AX). Tap/swipe/scroll/
-//! type/press go through WebDriverAgent so gestures actually hit RN.
+//! Hybrid physical UI: DevDriver eyes + cascade hands (in-app → WDA).
 
 use std::sync::Arc;
 
@@ -13,8 +10,8 @@ use crate::device_hub::DeviceHub;
 use crate::wda::WdaArms;
 
 pub struct HybridPhysical {
-    hub: Arc<DeviceHub>,
-    arms: Arc<WdaArms>,
+    pub(crate) hub: Arc<DeviceHub>,
+    pub(crate) arms: Arc<WdaArms>,
 }
 
 impl HybridPhysical {
@@ -22,7 +19,7 @@ impl HybridPhysical {
         Arc::new(Self { hub, arms })
     }
 
-    fn ensure_arms(&self) -> Result<(), LighError> {
+    pub(crate) fn ensure_arms(&self) -> Result<(), LighError> {
         if self.arms.active() {
             return Ok(());
         }
@@ -39,11 +36,43 @@ impl HybridPhysical {
             .or_else(|| std::env::var("LIGH_WDA_BUNDLE").ok());
         self.arms.ensure(&udid, bundle.as_deref())
     }
+
+    fn tap_cascade(&self, nx: f64, ny: f64, w: f64, h: f64) -> Result<(), LighError> {
+        if self.hub.active() {
+            if self.hub.tap(nx, ny, w, h).is_ok() {
+                return Ok(());
+            }
+        }
+        self.ensure_arms()?;
+        self.arms.tap_norm(nx, ny)
+    }
+
+    fn swipe_cascade(
+        &self,
+        from_nx: f64,
+        from_ny: f64,
+        to_nx: f64,
+        to_ny: f64,
+        w: f64,
+        h: f64,
+    ) -> Result<(), LighError> {
+        if self.hub.active() {
+            if self
+                .hub
+                .swipe(from_nx, from_ny, to_nx, to_ny, w, h)
+                .is_ok()
+            {
+                return Ok(());
+            }
+        }
+        self.ensure_arms()?;
+        self.arms
+            .swipe_norm(from_nx, from_ny, to_nx, to_ny, 320.0)
+    }
 }
 
 impl PhysicalUi for HybridPhysical {
     fn active(&self) -> bool {
-        // Eyes online is enough to "have a physical target"; arms connect on first act.
         self.hub.active()
     }
 
@@ -75,6 +104,7 @@ impl PhysicalUi for HybridPhysical {
         let mut caps = self.hub.capabilities();
         if let Some(obj) = caps.as_object_mut() {
             obj.insert("wda_arms".into(), json!(self.arms.active()));
+            obj.insert("motor_cascade".into(), json!(true));
             obj.insert("tap".into(), json!(true));
             obj.insert("swipe".into(), json!(true));
             obj.insert("scroll_until".into(), json!(true));
@@ -86,23 +116,24 @@ impl PhysicalUi for HybridPhysical {
     }
 
     fn driver_version(&self) -> u64 {
-        // Advertise gesture-capable when arms can come online.
         self.hub.driver_version().max(2)
     }
 
-    fn tap(&self, nx: f64, ny: f64, _w: f64, _h: f64) -> Result<(), LighError> {
-        self.ensure_arms()?;
-        self.arms.tap_norm(nx, ny)
+    fn tap(&self, nx: f64, ny: f64, w: f64, h: f64) -> Result<(), LighError> {
+        self.tap_cascade(nx, ny, w, h)
     }
 
     fn tap_hold(
         &self,
         nx: f64,
         ny: f64,
-        _w: f64,
-        _h: f64,
+        w: f64,
+        h: f64,
         hold_ms: f64,
     ) -> Result<(), LighError> {
+        if self.hub.active() && self.hub.tap_hold(nx, ny, w, h, hold_ms).is_ok() {
+            return Ok(());
+        }
         self.ensure_arms()?;
         self.arms.tap_hold_norm(nx, ny, hold_ms)
     }
@@ -113,36 +144,45 @@ impl PhysicalUi for HybridPhysical {
         from_ny: f64,
         to_nx: f64,
         to_ny: f64,
-        _w: f64,
-        _h: f64,
+        w: f64,
+        h: f64,
     ) -> Result<(), LighError> {
-        self.ensure_arms()?;
-        self.arms
-            .swipe_norm(from_nx, from_ny, to_nx, to_ny, 320.0)
+        self.swipe_cascade(from_nx, from_ny, to_nx, to_ny, w, h)
     }
 
     fn gesture(&self, points: &[Value]) -> Result<(), LighError> {
+        if self.hub.active() && self.hub.gesture(points).is_ok() {
+            return Ok(());
+        }
         self.ensure_arms()?;
         self.arms.gesture(points)
     }
 
     fn type_text(&self, text: &str) -> Result<(), LighError> {
+        if self.hub.active() && self.hub.type_text(text).is_ok() {
+            return Ok(());
+        }
         self.ensure_arms()?;
         self.arms.type_text(text)
     }
 
     fn clear(&self, count: u32) -> Result<(), LighError> {
+        if self.hub.active() && self.hub.clear(count).is_ok() {
+            return Ok(());
+        }
         self.ensure_arms()?;
         self.arms.clear(count)
     }
 
     fn key_named(&self, name: &str) -> Result<(), LighError> {
+        if self.hub.active() && self.hub.key_named(name).is_ok() {
+            return Ok(());
+        }
         self.ensure_arms()?;
         self.arms.key_named(name)
     }
 
     fn home(&self) -> Result<(), LighError> {
-        // Prefer staying in-app; real Home kills Mae session. Only if forced.
         if std::env::var("LIGH_WDA_ALLOW_HOME").ok().as_deref() == Some("1") {
             self.ensure_arms()?;
             return self.arms.home();
@@ -150,13 +190,12 @@ impl PhysicalUi for HybridPhysical {
         Ok(())
     }
 
+    /// DevDriver semantic press only — WDA fallback lives in `physical_motor`.
     fn press_id(&self, id: &str) -> Result<(), LighError> {
-        self.ensure_arms()?;
-        self.arms.click_id(id)
+        self.hub.press_id(id)
     }
 
     fn press_label(&self, label: &str) -> Result<(), LighError> {
-        self.ensure_arms()?;
-        self.arms.click_label(label)
+        self.hub.activate_label(label).or_else(|_| self.hub.press_label(label))
     }
 }
