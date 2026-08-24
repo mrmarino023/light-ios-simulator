@@ -385,6 +385,22 @@ pub fn tab_chrome_alias_matches(needle: &str, label: Option<&str>, is_tab_chrome
     normalize_tab_token(label) == normalize_tab_token(rest)
 }
 
+/// True when a goal identity names this tab (e.g. `tab_notes`, `notes_title` → "Notes").
+pub fn identity_suggests_tab_label(identity: &str, label: &str) -> bool {
+    if tab_chrome_alias_matches(identity, Some(label), true) {
+        return true;
+    }
+    let first = identity
+        .strip_prefix("tab_")
+        .unwrap_or(identity)
+        .split(|c: char| !c.is_ascii_alphanumeric())
+        .next()
+        .unwrap_or("");
+    let want = normalize_tab_token(first);
+    let have = normalize_tab_token(label);
+    !want.is_empty() && want == have
+}
+
 /// Exact accessibility identifier, opaque tree id, or tab-chrome `tab_*` alias.
 pub fn node_matches_identifier(n: &serde_json::Value, needle: &str) -> bool {
     if n.get("identifier").and_then(|v| v.as_str()) == Some(needle)
@@ -1495,6 +1511,9 @@ mod tests {
             }),
             "tab_home"
         ));
+        assert!(identity_suggests_tab_label("notes_title", "Notes"));
+        assert!(identity_suggests_tab_label("tab_notes", "Notes"));
+        assert!(!identity_suggests_tab_label("homeTitle", "Home"));
     }
 
     #[test]

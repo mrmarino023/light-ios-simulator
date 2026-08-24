@@ -32,6 +32,7 @@ pub use observe::{
     find_label_center, find_label_in_dump, find_onscreen_id_in_dump, foreground_app_label,
     is_chrome_node, is_editable_role, is_tab_bar_node, is_transition_sparse,
     node_matches_identifier, node_viewport_hittable, rank_candidates, tab_chrome_alias_matches,
+    identity_suggests_tab_label,
     AccessibilityTree, FrameMeta, ObserveSnapshot, SceneMeta, SenseEvent, ACTIONABLE_TOPK,
     OBSERVE_SCHEMA_VERSION,
 };

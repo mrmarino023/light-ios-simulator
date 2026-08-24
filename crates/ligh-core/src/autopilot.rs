@@ -636,14 +636,58 @@ fn goal_identity_present(goal: &PilotGoal, feel: &FeelIR) -> bool {
     })
 }
 
+fn is_tab_item(el: &crate::feel::WorldElement) -> bool {
+    el.tab_chrome
+        && el.on_screen
+        && el.label.as_deref().is_some_and(|l| !l.eq_ignore_ascii_case("tab bar"))
+}
+
+fn salience_is_tab_item(feel: &FeelIR, item: &SalienceItem) -> bool {
+    feel.world.elements.iter().any(|el| {
+        is_tab_item(el)
+            && ((item.id.is_some() && item.id == el.identifier)
+                || (item.label.is_some() && item.label == el.label))
+    })
+}
+
+fn tab_item_matches_goal(goal: &PilotGoal, item: &SalienceItem) -> bool {
+    let label = item.label.as_deref().unwrap_or("");
+    if label.is_empty() {
+        return false;
+    }
+    if let Some(id) = goal.target_id.as_deref() {
+        if crate::observe::identity_suggests_tab_label(id, label) {
+            return true;
+        }
+    }
+    if let Some(gl) = goal.target_label.as_deref() {
+        if label == gl || label.contains(gl) || gl.contains(label) {
+            return true;
+        }
+    }
+    false
+}
+
+fn untried_tab_chrome(feel: &FeelIR, mem: &PilotMemory) -> bool {
+    let fp = feel.place.fingerprint.as_str();
+    feel.salience.iter().any(|s| {
+        salience_is_tab_item(feel, s)
+            && !mem.tried.contains(&tap_key(fp, s))
+            && mem.failures.get(&tap_key(fp, s)).copied().unwrap_or(0) < 2
+    })
+}
+
 /// After a verified navigation, do not tap catalog noise hoping a missing
-/// acceptance identity will materialize. Fields and an untried primary CTA
-/// can still be the path; random cells cannot.
+/// acceptance identity will materialize. Fields, an untried primary CTA, and
+/// untried tab chrome can still be the path; random cells cannot.
 fn should_stop_acceptance_absent(goal: &PilotGoal, feel: &FeelIR, mem: &PilotMemory) -> bool {
     if goal_identity_present(goal, feel) {
         return false;
     }
     if next_type(goal, feel, mem).is_some() {
+        return false;
+    }
+    if untried_tab_chrome(feel, mem) {
         return false;
     }
     let fp = feel.place.fingerprint.as_str();
@@ -828,9 +872,18 @@ impl CandidateGenerator {
             candidate.label = item.label.clone();
             candidate.id = item.id.clone();
             candidate.kind = Some(item.kind);
+            let mut score = item.weight;
+            if salience_is_tab_item(feel, item) {
+                score += 40.0;
+                if tab_item_matches_goal(goal, item) {
+                    score += 80.0;
+                    candidate.reason =
+                        format!("tab chrome matching {} ({:?})", goal.target_name(), item.kind);
+                }
+            }
             out.push(PilotCandidate {
                 act: candidate,
-                score: item.weight,
+                score,
             });
         }
         if let Some(block) = &feel.block {
@@ -1737,6 +1790,51 @@ mod tests {
         });
         let a = next_act(&goal, &feel, &mem, false, PilotLimits::default());
         assert!(!a.is_terminal(), "tab_home should alias to tab labeled Home");
+    }
+
+    #[test]
+    fn taps_matching_tab_instead_of_catalog_after_navigation() {
+        let mut feel = feel_with(
+            vec![
+                item(1, AffordanceKind::Button, "Love", Some("card_1")),
+                item(2, AffordanceKind::Button, "Notes", Some("note.text")),
+            ],
+            false,
+            None,
+        );
+        feel.place.fingerprint = "fp_home".into();
+        feel.world.has_tab_bar = true;
+        feel.world.elements.push(WorldElement {
+            stable_key: "id:note.text".into(),
+            ax_path: "/0".into(),
+            kind: AffordanceKind::Button,
+            identifier: Some("note.text".into()),
+            label: Some("Notes".into()),
+            role: Some("AXRadioButton".into()),
+            frame_bucket: None,
+            value_hash: None,
+            enabled: true,
+            focused: false,
+            editable: false,
+            on_screen: true,
+            overlay_scope: None,
+            tab_chrome: true,
+        });
+        let goal = PilotGoal {
+            target_id: Some("notes_title".into()),
+            ..Default::default()
+        };
+        let mut mem = PilotMemory::new();
+        mem.transitions.push(PilotTransition {
+            state: "fp_login".into(),
+            action_key: "tap|login".into(),
+            outcome: ActionOutcome::DeliveredAndVerified,
+            next_state: "fp_home".into(),
+        });
+        let a = next_act(&goal, &feel, &mem, false, PilotLimits::default());
+        assert_eq!(a.intent, PilotIntent::Tap);
+        assert_eq!(a.id.as_deref(), Some("note.text"));
+        assert_eq!(a.label.as_deref(), Some("Notes"));
     }
 
     #[test]
