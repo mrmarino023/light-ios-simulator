@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
-"""TRAIL repair orchestrator — generalize repair without golden/template.
+"""TRAIL repair orchestrator — broken-tree only, no score-tuning oracles.
 
 Pipeline (single wall, hot path):
   prove (trace) → localize → constrained LLM fix (≤2 shots) → build → certify
+
+Architecture rules (product path):
+  - Index the *broken* source tree only (never a healthy BACKUP twin)
+  - Mode from TraceFailure / prove phase — not task id strings
+  - Localize missing AX ids via TabView structure + observed siblings
+  - Certify = same exercise oracle (no autopilot soft-pass)
+  - ≤2 LLM shots, no golden reverse
 
 Usage:
   LIGH_TRAIL_TASK=fixtures/frozen/tasks/kix-notes-tab-missing/task.json \\
@@ -21,7 +28,7 @@ from typing import Any
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
-from identity_index import build_identity_index, lookup  # noqa: E402
+from identity_index import build_identity_index  # noqa: E402
 from killer_loop_task import load_task  # noqa: E402
 from killer_loop_verify import (  # noqa: E402
     bootstrap_app,
@@ -31,20 +38,35 @@ from killer_loop_verify import (  # noqa: E402
     strict_verify,
     verification_markers,
 )
+from effect_classifier import classify_or_refuse, enrich_trace_failure  # noqa: E402
 from repair_job import (  # noqa: E402
     build_repair_bundle,
     ensure_ligh_session,
     fix_plan,
-    repair_mode_from_trace,
 )
 from trail_fixer import apply_candidate, build_messages, openai_full_file  # noqa: E402
-from view_graph import hybrid_localize  # noqa: E402
+from view_graph import hybrid_localize, localize_control_gate  # noqa: E402
 
-WALL_MS = int(os.environ.get("LIGH_TRAIL_WALL_MS", "120000"))
+def _exported_type_names(swift: str) -> set[str]:
+    import re
+
+    names = set()
+    for m in re.finditer(r"\b(?:struct|class|enum)\s+(\w+)\b", swift):
+        names.add(m.group(1))
+    return names
+
+
+def _symbol_retention_ok(original: str, candidate: str) -> bool:
+    """Reject edits that delete types the App entry may still reference (OSS-safe)."""
+    before = _exported_type_names(original)
+    after = _exported_type_names(candidate)
+    # Allow adding types; forbid dropping any previously exported type.
+    return before.issubset(after)
 OUT = os.environ.get(
     "LIGH_TRAIL_HOLY_OUT",
     os.path.join(ROOT, "docs/assets/trail-holy-latest.json"),
 )
+WALL_MS = int(os.environ.get("LIGH_TRAIL_WALL_MS", "120000"))
 MAX_FIX_ATTEMPTS = int(os.environ.get("LIGH_TRAIL_FIX_ATTEMPTS", "2"))
 
 
@@ -52,81 +74,53 @@ def _now() -> int:
     return int(time.time() * 1000)
 
 
-def localize_fallback(source_root: str, mode: str, expected: str) -> dict[str, Any] | None:
-    """Mode / keyword localization when AX identity is absent (onboarding labels, etc.)."""
-    needles: list[str] = []
-    if mode == "state_gate_stuck":
-        needles = ["isLoggedIn = false", "isLoggedIn = true", "isLoggedIn", "LoginViewModel"]
-    elif mode == "blocked_overlay":
-        needles = ["isOnboardingVisible = false", "isOnboardingVisible", "hasCompletedOnboarding"]
-    elif mode == "tab_chrome_missing":
-        needles = ["TabView", expected or "tab_"]
-    if expected:
-        needles.append(expected)
+def infer_mode(tf: dict[str, Any], prove_phase: str | None) -> str:
+    """Mode from TraceFailure v2 only — OSS-general Effect Classifier."""
+    return str(classify_or_refuse(tf, prove_phase=prove_phase)["mode"])
 
-    hits: list[dict[str, Any]] = []
-    for dirpath, _, files in os.walk(source_root):
-        if any(s in dirpath for s in ("/build/", "/DerivedData/", "/.git/")):
-            continue
-        for name in files:
-            if not name.endswith(".swift"):
-                continue
-            path = os.path.join(dirpath, name)
-            try:
-                text = open(path, encoding="utf-8").read()
-            except OSError:
-                continue
-            for needle in needles:
-                if needle and needle in text:
-                    line = next(
-                        (i for i, ln in enumerate(text.splitlines(), 1) if needle in ln),
-                        1,
-                    )
-                    rel = os.path.relpath(path, source_root).replace("\\", "/")
-                    score = 0
-                    if mode == "state_gate_stuck":
-                        if "ViewModel" in name:
-                            score += 20
-                        if "Login" in name:
-                            score += 10
-                        if "ContentView" in name:
-                            score -= 5
-                    if mode == "blocked_overlay":
-                        if name == "OnboardingView.swift":
-                            score += 30
-                        if "Onboard" in name:
-                            score += 10
-                        if "UserInput" in name:
-                            score -= 10
-                    if mode == "tab_chrome_missing" and ("Tab" in name or "Navigation" in rel):
-                        score += 10
-                    if needle.startswith("isLoggedIn") or needle.startswith("isOnboarding"):
-                        score += 15
-                    hits.append(
-                        {
-                            "file": rel,
-                            "line": line,
-                            "snippet": needle,
-                            "score": score,
-                            "role": "fallback",
-                        }
-                    )
-                    break
-    if not hits:
-        return None
-    hits.sort(key=lambda h: (-h["score"], len(h["file"])))
-    best = hits[0]
-    return {
-        "identity": expected,
-        "sites": hits[:3],
-        "composition": best,
-        "primary_path": best["file"],
-    }
+
+def localize_from_trace(
+    source_root: str,
+    index: dict[str, list],
+    tf: dict[str, Any],
+    mode: str,
+) -> dict[str, Any]:
+    """Broken-tree localization: identity index → missing-tab / causal gate writer."""
+    expected = str(tf.get("expected_identity") or "")
+    control = str(tf.get("control") or "")
+    observed = [str(x) for x in (tf.get("observed_identities") or [])]
+
+    if mode in ("state_gate_stuck", "blocked_overlay"):
+        gate = localize_control_gate(source_root, control or expected, mode=mode)
+        if gate and gate.get("primary_path"):
+            return gate
+
+    loc = hybrid_localize(
+        source_root, index, expected, observed_identities=observed
+    )
+    if loc.get("primary_path"):
+        return loc
+
+    if control and control != expected:
+        loc = hybrid_localize(
+            source_root, index, control, observed_identities=observed
+        )
+        if loc.get("primary_path"):
+            return loc
+
+    if mode == "tab_chrome_missing":
+        loc = hybrid_localize(
+            source_root, index, expected or "tab_", observed_identities=observed
+        )
+        if loc.get("primary_path"):
+            return loc
+
+    return {"primary_path": None}
 
 
 def prove_with_post(task: dict[str, Any], *, install: bool | None = None) -> dict[str, Any]:
     """Exercise then postcondition — TraceFailure from first motor or oracle miss."""
-    from goal_spec import compile_task_goal  # local import
+    from goal_spec import compile_task_goal
     from killer_loop_verify import evaluate_goal_stable
 
     app = os.environ.get("LIGH_APP_PATH", task["app_path"])
@@ -177,17 +171,25 @@ def prove_with_post(task: dict[str, Any], *, install: bool | None = None) -> dic
     if exercise and not all(s.get("ok") for s in exercise):
         fail_idx = next(i for i, s in enumerate(exercise) if not s.get("ok"))
         fail = exercise[fail_idx]
-        return {
-            "ok": False,
-            "phase": "exercise",
-            "trace_failure": {
+        keys = perceive(peek_ms)["keys"]
+        must = (ver.get("postconditions") or {}).get("must_see_labels") or []
+        tf = enrich_trace_failure(
+            {
                 "step": fail_idx + 1,
                 "action": fail.get("action") or "unknown",
                 "expected_identity": fail.get("id") or fail.get("label") or "",
-                "observed_identities": sorted(perceive(peek_ms)["keys"])[:24],
+                "observed_identities": sorted(keys)[:24],
                 "fault": fail.get("fault") or "exercise_failed",
                 "label": fail.get("label"),
+                "control": fail.get("id") or fail.get("label"),
             },
+            keys_after=keys,
+            acceptance_pending=[str(x) for x in must],
+        )
+        return {
+            "ok": False,
+            "phase": "exercise",
+            "trace_failure": tf,
             "trace": exercise,
         }
 
@@ -196,17 +198,14 @@ def prove_with_post(task: dict[str, Any], *, install: bool | None = None) -> dic
     if post.get("ok"):
         return {"ok": True, "phase": "postcondition", "trace": exercise}
 
-    # Postcondition fail after successful exercise → state/overlay bug.
     must = (ver.get("postconditions") or {}).get("must_see_labels") or []
     expected = str(must[0] if must else goal.get("target") or "goal")
     last = exercise[-1] if exercise else {}
     control = last.get("id") or last.get("label") or ""
     keys = sorted((obs.get("keys") or set()))[:24]
     fault = "control_fired_no_transition" if control else "acceptance_not_in_ax"
-    return {
-        "ok": False,
-        "phase": "postcondition",
-        "trace_failure": {
+    tf = enrich_trace_failure(
+        {
             "step": len(exercise) + 1,
             "action": "assert",
             "expected_identity": expected,
@@ -215,16 +214,20 @@ def prove_with_post(task: dict[str, Any], *, install: bool | None = None) -> dic
             "label": expected,
             "control": control,
         },
+        keys_after=keys,
+        acceptance_pending=[str(x) for x in must if str(x) not in (obs.get("keys") or set())],
+    )
+    return {
+        "ok": False,
+        "phase": "postcondition",
+        "trace_failure": tf,
         "trace": exercise,
         "post": post,
     }
 
 
 def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
-    """Same exercise + postconditions as prove — no open-ended autopilot on the hot path."""
-    from goal_spec import compile_task_goal
-    from ligh_mcp import call_tool
-
+    """Same exercise + postconditions — hard fail-closed (no autopilot recovery)."""
     app = os.environ.get("LIGH_APP_PATH", task["app_path"])
     bundle_id = task["bundle_id"]
     ver = task.get("verification") or {}
@@ -233,18 +236,9 @@ def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
     fast = os.environ.get("LIGH_TRAIL_FAST", "0") == "1"
     post_ms = 700 if fast else 2000
 
-    # Fixed binary must be reinstalled once after build.
-    # Clear relaunch-only so bootstrap installs the rebuilt .app.
     prev_no = os.environ.pop("LIGH_TRAIL_NO_INSTALL", None)
     try:
-        # Force-install rebuilt product onto the booted sim (DerivedData → .app path).
         try:
-            udid = subprocess.check_output(
-                ["xcrun", "simctl", "list", "devices", "booted", "-j"],
-                text=True,
-                timeout=15,
-            )
-            # Prefer CLI install by path — ignores stale container.
             subprocess.run(
                 ["xcrun", "simctl", "install", "booted", app],
                 capture_output=True,
@@ -257,7 +251,6 @@ def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
                 text=True,
                 timeout=15,
             )
-            _ = udid
         except (OSError, subprocess.SubprocessError):
             pass
         boot = bootstrap_app(
@@ -278,46 +271,16 @@ def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
     setup = run_steps(ver.get("initial_setup") or [], "certify_setup")
     if setup and not all(s.get("ok") for s in setup):
         fail = next(s for s in setup if not s.get("ok"))
-        return {
-            "verified": False,
-            "reason": "certify_setup_failed",
-            "fail": fail,
-        }
+        return {"verified": False, "reason": "certify_setup_failed", "fail": fail}
 
     exercise = run_steps(ver.get("exercise") or [], "certify_exercise")
     if exercise and not all(s.get("ok") for s in exercise):
         fail = next(s for s in exercise if not s.get("ok"))
-        # One short autopilot recovery — still fail-closed on postconditions.
-        goal = compile_task_goal(task)
-        params = task.get("run_goal_params") or []
-        auto = call_tool(
-            "ligh_cap_autopilot",
-            {
-                "goal_spec": goal,
-                "params": params,
-                "max_steps": 10,
-                "settle_ms": 600,
-                "timeout_ms": 25000,
-                "no_install": True,
-            },
-        )
-        reached = bool(auto.get("reached") or (auto.get("ok") and auto.get("fault") in (None, "ok")))
-        if reached:
-            post = eval_spec(ver.get("postconditions") or {}, perceive(post_ms)["keys"])
-            if post.get("ok"):
-                return {
-                    "verified": True,
-                    "reason": "verified",
-                    "post": post,
-                    "trace": exercise,
-                    "autopilot_recovery": True,
-                }
         return {
             "verified": False,
             "reason": "certify_exercise_failed",
             "fail": fail,
             "trace": exercise,
-            "autopilot": {"reached": reached, "fault": auto.get("fault")},
         }
 
     post = eval_spec(ver.get("postconditions") or {}, perceive(post_ms)["keys"])
@@ -332,7 +295,6 @@ def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
 
 
 def main() -> int:
-    # Fast settle for repair wall.
     os.environ.setdefault("LIGH_TRAIL_FAST", "1")
     os.environ.setdefault("LIGH_TRAIL_SETTLE_CAP_MS", "900")
 
@@ -349,6 +311,7 @@ def main() -> int:
     doc: dict[str, Any] = {
         "gate": "trail_holy",
         "architecture": "trail",
+        "protocol": "broken_tree_only",
         "task": task["id"],
         "wall_budget_ms": WALL_MS,
         "infra_ms": int(os.environ.get("LIGH_TRAIL_INFRA_MS") or 0),
@@ -361,9 +324,12 @@ def main() -> int:
     def mark(phase: str, **extra: Any) -> None:
         doc["phase_trace"].append({"phase": phase, "ms": _now() - t0, **extra})
 
-    index_root = os.environ.get("LIGH_IDENTITY_SOURCE", task["source_root"])
+    # Broken tree only — ignore healthy BACKUP even if an old gate exported it.
+    index_root = task["source_root"]
+    if not os.path.isabs(index_root):
+        index_root = os.path.join(ROOT, index_root)
     index = build_identity_index(index_root)
-    mark("index", size=len(index))
+    mark("index", size=len(index), root=os.path.relpath(index_root, ROOT))
 
     prove = prove_with_post(task)
     mark("prove", ok=prove.get("ok"), prove_phase=prove.get("phase"))
@@ -377,54 +343,44 @@ def main() -> int:
         _write(doc)
         return 1
 
-    expected = str(tf.get("expected_identity") or "")
-    mode = repair_mode_from_trace(str(tf.get("fault") or ""), expected)
-    # Task / control heuristics — generalize without per-app templates.
-    tid = task["id"]
-    control = str(tf.get("control") or expected or "").lower()
-    if "login" in tid or "login" in control or control in {"loginbutton", "login_button", "sign in"}:
-        mode = "state_gate_stuck"
-    if "onboard" in tid or "finish" in control or "onboarding" in control:
-        mode = "blocked_overlay"
-    if prove.get("phase") == "postcondition":
-        if any(x in expected.lower() for x in ("home", "hometitle", "hello")):
-            mode = "state_gate_stuck"
-            if "onboard" in tid:
-                mode = "blocked_overlay"
-        if "onboard" in tid:
-            mode = "blocked_overlay"
-    if expected.startswith("tab_") or (str(tf.get("fault")) in ("motor_failed", "target_missing") and "tab" in expected):
-        if "login" not in tid and "onboard" not in tid:
-            mode = "tab_chrome_missing"
-
-    # Prefer composition/fallback owners over leaf identity sites for sticky modes.
-    loc: dict[str, Any] = {"primary_path": None}
-    if mode in ("state_gate_stuck", "blocked_overlay"):
-        fb = localize_fallback(index_root, mode, expected)
-        if fb:
-            loc = fb
-    if not loc.get("primary_path"):
-        loc = hybrid_localize(index_root, index, expected)
-    if not loc.get("primary_path"):
-        control_id = str(tf.get("control") or "")
-        if control_id:
-            loc = hybrid_localize(index_root, index, control_id)
-    if not loc.get("primary_path"):
-        fb = localize_fallback(index_root, mode, expected)
-        if fb:
-            loc = fb
-    mark("localize", primary=loc.get("primary_path"), mode=mode)
-    if not loc.get("primary_path"):
-        doc.update({"reason": "localize_failed", "trace_failure": tf, "wall_ms": _now() - t0})
+    mode = infer_mode(tf, prove.get("phase"))
+    decision = classify_or_refuse(tf, prove_phase=prove.get("phase"))
+    mark("classify", mode=mode, refuse=decision.get("refuse_edit"))
+    if decision.get("refuse_edit"):
+        doc.update(
+            {
+                "reason": "effect_unclassified",
+                "trace_failure": tf,
+                "mode": mode,
+                "wall_ms": _now() - t0,
+            }
+        )
         _write(doc)
         return 1
 
-    # Force mode into bundle via patched fault if needed.
+    loc = localize_from_trace(index_root, index, tf, mode)
+    mark(
+        "localize",
+        primary=loc.get("primary_path"),
+        mode=mode,
+        ascent=loc.get("ascent"),
+    )
+    doc["ascent"] = loc.get("ascent")
+    if not loc.get("primary_path"):
+        doc.update(
+            {
+                "reason": "localize_failed",
+                "trace_failure": tf,
+                "mode": mode,
+                "wall_ms": _now() - t0,
+            }
+        )
+        _write(doc)
+        return 1
+
     tf_for_bundle = dict(tf)
     if mode == "tab_chrome_missing":
         tf_for_bundle["fault"] = "target_missing"
-        if not str(tf_for_bundle.get("expected_identity") or "").startswith("tab_"):
-            tf_for_bundle["expected_identity"] = expected or "tab_notes"
     elif mode == "state_gate_stuck":
         tf_for_bundle["fault"] = "control_fired_no_transition"
     elif mode == "blocked_overlay":
@@ -435,19 +391,29 @@ def main() -> int:
     bundle["fix_plan"] = fix_plan(mode, tf_for_bundle)
     bundle["scope"]["edit_intent"] = bundle["fix_plan"]
     if mode == "state_gate_stuck":
-        bundle["scope"]["edit_globs"] = ["**/Auth/**", "**/*ViewModel*.swift", "**/*Login*.swift"]
+        bundle["scope"]["edit_globs"] = [
+            "**/*ViewModel*.swift",
+            "**/*Login*.swift",
+            "**/Auth/**",
+            "**/*.swift",
+        ]
         bundle["scope"]["forbidden_globs"] = []
     elif mode == "blocked_overlay":
-        bundle["scope"]["edit_globs"] = ["**/Onboard*/**", "**/*Onboarding*.swift", "**/*.swift"]
+        bundle["scope"]["edit_globs"] = ["**/*.swift"]
         bundle["scope"]["forbidden_globs"] = []
+    elif mode == "tab_chrome_missing":
+        bundle["scope"]["edit_globs"] = ["**/*Tab*.swift", "**/Navigation/**", "**/*.swift"]
+        bundle["scope"]["forbidden_globs"] = ["**/Auth/**"]
+
     doc["repair_bundle"] = bundle
     doc["trace_failure"] = tf
     mark("bundle", mode=mode)
 
     target_rel = bundle["scope"]["primary_path"]
     abs_target = target_rel if os.path.isabs(target_rel) else os.path.join(ROOT, target_rel)
-    # Prefer live broken tree under source_root.
-    live = os.path.join(task["source_root"], loc["primary_path"])
+    live = os.path.join(task["source_root"] if os.path.isabs(task["source_root"]) else os.path.join(ROOT, task["source_root"]), loc["primary_path"])
+    # loc primary is relative to source_root
+    live = os.path.join(index_root, loc["primary_path"])
     if os.path.isfile(live):
         abs_target = live
         bundle["scope"]["primary_path"] = os.path.relpath(abs_target, ROOT).replace("\\", "/")
@@ -460,6 +426,7 @@ def main() -> int:
     tokens = 0
     candidate_text = original
     build_ms = 0
+    expected_id = str(tf.get("expected_identity") or "")
     for attempt in range(1, MAX_FIX_ATTEMPTS + 1):
         messages = build_messages(bundle, original if attempt == 1 else candidate_text, attempt, feedback)
         candidate, usage = openai_full_file(messages)
@@ -469,8 +436,6 @@ def main() -> int:
         if not ok_change and attempt == 1:
             feedback = "Returned unchanged file — apply the fix plan to the target file."
             continue
-        # Mode-specific sanity before build (cheap reject of no-op LLM thrash).
-        expected_id = str(tf.get("expected_identity") or "")
         if mode == "tab_chrome_missing" and expected_id and expected_id not in candidate:
             feedback = (
                 f"Missing accessibilityIdentifier '{expected_id}' in the TabView composition. "
@@ -480,19 +445,29 @@ def main() -> int:
         if candidate.count("{") != candidate.count("}"):
             feedback = "Output looks truncated or unbalanced braces — return the complete Swift file only."
             continue
+        if not _symbol_retention_ok(original, candidate):
+            missing = sorted(_exported_type_names(original) - _exported_type_names(candidate))
+            feedback = (
+                f"Do not delete exported types {missing}. Keep existing struct/class/enum declarations; "
+                "apply a minimal state/navigation fix only."
+            )
+            continue
         apply_candidate(abs_target, candidate, bundle)
         candidate_text = candidate
         changed = True
 
         build_t0 = _now()
         build = subprocess.run(
-            [task["build_script"]], cwd=ROOT, capture_output=True, text=True, timeout=180
+            [task["build_script"] if os.path.isabs(task["build_script"]) else os.path.join(ROOT, task["build_script"])],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=180,
         )
         build_ms = _now() - build_t0
         mark("build", ok=build.returncode == 0, build_ms=build_ms, attempt=attempt)
         if build.returncode == 0:
             break
-        # Shot N+1 with compiler feedback (ChatRepair-style), restore then retry.
         tail = (build.stderr or build.stdout or "")[-1200:]
         feedback = f"Build failed:\n{tail}\nFix compile errors in the same target file only."
         open(abs_target, "w", encoding="utf-8").write(original)
@@ -506,6 +481,8 @@ def main() -> int:
                     "llm_tokens": tokens,
                     "fix_attempts": attempts,
                     "wall_ms": _now() - t0,
+                    "mode": mode,
+                    "primary_path": bundle["scope"]["primary_path"],
                 }
             )
             _write(doc)
@@ -515,13 +492,10 @@ def main() -> int:
     doc["fix_attempts"] = attempts
     mark("fix", changed=changed, tokens=tokens)
     if not changed:
-        doc.update({"reason": "fixer_no_change", "wall_ms": _now() - t0})
+        doc.update({"reason": "fixer_no_change", "wall_ms": _now() - t0, "mode": mode})
         _write(doc)
         return 1
 
-    # Last successful build already done inside the fix loop.
-
-    # Certify with the same exercise oracle (not 90s open-ended autopilot).
     if os.environ.get("LIGH_TRAIL_FAST", "0") == "1":
         verify = certify_trace(task)
     else:
@@ -553,10 +527,11 @@ def main() -> int:
                 "mode": mode,
                 "primary_path": bundle["scope"]["primary_path"],
                 "llm_tokens": tokens,
+                "protocol": "broken_tree_only",
             }
         )
     )
-    return 0 if doc["holy_shit"] else 1
+    return 0 if doc.get("holy_shit") else 1
 
 
 def _write(doc: dict[str, Any]) -> None:

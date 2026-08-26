@@ -66,11 +66,10 @@ pub use uxgraph::{
 };
 pub use profile::{FeatureRequirements, resolve_disabled_jobs, slim_labels};
 pub use repair::{
-    contract_with_trace, emit_repair_contract, fix_plan_for_mode, path_allowed_by_contract,
-    repair_agent_view, repair_mode_from_trace, repair_scope, world_evidence, EditPlan,
-    PatchSource, RepairContract, RepairJobPhase, RepairJobResult, RepairMode, RepairScope,
-    TraceFailure, WorldEvidence, REPAIR_JOB_WALL_MS, REPAIR_SCHEMA_VERSION,
-    TRAIL_PROVE_LOCALIZE_MS,
+    classify_trace_effect, contract_with_trace, emit_repair_contract, fix_plan_for_mode,
+    path_allowed_by_contract, repair_agent_view, repair_mode_from_trace, repair_scope, world_evidence,
+    EditPlan, PatchSource, RepairContract, RepairJobPhase, RepairJobResult, RepairMode, RepairScope,
+    TraceFailure, WorldEvidence, REPAIR_JOB_WALL_MS, REPAIR_SCHEMA_VERSION, TRAIL_PROVE_LOCALIZE_MS,
 };
 pub use rpc::{
     default_sock_path, ensure_daemon, sibling_lighd, DaemonClient, DaemonRequest, DaemonResponse,

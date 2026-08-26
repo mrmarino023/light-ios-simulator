@@ -205,17 +205,34 @@ pub(crate) fn cap_repair_job(
         .to_string();
     let observed = ax_identities(&job.observe);
     let fault = fault_str(job.fault);
+    let still = !expected.is_empty() && observed.iter().any(|o| o == &expected);
+    let mut fault = fault.to_string();
+    if still && matches!(fault.as_str(), "motor_failed" | "exercise_failed" | "motor_rejected") {
+        fault = "motor_no_effect".into();
+    }
     let tf = TraceFailure {
         step: (step_i as u32).max(1),
-        action: op,
+        action: op.clone(),
         expected_identity: expected.clone(),
-        observed_identities: observed,
-        fault: fault.to_string(),
+        observed_identities: observed.clone(),
+        fault: fault.clone(),
         scene_before: None,
         scene_after: None,
         label: Some(expected.clone()),
+        control: Some(expected.clone()),
+        control_still_visible: Some(still),
+        sig_changed: Some(!still),
+        acceptance_pending: vec![],
     };
-    let mode = repair_mode_from_trace(&tf.fault, &tf.expected_identity);
+    let mode = ligh_core::classify_trace_effect(
+        &tf.fault,
+        &tf.expected_identity,
+        tf.control.as_deref(),
+        &tf.observed_identities,
+        tf.control_still_visible,
+        tf.sig_changed,
+        Some(&op),
+    );
 
     let mut goal = PilotGoal::default();
     if !expected.is_empty() {

@@ -63,7 +63,7 @@ patch -p1 -d "$ROOT" < "$PATCH_ABS"
 
 INFRA_MS=$(python3 -c "import time; print(int(time.time()*1000) - $INFRA_START)")
 
-export LIGH_IDENTITY_SOURCE="$BACKUP"
+unset LIGH_IDENTITY_SOURCE || true
 export LIGH_KILLER_TASK="$TASK"
 export LIGH_APP_PATH="$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['app_path']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")"
 export LIGH_APP_BUNDLE_ID="$(python3 -c "import json; print(json.load(open('$TASK'))['bundle_id'])")"

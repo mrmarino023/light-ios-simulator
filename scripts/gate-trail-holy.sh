@@ -27,7 +27,7 @@ PATCH_ABS=$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['bug_pat
 SOURCE_ROOT=$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['source_root']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")
 BUILD_ABS=$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['build_script']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")
 
-echo "══ TRAIL holy-shit ══"
+echo "══ TRAIL repair ══"
 echo "  task=$TASK"
 
 INFRA_START=$(python3 -c 'import time; print(int(time.time()*1000))')
@@ -64,6 +64,23 @@ trap 'restore_tree' EXIT
 echo "  ▶ inject + build broken (infra)"
 rsync -a "$SOURCE_ROOT/" "$BACKUP/"
 patch -p1 -d "$ROOT" < "$PATCH_ABS"
+# Strip spoiler comments from injected bugs (architecture must not rely on them).
+SOURCE_ROOT="$SOURCE_ROOT" python3 - <<'PY'
+import os, re
+root = os.environ["SOURCE_ROOT"]
+pat = re.compile(r"^[ \t]*//[ \t]*BUG:.*$", re.M)
+for dp, _, files in os.walk(root):
+    if any(s in dp for s in ("/build/", "/DerivedData/", "/.git/")):
+        continue
+    for name in files:
+        if not name.endswith(".swift"):
+            continue
+        path = os.path.join(dp, name)
+        text = open(path, encoding="utf-8").read()
+        new = pat.sub("", text)
+        if new != text:
+            open(path, "w", encoding="utf-8").write(new)
+PY
 "$BUILD_ABS" >/tmp/trail-holy-build-broken.log 2>&1 || fail "build broken failed"
 
 # Install broken binary once — prove relaunches only (cuts ~15–30s).
@@ -75,7 +92,8 @@ export LIGH_TRAIL_NO_INSTALL=1
 
 INFRA_MS=$(python3 -c "import time; print(int(time.time()*1000) - $INFRA_START)")
 
-export LIGH_IDENTITY_SOURCE="$BACKUP"
+# Broken tree only — never index the healthy BACKUP twin.
+unset LIGH_IDENTITY_SOURCE || true
 export LIGH_KILLER_TASK="$TASK"
 export LIGH_TRAIL_TASK="$TASK"
 export LIGH_APP_PATH="$APP_PATH"

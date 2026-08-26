@@ -64,6 +64,18 @@ pub struct TraceFailure {
     pub scene_after: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
+    /// Control that was acted on (may equal expected_identity).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub control: Option<String>,
+    /// After tap/type: control still present in AX (dead-control signal).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub control_still_visible: Option<bool>,
+    /// screen_sig / fingerprint changed across the act.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub sig_changed: Option<bool>,
+    /// Acceptance identities that remain unsatisfied (postcondition probe).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub acceptance_pending: Vec<String>,
 }
 
 /// Result envelope for `repair_job` RPC.
@@ -260,22 +272,47 @@ fn find_swift_matching(root: &Path, dir: &Path, depth: u32, pred: &dyn Fn(&str, 
 }
 
 fn find_tab_composition_path(source_root: &Path) -> Option<String> {
-    for rel in [
-        "Navigation/MainTabView.swift",
-        "MainTabView.swift",
-        "Navigation/TabView.swift",
-    ] {
-        let candidate = source_root.join(rel);
-        if candidate.is_file() {
-            return candidate
-                .strip_prefix(source_root)
-                .ok()
-                .map(|p| p.to_string_lossy().into_owned());
+    // Prefer any Swift file that actually contains `TabView` + `.tabItem`,
+    // scored by structure — not hardcoded MainTabView filenames.
+    let mut scored: Vec<(usize, String)> = Vec::new();
+    fn walk(root: &Path, dir: &Path, depth: usize, out: &mut Vec<(usize, String)>) {
+        if depth == 0 {
+            return;
+        }
+        let Ok(entries) = std::fs::read_dir(dir) else {
+            return;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if path.is_dir() {
+                if skip_repo_dir(&name) {
+                    continue;
+                }
+                walk(root, &path, depth - 1, out);
+                continue;
+            }
+            if path.extension().and_then(|e| e.to_str()) != Some("swift") {
+                continue;
+            }
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                continue;
+            };
+            if !text.contains("TabView") {
+                continue;
+            }
+            let score = text.matches(".tabItem").count()
+                + text.matches("accessibilityIdentifier").count();
+            let rel = path
+                .strip_prefix(root)
+                .map(|p| p.to_string_lossy().into_owned())
+                .unwrap_or_else(|_| path.display().to_string());
+            out.push((score, rel));
         }
     }
-    find_swift_matching(source_root, source_root, 12, &|rel, file| {
-        file.contains("TabView") || (rel.contains("Navigation/") && file.contains("Tab"))
-    })
+    walk(source_root, source_root, 14, &mut scored);
+    scored.sort_by(|a, b| b.0.cmp(&a.0).then(a.1.len().cmp(&b.1.len())));
+    scored.into_iter().map(|(_, rel)| rel).next()
 }
 
 fn find_auth_gate_path(source_root: &Path, control: &str) -> Option<String> {
@@ -489,18 +526,67 @@ pub fn fix_plan_for_mode(contract: &RepairContract) -> String {
     }
 }
 
-/// Map harness motor fault strings to repair modes for trace-driven prove.
+/// Map TraceFailure v2 → RepairMode. OSS-general: no task ids, no filenames.
 pub fn repair_mode_from_trace(fault: &str, expected_identity: &str) -> RepairMode {
-    match fault {
-        "target_missing" | "target_never_visible" if expected_identity.starts_with("tab_") => {
-            RepairMode::TabChromeMissing
+    classify_trace_effect(
+        fault,
+        expected_identity,
+        None,
+        &[],
+        None,
+        None,
+        None,
+    )
+}
+
+/// Full effect classifier (bulletproof R2).
+pub fn classify_trace_effect(
+    fault: &str,
+    expected_identity: &str,
+    control: Option<&str>,
+    observed: &[String],
+    control_still_visible: Option<bool>,
+    sig_changed: Option<bool>,
+    action: Option<&str>,
+) -> RepairMode {
+    let expected = expected_identity;
+    let control = control.unwrap_or(expected);
+    let action = action.unwrap_or("");
+    let has_tab_bar = observed.iter().any(|o| o == "Tab Bar" || o.eq_ignore_ascii_case("tabbar"));
+    let observed_tabs: Vec<&String> = observed.iter().filter(|o| o.starts_with("tab_")).collect();
+    let expected_tab = expected.starts_with("tab_");
+    let still = control_still_visible.unwrap_or(false);
+
+    if expected_tab && !observed.iter().any(|o| o == expected) && (has_tab_bar || !observed_tabs.is_empty())
+    {
+        return RepairMode::TabChromeMissing;
+    }
+    if matches!(fault, "target_missing" | "target_never_visible") && expected_tab {
+        return RepairMode::TabChromeMissing;
+    }
+
+    if matches!(action, "tap" | "assert" | "")
+        && (matches!(fault, "motor_no_effect" | "control_fired_no_transition")
+            || (still && sig_changed == Some(false))
+            || (still && matches!(fault, "motor_failed" | "exercise_failed")))
+    {
+        let cl = control.to_lowercase();
+        if ["finish", "continue", "getstarted", "get_started", "skip", "next", "done", "dismiss"]
+            .iter()
+            .any(|k| cl.contains(k))
+        {
+            return RepairMode::BlockedOverlay;
         }
-        "target_missing" | "target_never_visible" => RepairMode::TargetNeverVisible,
-        "motor_no_effect" | "control_fired_no_transition" => RepairMode::StateGateStuck,
+        return RepairMode::StateGateStuck;
+    }
+
+    match fault {
         "blocked" => RepairMode::BlockedOverlay,
         "type_never_committed" => RepairMode::TypeNeverCommitted,
         "motor_rejected" => RepairMode::MotorRejected,
         "eyes_unusable" => RepairMode::EyesUnusable,
+        "target_missing" | "target_never_visible" => RepairMode::TargetNeverVisible,
+        "motor_no_effect" | "control_fired_no_transition" => RepairMode::StateGateStuck,
         _ => RepairMode::Unknown,
     }
 }
@@ -669,11 +755,15 @@ mod tests {
             step: 4,
             action: "tap".into(),
             expected_identity: "tab_notes".into(),
-            observed_identities: vec!["tab_home".into()],
+            observed_identities: vec!["tab_home".into(), "Tab Bar".into()],
             fault: "target_missing".into(),
             scene_before: Some("chrome_band".into()),
             scene_after: Some("chrome_band".into()),
             label: Some("Notes".into()),
+            control: Some("tab_notes".into()),
+            control_still_visible: Some(false),
+            sig_changed: Some(false),
+            acceptance_pending: vec![],
         };
         let diagnosis = PilotDiagnosis {
             code: "tab_chrome_missing".into(),
@@ -695,5 +785,29 @@ mod tests {
         let plan = fix_plan_for_mode(&contract);
         assert!(plan.contains("TabView"));
         assert!(repair_mode_from_trace("target_missing", "tab_notes") == RepairMode::TabChromeMissing);
+        assert_eq!(
+            classify_trace_effect(
+                "motor_failed",
+                "loginButton",
+                Some("loginButton"),
+                &["loginButton".into(), "Welcome".into()],
+                Some(true),
+                Some(false),
+                Some("tap"),
+            ),
+            RepairMode::StateGateStuck
+        );
+        assert_eq!(
+            classify_trace_effect(
+                "motor_no_effect",
+                "Finish",
+                Some("finishButton"),
+                &["finishButton".into()],
+                Some(true),
+                Some(false),
+                Some("tap"),
+            ),
+            RepairMode::BlockedOverlay
+        );
     }
 }

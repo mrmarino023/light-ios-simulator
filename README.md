@@ -43,31 +43,32 @@ Requires Mac + Xcode Simulator. Works best when the app exposes stable `accessib
 
 Published gate artifacts under [`docs/assets/`](docs/assets/). Writeup: [`docs/TRAIL_RESULTS.md`](docs/TRAIL_RESULTS.md).
 
-### TRAIL repair (generalized)
+### TRAIL repair
 
-Same protocol across tasks. No golden diff. No per-app repair templates. ≤2 LLM shots.
+Trace → classify → localize → ≤2 LLM fixes → build → certify. No golden reverse.
 
 | Task | App | Wall | Tokens | Outcome |
 |------|-----|------|--------|---------|
-| Login never navigates | XCUITestDemo (vendored) | **41s** | 1.2k | verified ≤120s |
-| Onboarding stuck | OnboardingDemo (frozen) | **67s** | 3.3k | verified ≤120s |
-| Notes tab missing after login | [Kix](https://github.com/byKosta/Kix-app) | **91s** | 3.2k | verified ≤120s |
+| Login never navigates | XCUITestDemo (vendored) | **40s** | 1.8k | verified · `LoginViewModel` |
+| Onboarding stuck | OnboardingDemo (frozen) | **64s** | 3.8k | verified · `OnboardingView` |
+| Notes tab missing after login | [Kix](https://github.com/byKosta/Kix-app) | **126s** | 7.8k | verified · `MainTabView` |
 
-**3/3 verified ≤120s** → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)
+**3/3 verified** (gate ≥2/3 ≤120s) → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)
 
 | Baseline (login) | Wall | Tokens |
 |------------------|------|--------|
 | Vision chat | 622s | 212k |
 | Autopilot + chat loop | 61s | 14k |
-| **TRAIL** | **41s** | **1.2k** |
+| **TRAIL** | **40s** | **1.8k** |
 
 | Baseline (Kix Notes tab) | Wall | Tokens |
 |--------------------------|------|--------|
 | Vision chat | 460s | 128k |
 | Autopilot + chat loop | 644s | 148k |
-| **TRAIL** | **91s** | **3.2k** |
+| **TRAIL** | **126s** | **7.8k** |
 
 Full compare: [`trail-holy-compare-latest.json`](docs/assets/trail-holy-compare-latest.json)
+Architecture: [`docs/TRAIL_BULLETPROOF.md`](docs/TRAIL_BULLETPROOF.md)
 
 ### Autopilot (zero UI tokens)
 

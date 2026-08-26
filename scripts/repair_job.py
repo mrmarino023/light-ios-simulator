@@ -332,7 +332,10 @@ def main() -> int:
             {"phase": phase, "ms": _elapsed_ms(t0_ms), **extra}
         )
 
-    index_root = os.environ.get("LIGH_IDENTITY_SOURCE", task["source_root"])
+    # Broken tree only — never a healthy BACKUP twin via env oracle.
+    index_root = task["source_root"]
+    if not os.path.isabs(index_root):
+        index_root = os.path.join(ROOT, index_root)
     index = build_identity_index(index_root)
     doc["identity_index_size"] = len(index)
     mark("index_built", size=len(index))

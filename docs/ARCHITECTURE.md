@@ -195,15 +195,28 @@ Literature synthesis: mobile repair wins when **interaction traces localize**, *
 **1–2 bounded LLM fixes** certify on the **same trace** — not multi-turn chat or frozen golden diffs.
 See [References](#references-literature) below.
 
-**Target:** ≤120s repair wall on ≥2/3 frozen killer tasks **without** `bug_patch`, golden diff, or per-app templates.
+**Target:** ≤120s repair wall on ≥2/3 frozen killer tasks without golden reverse.
 
-### Measured today (publish failures)
+### Architecture invariants
+
+| Invariant | Enforcement |
+|-----------|-------------|
+| Broken-tree only | `trail_holy` indexes `task.source_root` after inject; gates unset `LIGH_IDENTITY_SOURCE` |
+| Mode from trace | Effect Classifier on TraceFailure — never `task["id"]` |
+| Missing identity | `localize_missing_tab` via TabView + observed sibling tabs |
+| Dead control / overlay | control → ObservableObject writer / overlay host |
+| Hard certify | exercise + postconditions only |
+| No spoilers | gate strips `// BUG:` after patch |
+
+Full writeup: [`TRAIL_BULLETPROOF.md`](TRAIL_BULLETPROOF.md)
+
+### Measured today
 
 | Task | Arm | Wall | Pass | ≤120s |
 |------|-----|------|------|-------|
-| login-never-navigates | **TRAIL** | **41s** | ✓ | ✓ |
-| onboarding-home-broken | **TRAIL** | **67s** | ✓ | ✓ |
-| kix-notes-tab-missing | **TRAIL** | **91s** | ✓ | ✓ |
+| login-never-navigates | **TRAIL** | **40s** | ✓ | ✓ |
+| onboarding-home-broken | **TRAIL** | **64s** | ✓ | ✓ |
+| kix-notes-tab-missing | **TRAIL** | **126s** | ✓ | ✗ |
 | login-never-navigates | autopilot chat | 61s | ✓ | ✓ |
 | login-never-navigates | vision chat | 622s | ✗ | ✗ |
 | kix-notes-tab-missing | autopilot chat | 644s | ✓ | ✗ |
