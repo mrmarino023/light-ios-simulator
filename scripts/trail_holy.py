@@ -34,19 +34,26 @@ from killer_loop_task import load_task  # noqa: E402
 from killer_loop_verify import (  # noqa: E402
     bootstrap_app,
     eval_spec,
+    fresh_install_app,
     perceive,
     run_steps,
     strict_verify,
     verification_markers,
 )
-from effect_classifier import classify_or_refuse, enrich_trace_failure  # noqa: E402
+from effect_classifier import enrich_trace_failure  # noqa: E402
 from repair_job import (  # noqa: E402
     build_repair_bundle,
     ensure_ligh_session,
     fix_plan,
 )
 from trail_fixer import apply_candidate, build_messages, openai_full_file  # noqa: E402
-from view_graph import hybrid_localize, localize_control_gate, try_restore_missing_tab  # noqa: E402
+from repair_engine import (  # noqa: E402
+    RepairContext,
+    causal_localize,
+    classify,
+    graph_neighborhood,
+    try_structural_fixes,
+)
 
 def _exported_type_names(swift: str) -> set[str]:
     import re
@@ -76,47 +83,17 @@ def _now() -> int:
 
 
 def infer_mode(tf: dict[str, Any], prove_phase: str | None) -> str:
-    """Mode from TraceFailure v2 only — OSS-general Effect Classifier."""
-    return str(classify_or_refuse(tf, prove_phase=prove_phase)["mode"])
+    """Mode from TraceFailure — OSS-general Effect Classifier."""
+    return str(classify(tf, prove_phase=prove_phase)["mode"])
 
 
 def localize_from_trace(
-    source_root: str,
-    index: dict[str, list],
+    ctx: RepairContext,
     tf: dict[str, Any],
     mode: str,
 ) -> dict[str, Any]:
-    """Broken-tree localization: identity index → missing-tab / causal gate writer."""
-    expected = str(tf.get("expected_identity") or "")
-    control = str(tf.get("control") or "")
-    observed = [str(x) for x in (tf.get("observed_identities") or [])]
-
-    if mode in ("state_gate_stuck", "blocked_overlay"):
-        gate = localize_control_gate(source_root, control or expected, mode=mode)
-        if gate and gate.get("primary_path"):
-            return gate
-
-    loc = hybrid_localize(
-        source_root, index, expected, observed_identities=observed
-    )
-    if loc.get("primary_path"):
-        return loc
-
-    if control and control != expected:
-        loc = hybrid_localize(
-            source_root, index, control, observed_identities=observed
-        )
-        if loc.get("primary_path"):
-            return loc
-
-    if mode == "tab_chrome_missing":
-        loc = hybrid_localize(
-            source_root, index, expected or "tab_", observed_identities=observed
-        )
-        if loc.get("primary_path"):
-            return loc
-
-    return {"primary_path": None}
+    """Delegate to repair_engine causal localizer."""
+    return causal_localize(ctx, tf, mode).as_dict()
 
 
 def prove_with_post(task: dict[str, Any], *, install: bool | None = None) -> dict[str, Any]:
@@ -172,7 +149,8 @@ def prove_with_post(task: dict[str, Any], *, install: bool | None = None) -> dic
     if exercise and not all(s.get("ok") for s in exercise):
         fail_idx = next(i for i, s in enumerate(exercise) if not s.get("ok"))
         fail = exercise[fail_idx]
-        keys = perceive(peek_ms)["keys"]
+        keys_before = fail.get("keys_before") or []
+        keys = fail.get("keys_after") or sorted(perceive(peek_ms)["keys"])[:24]
         must = (ver.get("postconditions") or {}).get("must_see_labels") or []
         tf = enrich_trace_failure(
             {
@@ -184,7 +162,10 @@ def prove_with_post(task: dict[str, Any], *, install: bool | None = None) -> dic
                 "label": fail.get("label"),
                 "control": fail.get("id") or fail.get("label"),
             },
+            keys_before=keys_before,
             keys_after=keys,
+            sig_before=fail.get("sig_before"),
+            sig_after=fail.get("sig_after"),
             acceptance_pending=[str(x) for x in must],
         )
         return {
@@ -239,36 +220,29 @@ def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
     fast = os.environ.get("LIGH_TRAIL_FAST", "0") == "1"
     post_ms = 700 if fast else 2000
 
+    if not ensure_ligh_session().get("ok"):
+        return {"verified": False, "reason": "certify_session_failed"}
+
     prev_no = os.environ.pop("LIGH_TRAIL_NO_INSTALL", None)
     boot: dict[str, Any] = {}
     try:
-        for attempt in range(1, 4):
-            try:
-                subprocess.run(
-                    ["xcrun", "simctl", "terminate", "booted", bundle_id],
-                    capture_output=True,
-                    text=True,
-                    timeout=15,
-                )
-                subprocess.run(
-                    ["xcrun", "simctl", "install", "booted", app],
-                    capture_output=True,
-                    text=True,
-                    timeout=90,
-                )
-            except (OSError, subprocess.SubprocessError):
-                pass
+        for attempt in range(1, 3):
+            # Clean app data so certify exercise starts from task preconditions (login, etc.).
+            fresh_install_app(app, bundle_id)
+            if not ensure_ligh_session().get("ok"):
+                continue
+            # simctl already installed; relaunch via ligh (full install thrashes to SpringBoard).
             boot = bootstrap_app(
                 app,
                 bundle_id,
                 wait_label=wait_label,
                 app_markers=markers,
                 task=task,
-                install=True,
+                install=False,
             )
             if boot.get("foreground_ok"):
                 break
-            time.sleep(1.0 * attempt)
+            time.sleep(0.5 * attempt)
     finally:
         if prev_no is not None:
             os.environ["LIGH_TRAIL_NO_INSTALL"] = prev_no
@@ -337,7 +311,8 @@ def main() -> int:
     if not os.path.isabs(index_root):
         index_root = os.path.join(ROOT, index_root)
     index = build_identity_index(index_root)
-    mark("index", size=len(index), root=os.path.relpath(index_root, ROOT))
+    ctx = RepairContext.from_source_root(index_root)
+    mark("index", size=len(index), root=os.path.relpath(index_root, ROOT), kb=ctx.kb.to_dict())
 
     prove = prove_with_post(task)
     mark("prove", ok=prove.get("ok"), prove_phase=prove.get("phase"))
@@ -352,7 +327,7 @@ def main() -> int:
         return 1
 
     mode = infer_mode(tf, prove.get("phase"))
-    decision = classify_or_refuse(tf, prove_phase=prove.get("phase"))
+    decision = classify(tf, prove_phase=prove.get("phase"))
     mark("classify", mode=mode, refuse=decision.get("refuse_edit"))
     if decision.get("refuse_edit"):
         doc.update(
@@ -366,12 +341,14 @@ def main() -> int:
         _write(doc)
         return 1
 
-    loc = localize_from_trace(index_root, index, tf, mode)
+    loc_result = causal_localize(ctx, tf, mode)
+    loc = loc_result.as_dict()
     mark(
         "localize",
         primary=loc.get("primary_path"),
         mode=mode,
         ascent=loc.get("ascent"),
+        targets=loc.get("edit_targets"),
     )
     doc["ascent"] = loc.get("ascent")
     if not loc.get("primary_path"):
@@ -396,6 +373,9 @@ def main() -> int:
 
     bundle = build_repair_bundle(task, tf_for_bundle, loc)
     bundle["mode"] = mode
+    bundle["graph_neighborhood"] = graph_neighborhood(
+        ctx, loc["primary_path"], str(tf.get("control") or "")
+    )
     bundle["fix_plan"] = fix_plan(mode, tf_for_bundle)
     bundle["scope"]["edit_intent"] = bundle["fix_plan"]
     if mode == "state_gate_stuck":
@@ -414,6 +394,8 @@ def main() -> int:
         bundle["scope"]["forbidden_globs"] = ["**/Auth/**"]
 
     doc["repair_bundle"] = bundle
+    doc["structural_kb"] = ctx.kb.to_dict()
+    doc["graph_neighborhood"] = bundle["graph_neighborhood"]
     doc["trace_failure"] = tf
     mark("bundle", mode=mode)
 
@@ -454,38 +436,43 @@ def main() -> int:
         tail = (build.stderr or build.stdout or "")[-1200:]
         return build.returncode == 0, ms, tail
 
-    # R4 structural path: restore omitted tab without LLM when View type still exists.
-    if mode == "tab_chrome_missing" and expected_id.startswith("tab_"):
-        restored = try_restore_missing_tab(index_root, loc["primary_path"], expected_id)
-        if restored and restored.get("text"):
-            apply_candidate(abs_target, restored["text"], bundle)
-            ok, build_ms, tail = _run_build()
-            mark(
-                "build",
-                ok=ok,
-                build_ms=build_ms,
-                attempt=0,
-                method=restored.get("method"),
+    # R4 structural operators (effect-class) before LLM.
+    structural_hits = try_structural_fixes(ctx, mode, tf, loc_result)
+    for hit in structural_hits:
+        if changed:
+            break
+        apply_candidate(hit["abs_path"], hit["text"], bundle)
+        ok, build_ms, tail = _run_build()
+        mark(
+            "build",
+            ok=ok,
+            build_ms=build_ms,
+            attempt=0,
+            method=hit.get("method"),
+            file=hit.get("file"),
+        )
+        attempts.append(
+            {
+                "attempt": 0,
+                "changed": True,
+                "method": hit.get("method"),
+                "build_ok": ok,
+                "file": hit.get("file"),
+            }
+        )
+        if ok:
+            abs_target = hit["abs_path"]
+            bundle["scope"]["primary_path"] = os.path.relpath(abs_target, ROOT).replace("\\", "/")
+            bundle["fixer_input"]["target_file"] = bundle["scope"]["primary_path"]
+            candidate_text = hit["text"]
+            changed = True
+            tokens = 0
+        else:
+            open(hit["abs_path"], "w", encoding="utf-8").write(hit["original"])
+            feedback = (
+                f"Structural operator ({hit.get('method')}) build failed:\n{tail}\n"
+                "Apply a minimal fix in the target file only."
             )
-            attempts.append(
-                {
-                    "attempt": 0,
-                    "changed": True,
-                    "method": restored.get("method"),
-                    "view_type": restored.get("view_type"),
-                    "build_ok": ok,
-                }
-            )
-            if ok:
-                candidate_text = restored["text"]
-                changed = True
-                tokens = 0
-            else:
-                open(abs_target, "w", encoding="utf-8").write(original)
-                feedback = (
-                    f"Structural tab restore build failed:\n{tail}\n"
-                    "Apply a minimal TabView fix in the target file only."
-                )
 
     for attempt in range(1, MAX_FIX_ATTEMPTS + 1):
         if changed:

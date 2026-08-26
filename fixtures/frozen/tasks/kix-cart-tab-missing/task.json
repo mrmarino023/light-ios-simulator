@@ -56,6 +56,7 @@
       },
       {
         "action": "tap",
+        "id": "tab_cart",
         "label": "Cart",
         "settle_ms": 2500
       }

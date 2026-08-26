@@ -30,7 +30,7 @@ from killer_loop_verify import (  # noqa: E402
     verification_markers,
 )
 from ligh_mcp import call_tool  # noqa: E402
-from view_graph import hybrid_localize  # noqa: E402
+from effect_classifier import classify_effect, classify_or_refuse  # noqa: E402
 
 WALL_MS = int(os.environ.get("LIGH_TRAIL_WALL_MS", "120000"))
 PROVE_BUDGET_MS = int(os.environ.get("LIGH_TRAIL_PROVE_MS", "45000"))
@@ -139,25 +139,15 @@ def _scene_digest() -> str | None:
 
 
 def repair_mode_from_trace(fault: str, expected_identity: str) -> str:
-    ident = (expected_identity or "").lower()
-    tabish = ident.startswith("tab_") or ident in ("notes", "favorites", "home", "cart")
-    if fault in (
-        "target_missing",
-        "target_never_visible",
-        "exercise_failed",
-        "motor_failed",
-        "motor_no_effect",
-    ) and tabish:
-        return "tab_chrome_missing"
-    if fault in ("motor_no_effect", "control_fired_no_transition"):
-        return "state_gate_stuck"
-    if fault == "blocked":
-        return "blocked_overlay"
-    if fault == "type_never_committed":
-        return "type_never_committed"
-    if fault == "motor_rejected":
-        return "motor_rejected"
-    return "unknown"
+    """OSS-general mode — delegates to Effect Classifier (no filename/tab-name priors)."""
+    tf = {
+        "fault": fault,
+        "expected_identity": expected_identity,
+        "control": expected_identity,
+        "action": "tap",
+        "observed_identities": [],
+    }
+    return classify_effect(tf)
 
 
 def fix_plan(mode: str, trace_failure: dict[str, Any]) -> str:
@@ -226,6 +216,7 @@ def build_fixer_prompt(bundle: dict[str, Any], snippet: dict[str, Any]) -> str:
             f"Allowed globs: {scope.get('edit_globs')}",
             f"Forbidden globs: {scope.get('forbidden_globs')}",
             f"Localization ascent: {ascent}",
+            f"Graph neighborhood: {bundle.get('graph_neighborhood')}",
             "Requirements:",
             "- Edit only the target file.",
             "- Do not touch Auth/Login for tab_chrome_missing.",

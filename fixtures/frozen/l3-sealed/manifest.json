@@ -1,0 +1,31 @@
+{
+  "pack_id": "l3-sealed-v1",
+  "frozen_at": "2026-08-26",
+  "protocol": "sealed_blind",
+  "description": "Held-out frozen tasks — not in L2* multi gate. Agent sees task.json only.",
+  "rules": [
+    "No ground-truth.json in agent context",
+    "No LIGH_IDENTITY_SOURCE BACKUP",
+    "No task-id mode overrides",
+    "No // BUG: spoilers after inject"
+  ],
+  "wall_budget_ms": 120000,
+  "claim_need": 2,
+  "tasks": [
+    {
+      "id": "kix-favorites-tab-missing",
+      "task_path": "fixtures/frozen/tasks/kix-favorites-tab-missing/task.json",
+      "allowed_localize_globs": ["**/Navigation/**", "**/*Tab*.swift"]
+    },
+    {
+      "id": "kix-cart-tab-missing",
+      "task_path": "fixtures/frozen/tasks/kix-cart-tab-missing/task.json",
+      "allowed_localize_globs": ["**/Navigation/**", "**/*Tab*.swift"]
+    },
+    {
+      "id": "login-button-disabled",
+      "task_path": "fixtures/frozen/tasks/login-button-disabled/task.json",
+      "allowed_localize_globs": ["**/*View*.swift", "**/*Login*.swift", "**/*.swift"]
+    }
+  ]
+}

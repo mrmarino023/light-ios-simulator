@@ -4,22 +4,25 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LIGH="${LIGH_BIN:-$ROOT/target/release/ligh}"
 MCP="$ROOT/scripts/ligh_mcp.py"
-python3 - "$ROOT" "$LIGH" "$MCP" <<'PY'
+WORKSPACE="${LIGH_WORKSPACE:-$ROOT}"
+python3 - "$ROOT" "$LIGH" "$MCP" "$WORKSPACE" <<'PY'
 import json, sys
-root, ligh, mcp = sys.argv[1:4]
+root, ligh, mcp, workspace = sys.argv[1:5]
+env = {"LIGH_BIN": ligh, "LIGH_WORKSPACE": workspace}
 cfg = {
   "mcpServers": {
     "ligh": {
       "command": "python3",
       "args": [mcp],
-      "env": {"LIGH_BIN": ligh}
+      "env": env
     }
   }
 }
 print("# Add to Cursor → Settings → MCP (or ~/.cursor/mcp.json)")
 print("# Repo:", root)
+print("# LIGH_WORKSPACE:", workspace)
 print(json.dumps(cfg, indent=2))
 print()
-print("# Then: ./scripts/agent-first-loop.sh")
-print("# App under test: ./scripts/app-under-test.sh --bundle-id com.apple.Maps --assert-label Mappa")
+print("# Agent paradise: ./scripts/ligh-paradise.sh /path/to/YourApp.xcodeproj --build")
+print("# Re-test:         LIGH_WORKSPACE=/path/to/app ./scripts/ligh-test.sh")
 PY

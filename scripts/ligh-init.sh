@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# 5-minute onboarding: build, doctor, daemon, optional Expo vendoring, MCP snippet.
+# 5-minute onboarding: build, doctor, daemon, MCP snippet.
+# For full agent setup (audit + smoke + prompt): ./scripts/ligh-paradise.sh
 #
 # Usage:
 #   ./scripts/ligh-init.sh
-#   ./scripts/ligh-init.sh /path/to/YourExpoApp
+#   ./scripts/ligh-paradise.sh /path/to/YourApp.xcodeproj --build
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-EXPO_APP="${1:-}"
 
 echo "══ LIGH init ══"
 echo "  repo: $ROOT"
+echo "  → agent paradise: ./scripts/ligh-paradise.sh [YourApp.xcodeproj --build]"
 echo
 
 [[ "$(uname -s)" == "Darwin" ]] || { echo "error: macOS required" >&2; exit 1; }
@@ -29,12 +30,6 @@ if [[ ! -f "$HOME/.ligh/wda.env" ]]; then
   echo "▶ created ~/.ligh/wda.env — edit UDID + bundle for physical arms"
 fi
 
-if [[ -n "$EXPO_APP" && -d "$EXPO_APP" ]]; then
-  echo "▶ sync @mm-labs/ligh-expo → $EXPO_APP"
-  "$ROOT/scripts/sync-ligh-expo.sh" "$EXPO_APP"
-  echo "  → add \"@mm-labs/ligh-expo\" to app.json plugins[], rebuild dev client"
-fi
-
 echo "▶ doctor"
 "$LIGH" doctor || true
 
@@ -52,6 +47,7 @@ echo "▶ Cursor MCP (paste into Settings → MCP)"
 
 echo
 echo "✓ init done"
-echo "  sim:     $LIGH up && $LIGH observe --json"
-echo "  phone:   edit ~/.ligh/wda.env → ./scripts/start-appium-wda.sh → $LIGH device wait"
-echo "  prove:   ./scripts/gate-trail-holy-multi.sh"
+echo "  paradise: ./scripts/ligh-paradise.sh"
+echo "  sim:      $LIGH up && $LIGH observe --json"
+echo "  test:     LIGH_WORKSPACE=/path/to/app ./scripts/ligh-test.sh"
+echo "  prove:    ./scripts/gate-trail-holy-multi.sh"

@@ -33,9 +33,18 @@ write → build → run → interact → verify → fix
 
 - **Feel IR** — structured interaction frame (not a screenshot dump)
 - **Autopilot** — host reaches UI goals with **0 LLM UI tokens**
-- **TRAIL repair** — on failure: trace → localize → ≤2 scoped patches → build → certify
+- **TRAIL repair** — [`repair_engine.py`](scripts/repair_engine.py): classify → KB localize → structural ops → ≤2 LLM patches → certify (same path for every OSS app)
 
 Requires Mac + Xcode Simulator. Works best when the app exposes stable `accessibilityIdentifier`s.
+
+### Agent paradise (start here)
+
+```bash
+./scripts/ligh-paradise.sh /path/to/MyApp.xcodeproj --build
+LIGH_WORKSPACE=/path/to/app ./scripts/ligh-test.sh
+```
+
+→ [Agent paradise guide](docs/AGENT_PARADISE.md) · [AGENTS.md](AGENTS.md)
 
 ---
 
@@ -78,8 +87,18 @@ Artifact: [`docs/TRAIL_RESULTS.md`](docs/TRAIL_RESULTS.md) · [`trail-holy-compa
 | Onboarding stuck | OnboardingDemo | **64s** | 4.4k | `OnboardingView.swift` |
 | Notes tab missing | Kix | **78s** | 0 | `MainTabView.swift` |
 
-**3/3 verified ≤120s** → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)  
-How it works: [`docs/TRAIL_BULLETPROOF.md`](docs/TRAIL_BULLETPROOF.md)
+**3/3 verified ≤120s (L2\* suite)** → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)  
+How it works: [`docs/TRAIL_BULLETPROOF.md`](docs/TRAIL_BULLETPROOF.md) (architecture for every OSS app — not per-task patches)
+
+### Architecture (all OSS apps)
+
+Same [`repair_engine.py`](scripts/repair_engine.py) for every vendored app — no task-id modes, no filename priors:
+
+```text
+broken tree → StructuralKB → classify → causal localize → operators → LLM (if miss) → certify
+```
+
+Refuse unknown effects rather than edit the wrong file.
 
 ### LIGH Autopilot only (UI goals — not repair)
 
@@ -99,7 +118,7 @@ Separate claim: reach a UI goal with **0 LLM tokens for taps** (host policy on a
 Reproduce:
 
 ```bash
-./scripts/gate-trail-holy-multi.sh          # LIGH repair vs baselines
+./scripts/gate-trail-holy-multi.sh          # L2* regression suite
 ./scripts/gate-autopilot-generality.sh      # UI-goal motor claim
 ```
 

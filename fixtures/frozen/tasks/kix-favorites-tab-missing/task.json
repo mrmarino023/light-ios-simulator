@@ -46,6 +46,7 @@
       },
       {
         "action": "tap",
+        "id": "tab_favorites",
         "label": "Favorites",
         "settle_ms": 2500
       }

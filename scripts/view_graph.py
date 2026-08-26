@@ -233,21 +233,28 @@ def try_restore_missing_tab(
     )
     block = "\n".join(block_lines)
 
-    # Prefer insert after tab_home; else after TabView opening brace.
     insert_at: int | None = None
-    m_home = re.search(
-        r'\.accessibilityIdentifier\(\s*"tab_home"\s*\)\s*\n',
-        host,
-    )
-    if m_home:
-        insert_at = m_home.end()
-    else:
-        m_tv = TABVIEW_RE.search(host)
-        if m_tv:
-            brace = host.find("{", m_tv.start())
-            if brace >= 0:
-                nl = host.find("\n", brace)
-                insert_at = (nl + 1) if nl >= 0 else brace + 1
+    prev_tag = tag - 1
+    while prev_tag >= 0:
+        m = re.search(rf'\.tag\(\s*{prev_tag}\s*\)\s*\n', host)
+        if m:
+            insert_at = m.end()
+            break
+        prev_tag -= 1
+    if insert_at is None:
+        m_home = re.search(
+            r'\.accessibilityIdentifier\(\s*"tab_home"\s*\)\s*\n',
+            host,
+        )
+        if m_home:
+            insert_at = m_home.end()
+        else:
+            m_tv = TABVIEW_RE.search(host)
+            if m_tv:
+                brace = host.find("{", m_tv.start())
+                if brace >= 0:
+                    nl = host.find("\n", brace)
+                    insert_at = (nl + 1) if nl >= 0 else brace + 1
     if insert_at is None:
         return None
 

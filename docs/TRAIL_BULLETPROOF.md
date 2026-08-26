@@ -1,178 +1,130 @@
-# TRAIL bulletproof — architecture reassessment
+# TRAIL — bulletproof architecture for every OSS app
 
-Last updated: 2026-08-26  
-Status: **product path live** — Effect Classifier + causal localize (View→VM / leaf→overlay host / TabView). Honest multi: **3/3 verified, 2/3 ≤120s** (`docs/assets/trail-holy-multi-latest.json`). Kix wall still gated by 2nd LLM shot after compile miss.
+Last updated: 2026-08-26
 
-## What the honest run proved
+This is the **product contract**, not a benchmark scoreboard. Any vendored SwiftUI app with accessibility identifiers gets the same pipeline.
 
-| Task | Broken-tree result | Localize |
-|------|--------------------|----------|
-| **login-never-navigates** | verified **40s** · `state_gate_stuck` | `LoginViewModel.swift` via control→ObservableObject |
-| **kix-notes-tab-missing** | verified **126s** (over budget) · `tab_chrome_missing` | TabView composition (no filename prior) |
-| **onboarding-home-broken** | verified **64s** · `blocked_overlay` | `OnboardingView.swift` via leaf→host + presentation Binding |
-
-Smoking-gun TraceFailure (login) now classifies before localize:
+## One pipeline (no per-app branches)
 
 ```text
-step 3 tap loginButton
-fault: motor_failed          ← misclassified; control still on-screen
-observed: … loginButton, usernameTextField, passwordSecureField, Welcome …
-expected post: homeTitle     ← never evaluated; exercise aborted on tap fault
+broken tree only
+  → R0 StructuralKB + identity index (cold, per app)
+  → R1 TraceFailure v3 (motor + AX diff)
+  → R2 Effect Classifier → RepairMode | refuse
+  → R3 Causal Localizer (KB graph ascent)
+  → R4 Structural operators (effect-class transforms)
+  → R4b LLM fixer ≤2 shots (only on operator miss)
+  → R5 hard certify (same exercise oracle)
+  → R6 wall governor
 ```
 
-Bug is `isLoggedIn = false` in ViewModel. System edited the **view that declares the button**, not the **state the button writes**. That is the architectural hole — not “need more heuristics on task id”.
+**Product entry:** [`scripts/repair_engine.py`](../scripts/repair_engine.py)  
+**Orchestrator:** [`scripts/trail_holy.py`](../scripts/trail_holy.py)
 
----
+## Hard invariants (never break)
 
-## Failure taxonomy (must drive design)
+| Rule | Why |
+|------|-----|
+| Broken tree only | Index/localize the injected app — never `LIGH_IDENTITY_SOURCE` BACKUP |
+| Mode from TraceFailure | Effect Classifier only — **never** `task["id"]` |
+| No filename priors | No `MainTabView` / `LoginViewModel` / tab name string boosts |
+| No golden reverse | Fixer never applies `bug.patch` backward |
+| No `// BUG:` spoilers | Gates strip inject comments before build |
+| Refuse > guess | `unknown` → `localize_failed` — no speculative wrong-file edit |
+| Hard certify | Same exercise + postconditions — no autopilot soft-pass |
 
-| Class | Symptom in TraceFailure | Correct RepairMode | Correct localize target |
-|-------|-------------------------|--------------------|-------------------------|
-| **A. Missing chrome** | expected `tab_*` absent from AX; Tab Bar siblings present | `tab_chrome_missing` | TabView composition that hosts observed siblings, **missing** expected |
-| **B. Dead control** | control **still visible** after tap; fingerprint/scene unchanged | `state_gate_stuck` | Writer of gate state bound to that control (ViewModel / `@Published`), **not** the Button’s view file |
-| **C. Stuck overlay** | overlay/sheet still blocking; finish control fired | `blocked_overlay` | Finish handler / Bool that keeps overlay presented |
-| **D. True missing target** | expected id never in AX and not a tab sibling case | `target_never_visible` | Declaration site or composition that should expose it |
+## R0 — Structural KB (per app, from broken sources)
 
-Today’s mapper used to collapse B into `unknown` when fault=`motor_failed`, then localize the leaf. **Bulletproof path classifies B before localize** (`motor_no_effect` → `state_gate_stuck` → ObservableObject writer).
+Built once per repair from `task.source_root`:
 
----
+| Edge | Meaning |
+|------|---------|
+| identity → View file | who declares `accessibilityIdentifier` |
+| View → `@StateObject` / `@EnvironmentObject` type | who owns interaction |
+| type → ObservableObject file | who publishes gate state |
+| parent → `ChildView(` | composition / overlay host |
+| `@Binding is*Visible` | overlay dismiss writer |
 
-## Bulletproof stack (replace current R0–R6)
+Module: [`scripts/structural_kb.py`](../scripts/structural_kb.py)
 
-```text
-R0  Structural KB (cold, per app, from BROKEN tree only)
-      identity index + call graph: View ⇄ ViewModel ⇄ @Published / bindings
-R1  Trace Oracle (richer than today’s TraceFailure)
-R2  Effect Classifier  → RepairMode   (NEW — before localize)
-R3  Causal Localizer   → primary_path (mode-specific ascent)
-R4  Scoped Fixer       ≤2 shots, compile-gated
-R5  Same-trace Certify hard fail-closed
-R6  Wall governor      prove/fix/build/certify budgets with early abort
+## R2 — Effect Classifier (pure TraceFailure)
+
+Closed modes:
+
+| Mode | Signal |
+|------|--------|
+| `tab_chrome_missing` | expected `tab_*` absent; Tab Bar / sibling tabs present |
+| `state_gate_stuck` | tap + control still visible + sig flat |
+| `blocked_overlay` | finish-like control; overlay atoms persist |
+| `wrong_navigation` | sig changed but acceptance still pending |
+| `motor_rejected` | type/motor rejected; presentation block likely |
+| `target_never_visible` | expected id never in AX (non-tab case) |
+| `unknown` | **refuse edit** |
+
+Module: [`scripts/effect_classifier.py`](../scripts/effect_classifier.py)
+
+## R3 — Causal Localizer (KB ascent, not filenames)
+
+| Mode | Ascent |
+|------|--------|
+| `tab_chrome_missing` | observed sibling `tab_*` → TabView composition missing expected |
+| `state_gate_stuck` | control → **presentation block** (`.disabled`) **or** ObservableObject writer |
+| `blocked_overlay` | control view → host with `@Binding` / finish handler |
+| `motor_rejected` | control → declaration site (view interaction fault) |
+| `target_never_visible` | identity index → composition |
+
+**Login disabled vs login gate:** same classifier symptom; localizer distinguishes via KB — `.disabled(true)` on declaring view → edit **view**, not ViewModel.
+
+Module: [`scripts/repair_engine.py`](../scripts/repair_engine.py) → `causal_localize()`
+
+## R4 — Structural operators (effect-class, not task patches)
+
+Transforms registered by **mode**, parameterized by TraceFailure + broken tree:
+
+| Operator | Mode | When safe (single-site) |
+|----------|------|-------------------------|
+| `structural_tab_restore` | `tab_chrome_missing` | `XxxView` type still in tree; TabView host localized |
+| `gate_bool_flip` | `state_gate_stuck` | one wrong `= false` in method body (not `@Published` init) |
+| `overlay_dismiss_restore` | `blocked_overlay` | finish handler missing dismiss assignment |
+| `control_enable` | presentation block | one `.disabled(true)` on control |
+
+If operator misses → LLM gets graph neighborhood + fix plan (≤2 shots).
+
+Module: [`scripts/repair_operators.py`](../scripts/repair_operators.py)
+
+## What “all OSS apps” means
+
+Works **without retraining per app** when:
+
+1. App exposes stable `accessibilityIdentifier`s (or labels on exercise steps)
+2. Bug is one of the closed failure classes above
+3. Broken tree still contains the types/composition needed to infer the fix site
+
+Does **not** claim: arbitrary logic bugs, deleted types, blind bugs with zero AX signal, or vision-only UIs.
+
+Measurement tiers:
+
+| Tier | Meaning |
+|------|---------|
+| L2\* | Instrumented frozen suite — regression for architecture |
+| L3 | Sealed held-out pack — same code path, no co-design |
+| L4 | Unknown app + unknown bug at runtime — future |
+
+## Anti-patterns (removed from product path)
+
+- `task["id"]` → mode overrides
+- `LIGH_IDENTITY_SOURCE` healthy twin index
+- Tab name priors (`"favorites"`, `"notes"` in repair_mode_from_trace)
+- Filename priors in localizer
+- Autopilot certify recovery
+- Chasing gate pass with task-specific if/else
+
+## Reproduce
+
+```bash
+# Architecture path (any task.json)
+LIGH_TRAIL_TASK=fixtures/frozen/tasks/<task>/task.json ./scripts/gate-trail-holy.sh
+
+# L2* regression suite
+./scripts/gate-trail-holy-multi.sh
 ```
-
-### R1 — TraceFailure v2 (required fields)
-
-```json
-{
-  "step": 3,
-  "action": "tap",
-  "control": "loginButton",
-  "control_still_visible": true,
-  "expected_identity": "loginButton",
-  "acceptance_pending": ["homeTitle", "Home"],
-  "observed_identities": ["…"],
-  "screen_sig_before": "…",
-  "screen_sig_after": "…",
-  "sig_changed": false,
-  "fault": "motor_no_effect",
-  "scene_before": "…",
-  "scene_after": "…"
-}
-```
-
-Rules:
-
-- If tap ACK and `control_still_visible` and `!sig_changed` → fault **must** be `motor_no_effect` / `control_fired_no_transition`, never opaque `motor_failed`.
-- Exercise must optionally continue to **acceptance probe** after a dead control (one perceive) so `acceptance_pending` is filled — without claiming prove success.
-
-### R2 — Effect Classifier (pure function of TraceFailure v2)
-
-```text
-if expected.startswith("tab_") and expected ∉ observed and "Tab Bar"∈observed
-    → tab_chrome_missing
-elif control_still_visible and not sig_changed and action==tap
-    → state_gate_stuck
-elif blocked / overlay atoms persist after finish-like control
-    → blocked_overlay
-elif expected ∉ observed
-    → target_never_visible
-else
-    → unknown  (refuse to edit; do not guess ContentView)
-```
-
-**Refuse `unknown` edits.** Returning localize_failed is better than a wrong file.
-
-### R3 — Causal Localizer (per mode)
-
-| Mode | Algorithm (broken tree only) |
-|------|------------------------------|
-| `tab_chrome_missing` | Keep current: TabView files scored by observed sibling `tab_*` + `.tabItem`; prefer files **missing** expected id |
-| `state_gate_stuck` | (1) Find files declaring `control` AX id. (2) Parse SwiftUI bindings / `action:` / button handlers. (3) Resolve referenced `ViewModel` / `@ObservedObject` / `@StateObject` types. (4) Primary = type that **writes** a `@Published` Bool/enum used by root navigation. Prefer writer over view. |
-| `blocked_overlay` | Control site → handler → `@Published` / `isPresented` / `fullScreenCover` source |
-
-No filename bonuses (`LoginViewModel`, `MainTabView`, `OnboardingView`).
-
-Minimum viable for login (no full Swift parser yet):
-
-1. Files containing `loginButton` (or control id).
-2. Extract nearby type names (`LoginViewModel()`, `@StateObject`, `@ObservedObject`).
-3. Open those `.swift` files; score `@Published` assignments in methods (not the View body).
-4. Pick highest score — empirically lands on ViewModel for XCUITestDemo.
-
-### R4 — Fixer constraints (stop compile thrash)
-
-- Scope **one file** = `primary_path` only; forbid deleting types referenced by App entry (`ContentView` must remain if App references it).
-- Pre-flight: `swift` syntax brace balance + **symbol retention check** (if file was exporting `struct ContentView`, candidate must still define it — or reject shot).
-- `max_completion_tokens` sized to file length; reject truncated outputs (already partial).
-- Shot 2 only on compile error or certify fail with harness fault text.
-
-### R5 — Certify
-
-Unchanged contract: same exercise + postconditions. No autopilot recovery.
-
-### R6 — Wall governor (hit ≤120s without cheats)
-
-Budget (hot, infra excluded, published as such):
-
-| Phase | Cap | Notes |
-|-------|-----|-------|
-| Prove | ≤25s | install-once + settle caps; classify dead-control without long retries |
-| Localize | ≤2s | pure static |
-| Fix+build | ≤45s | 1 shot preferred; 2nd only if compile fail |
-| Certify | ≤35s | install fixed once + exercise; no 90s autopilot |
-| Slack | ≤13s | |
-| **Total** | **≤120s** | |
-
-Kix at 179s lost on prove (~58s) + 2 builds + certify. Governor must **fail-soft**: if prove >25s still continue, but optimize settle; if shot1 compiles, never burn shot2.
-
----
-
-## What stays deleted (non-negotiable)
-
-| Anti-pattern | Why |
-|--------------|-----|
-| Healthy BACKUP identity index | Soft golden for missing ids |
-| Mode from `task["id"]` | Suite overfitting |
-| Filename priors | Per-app templates |
-| `// BUG:` as signal | Spoiler |
-| Autopilot certify soft-pass | Fake verify |
-| Golden `patch -R` | Answer key |
-
----
-
-## Implementation order (to regain a real claim)
-
-1. **Motor fault mapping** — map dead-control taps → `motor_no_effect` + `control_still_visible` in attempt/prove (daemon + harness).
-2. **Effect Classifier** in `ligh-core::repair` + Python parity; unit tests from the three TraceFailure shapes (no task ids).
-3. **Causal localizer for state_gate** (View→ViewModel ascent); unit test: XCUITestDemo broken tree → `LoginViewModel.swift`.
-4. **Fixer symbol-retention + reject unknown mode**.
-5. **Wall governor** on prove/certify settle.
-6. **Re-run multi** under broken-tree protocol; publish PASS or FAIL without editing the suite.
-7. **Held-out** favorites/cart + one new app — only after multi is green under (1–5).
-
-Pass criterion for “bulletproof L2”:
-
-- Same 3 tasks, **broken-tree only**, no spoilers, hard certify  
-- ≥2/3 verified ≤120s  
-- Login primary_path ends with `LoginViewModel.swift` (or equivalent gate writer)  
-- Kix primary_path is TabView composition  
-
-L3 (unknown apps) remains a separate sealed protocol after L2 is honest-green.
-
----
-
-## Claim language (until then)
-
-> TRAIL is being rebuilt for causal localize from TraceFailure.  
-> Prior 3/3 ≤120s used contaminated oracles and is **withdrawn** as a generalization claim.  
-> Next published number is from this contract or is marked FAIL.

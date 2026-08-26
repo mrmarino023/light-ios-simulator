@@ -76,6 +76,16 @@ pub struct TraceFailure {
     /// Acceptance identities that remain unsatisfied (postcondition probe).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub acceptance_pending: Vec<String>,
+    /// AX ids that appeared after the act (TraceFailure v3).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ax_appeared: Vec<String>,
+    /// AX ids that disappeared after the act (TraceFailure v3).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub ax_disappeared: Vec<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub screen_sig_before: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub screen_sig_after: Option<String>,
 }
 
 /// Result envelope for `repair_job` RPC.
@@ -764,6 +774,10 @@ mod tests {
             control_still_visible: Some(false),
             sig_changed: Some(false),
             acceptance_pending: vec![],
+            ax_appeared: vec![],
+            ax_disappeared: vec![],
+            screen_sig_before: None,
+            screen_sig_after: None,
         };
         let diagnosis = PilotDiagnosis {
             code: "tab_chrome_missing".into(),

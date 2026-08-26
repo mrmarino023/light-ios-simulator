@@ -1,0 +1,48 @@
+{
+  "gate": "trail_l3_sealed",
+  "pack_id": "l3-sealed-v1",
+  "wall_budget_ms": 120000,
+  "tasks_run": 3,
+  "tasks_verified": 3,
+  "tasks_holy_shit": 3,
+  "claim_pass": true,
+  "l3_generalized": true,
+  "tasks": [
+    {
+      "task": "kix-favorites-tab-missing",
+      "verified": true,
+      "holy_shit": true,
+      "wall_ms": 72397,
+      "mode": "tab_chrome_missing",
+      "primary_path": "fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift",
+      "llm_tokens": 0,
+      "operator": "structural_tab_restore",
+      "within_budget": true,
+      "reason": "verified"
+    },
+    {
+      "task": "kix-cart-tab-missing",
+      "verified": true,
+      "holy_shit": true,
+      "wall_ms": 67801,
+      "mode": "tab_chrome_missing",
+      "primary_path": "fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift",
+      "llm_tokens": 0,
+      "operator": "structural_tab_restore",
+      "within_budget": true,
+      "reason": "verified"
+    },
+    {
+      "task": "login-button-disabled",
+      "verified": true,
+      "holy_shit": true,
+      "wall_ms": 22658,
+      "mode": "state_gate_stuck",
+      "primary_path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+      "llm_tokens": 0,
+      "operator": "control_enable",
+      "within_budget": true,
+      "reason": "verified"
+    }
+  ]
+}

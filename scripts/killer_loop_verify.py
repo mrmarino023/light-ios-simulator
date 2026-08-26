@@ -128,6 +128,19 @@ def quarantine_bundles(expected_bundle_id: str) -> list[str]:
     return terminated
 
 
+def fresh_install_app(app: str, bundle_id: str) -> None:
+    """Terminate → uninstall → install for clean certify bootstrap (no session leak)."""
+    for args in (
+        ["xcrun", "simctl", "terminate", "booted", bundle_id],
+        ["xcrun", "simctl", "uninstall", "booted", bundle_id],
+        ["xcrun", "simctl", "install", "booted", app],
+    ):
+        try:
+            subprocess.run(args, capture_output=True, text=True, timeout=90)
+        except (OSError, subprocess.SubprocessError):
+            pass
+
+
 def surface_owned(
     *,
     keys: set[str],
@@ -271,23 +284,25 @@ def run_tap(
     id: str | None = None,
 ) -> dict[str, Any]:
     fast = os.environ.get("LIGH_TRAIL_FAST", "0") == "1"
-    # Attempt already settles + effect-checks. Skip a full pre-perceive on the hot path.
-    pre_keys: set[str] = set()
-    if not fast:
-        pre = perceive(settle_ms)
-        pre_keys = pre["keys"]
+    peek_ms = 400 if fast else settle_ms
+    pre = perceive(peek_ms)
+    pre_keys: set[str] = pre["keys"]
+    sig_before = pre.get("sig") or pre.get("fingerprint")
     payload: dict[str, Any] = {
         "intent": "tap",
         "settle_ms": settle_ms,
         "timeout_ms": 8000 if fast else 12000,
     }
-    if label:
-        payload["label"] = label
-    if id:
+    # Tab chrome: accessibility id is locale-stable; visible labels often are not.
+    if id and str(id).startswith("tab_"):
         payload["id"] = id
+    else:
+        if label:
+            payload["label"] = label
+        if id:
+            payload["id"] = id
     result = call_tool("ligh_attempt", payload)
     fault = result.get("fault") or ""
-    # One retry for flaky tab chrome after a fresh install.
     if (
         fast
         and not (bool(result.get("ok")) and fault in ("", "ok"))
@@ -296,6 +311,9 @@ def run_tap(
         time.sleep(0.25)
         result = call_tool("ligh_attempt", {**payload, "settle_ms": max(settle_ms, 1100)})
         fault = result.get("fault") or ""
+    post = perceive(peek_ms)
+    post_keys = post["keys"]
+    sig_after = post.get("sig") or post.get("fingerprint")
     target = label or id or ""
     if fast:
         detail = result.get("detail") or {}
@@ -310,6 +328,10 @@ def run_tap(
         "ok": ok,
         "fault": fault or None,
         "target_seen": target_seen,
+        "keys_before": sorted(pre_keys)[:32],
+        "keys_after": sorted(post_keys)[:32],
+        "sig_before": sig_before,
+        "sig_after": sig_after,
     }
 
 
@@ -395,6 +417,10 @@ def run_steps(steps: list[dict[str, Any]], phase: str) -> list[dict[str, Any]]:
                     "id": sid,
                     "ok": bool(result.get("ok")),
                     "fault": result.get("fault"),
+                    "keys_before": result.get("keys_before"),
+                    "keys_after": result.get("keys_after"),
+                    "sig_before": result.get("sig_before"),
+                    "sig_after": result.get("sig_after"),
                 }
             )
             if not result.get("ok"):

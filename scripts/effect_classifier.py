@@ -22,17 +22,24 @@ def enrich_trace_failure(
     tf: dict[str, Any],
     *,
     keys_after: set[str] | list[str] | None = None,
+    keys_before: set[str] | list[str] | None = None,
     acceptance_pending: list[str] | None = None,
     sig_before: str | None = None,
     sig_after: str | None = None,
 ) -> dict[str, Any]:
-    """Fill TraceFailure v2 fields from post-act observation."""
+    """Fill TraceFailure v2/v3 fields from post-act observation."""
     out = dict(tf)
     control = str(out.get("control") or out.get("expected_identity") or out.get("label") or "")
     observed = _norm_ids(out.get("observed_identities"))
     if keys_after is not None:
         observed = _norm_ids(sorted(keys_after))
         out["observed_identities"] = observed[:32]
+
+    if keys_before is not None:
+        before = set(_norm_ids(keys_before))
+        after = set(observed)
+        out["ax_disappeared"] = sorted(before - after)[:24]
+        out["ax_appeared"] = sorted(after - before)[:24]
 
     still = bool(control) and control in observed
     # Also treat visible label match as still-visible when id missing from dump keys.
@@ -102,6 +109,10 @@ def classify_effect(tf: dict[str, Any], *, prove_phase: str | None = None) -> st
     ):
         return "tab_chrome_missing"
 
+    # C — wrong screen: sig changed but acceptance still pending (navigation miss).
+    if action in ("tap", "assert") and sig_changed is True and pending and not still:
+        return "wrong_navigation"
+
     # B — dead control: tapped, still visible, no transition (classic auth gate).
     if action in ("tap", "assert") and (
         fault in ("motor_no_effect", "control_fired_no_transition")
@@ -141,6 +152,8 @@ def classify_effect(tf: dict[str, Any], *, prove_phase: str | None = None) -> st
 
     if fault == "type_never_committed":
         return "type_never_committed"
+    if action == "type" and fault in ("motor_failed", "exercise_failed", "motor_rejected"):
+        return "motor_rejected"
     if fault == "motor_rejected":
         return "motor_rejected"
     if fault == "eyes_unusable":
