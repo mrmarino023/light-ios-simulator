@@ -28,7 +28,8 @@ from typing import Any
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 LIGH = os.environ.get("LIGH_BIN", os.path.join(ROOT, "target", "release", "ligh"))
-AGENT_MD = os.path.join(ROOT, "docs", "AGENT.md")
+AGENT_MD = os.path.join(ROOT, "AGENTS.md")
+AGENT_MD_FALLBACK = os.path.join(ROOT, "docs", "AGENT.md")
 
 
 def ligh(*args: str, timeout: float = 120) -> dict[str, Any]:
@@ -334,19 +335,79 @@ def route_perceive(
 
 
 def agent_rules_text() -> str:
-    if os.path.isfile(AGENT_MD):
-        return open(AGENT_MD, encoding="utf-8").read()
+    for path in (AGENT_MD, AGENT_MD_FALLBACK):
+        if os.path.isfile(path):
+            return open(path, encoding="utf-8").read()
     return (
-        "LIGH: observe(settle) → tap --label → observe again. "
-        "Never plan from screenshots. If eyes_unusable, home and re-observe."
+        "LIGH: ligh_test → fix on fault → ligh_test. "
+        "Never plan from screenshots. If eyes_unusable, ligh_ready."
     )
 
 
 TOOLS = [
     {
         "name": "ligh_agent_rules",
-        "description": "Return LIGH agent instructions (settle loop, honesty, IT/EN labels).",
+        "description": "Return LIGH agent instructions (paradise loop, goal-first verify, repair).",
         "inputSchema": {"type": "object", "properties": {}},
+    },
+    {
+        "name": "ligh_test",
+        "description": (
+            "PRIMARY — verify app from .ligh/project.json (goal-first postconditions). "
+            "Run after code changes; ok:true = verified. Requires ligh_init once per project."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "workspace": {
+                    "type": "string",
+                    "description": "App repo root with .ligh/ (default LIGH_WORKSPACE or cwd)",
+                },
+                "mode": {
+                    "type": "string",
+                    "enum": ["goal", "job"],
+                    "default": "goal",
+                    "description": "goal=postconditions (preferred); job=explicit steps",
+                },
+                "settle_ms": {"type": "integer", "default": 3000},
+                "timeout_ms": {"type": "integer", "default": 20000},
+            },
+        },
+    },
+    {
+        "name": "ligh_init",
+        "description": (
+            "Onboard an iOS project: audit accessibility, write .ligh/ bundle + app-goal.json. "
+            "Pass .xcodeproj, .app, or task.json. Use build:true for xcodeproj."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "path": {
+                    "type": "string",
+                    "description": "Path to .xcodeproj dir, .app, or task.json",
+                },
+                "build": {"type": "boolean", "default": False},
+                "workspace": {
+                    "type": "string",
+                    "description": "Where to write .ligh/ (default: project dir)",
+                },
+            },
+            "required": ["path"],
+        },
+    },
+    {
+        "name": "ligh_viewer",
+        "description": (
+            "Start live Simulator viewer in browser (~8765). Debug UX — motor stays AX-first."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "port": {"type": "integer", "default": 8765},
+                "interval_ms": {"type": "integer", "default": 1000},
+            },
+        },
     },
     {
         "name": "ligh_status",
@@ -895,6 +956,41 @@ def session_udid() -> str | None:
 def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
     if name == "ligh_agent_rules":
         return {"ok": True, "rules": agent_rules_text()}
+    if name in ("ligh_test", "ligh_init", "ligh_viewer"):
+        sys.path.insert(0, os.path.join(ROOT, "scripts"))
+        import ligh_agent_api as api
+
+        if name == "ligh_test":
+            return api.run_test(
+                args.get("workspace"),
+                mode=str(args.get("mode") or "goal"),
+                settle_ms=int(args.get("settle_ms") or 3000),
+                timeout_ms=int(args.get("timeout_ms") or 20000),
+            )
+        if name == "ligh_init":
+            path = str(args.get("path") or "")
+            if not path:
+                return {"ok": False, "fault": "infra", "error": "path required"}
+            return api.run_init(path, build=bool(args.get("build")), workspace=args.get("workspace"))
+        port = int(args.get("port") or 8765)
+        interval = int(args.get("interval_ms") or 1000)
+        viewer_script = os.path.join(ROOT, "scripts", "ligh_viewer.py")
+        log = os.path.expanduser("~/.ligh/viewer/viewer.log")
+        os.makedirs(os.path.dirname(log), exist_ok=True)
+        with open(log, "a", encoding="utf-8") as lf:
+            proc = subprocess.Popen(
+                [sys.executable, viewer_script, "--port", str(port), "--interval-ms", str(interval)],
+                stdout=lf,
+                stderr=lf,
+                start_new_session=True,
+            )
+        return {
+            "ok": True,
+            "capability": "viewer",
+            "url": f"http://127.0.0.1:{port}/",
+            "pid": proc.pid,
+            "log": log,
+        }
     if name == "ligh_status":
         return ligh("--json", "status")
     if name == "ligh_up":

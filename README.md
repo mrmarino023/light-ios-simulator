@@ -41,8 +41,10 @@ Requires Mac + Xcode Simulator. Works best when the app exposes stable `accessib
 
 ```bash
 ./scripts/ligh-paradise.sh /path/to/MyApp.xcodeproj --build
-LIGH_WORKSPACE=/path/to/app ./scripts/ligh-test.sh
+LIGH_WORKSPACE=/path/to/app ./scripts/ligh-test.sh      # goal-first verify
 ```
+
+**MCP:** `ligh_init` → `ligh_test` → `ligh_viewer` · vs Maestro: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
 
 → [Agent paradise guide](docs/AGENT_PARADISE.md) · [AGENTS.md](AGENTS.md)
 

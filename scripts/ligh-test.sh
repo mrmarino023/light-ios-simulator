@@ -1,36 +1,21 @@
 #!/usr/bin/env bash
-# Run the generated app-job from .ligh/project.json (agent re-test loop).
+# Run verify from .ligh/ — goal-first (default) or explicit job steps.
 #
 # Usage:
-#   ./scripts/ligh-test.sh                    # uses $LIGH_WORKSPACE/.ligh or cwd/.ligh
-#   LIGH_WORKSPACE=/path/to/app ./scripts/ligh-test.sh
+#   ./scripts/ligh-test.sh
+#   LIGH_TEST_MODE=job ./scripts/ligh-test.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-LIGH="${LIGH_BIN:-$ROOT/target/release/ligh}"
-WS="${LIGH_WORKSPACE:-$(pwd)}"
-LIGH_DIR="$WS/.ligh"
-
-fail() { echo "✗ $*" >&2; exit 1; }
-
-[[ -f "$LIGH_DIR/project.json" ]] || fail "missing $LIGH_DIR/project.json — run ./scripts/ligh-paradise.sh first"
-
-APP=$(python3 -c "import json; print(json.load(open('$LIGH_DIR/project.json')).get('app_path') or '')")
-BID=$(python3 -c "import json; print(json.load(open('$LIGH_DIR/project.json')).get('bundle_id') or '')")
-STEPS=$(python3 -c "import json; print(json.dumps(json.load(open('$LIGH_DIR/app-job.json'))))")
-
-[[ -d "$APP" ]] || fail "app not built: $APP (run ligh-paradise.sh --build)"
-[[ -n "$BID" ]] || fail "bundle_id missing in project.json"
-
-[[ -x "$LIGH" ]] || fail "build ligh first: ./scripts/ligh-init.sh"
-
-"$LIGH" daemon status >/dev/null 2>&1 || "$LIGH" daemon start
-"$ROOT/scripts/agent-first-loop.sh" >/tmp/ligh-test-first.log 2>&1 || true
-
-OUT="${LIGH_TEST_OUT:-/tmp/ligh-test-latest.json}"
-echo "══ ligh test ══"
-echo "  app=$APP"
-"$LIGH" --json cap app-job "$APP" --bundle-id "$BID" --steps "$STEPS" \
-  --settle-ms 3000 --timeout-ms 25000 | tee "$OUT"
-
-python3 -c "import json,sys; d=json.load(open(sys.argv[1])); sys.exit(0 if d.get('ok') else 1)" "$OUT" \
-  && echo "✓ verified" || fail "test failed — fault in $OUT"
+export PYTHONPATH="$ROOT/scripts"
+MODE="${LIGH_TEST_MODE:-goal}"
+python3 - "$MODE" <<'PY'
+import json, os, sys
+sys.path.insert(0, os.environ.get("PYTHONPATH", "."))
+from ligh_agent_api import run_test
+mode = sys.argv[1] if len(sys.argv) > 1 else "goal"
+out = run_test(mode=mode)
+out_path = os.environ.get("LIGH_TEST_OUT", "/tmp/ligh-test-latest.json")
+json.dump(out, open(out_path, "w"), indent=2)
+print(json.dumps({"ok": out.get("ok"), "mode": mode, "fault": out.get("fault"), "out": out_path}, indent=2))
+sys.exit(0 if out.get("ok") else 1)
+PY

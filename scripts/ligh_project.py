@@ -15,7 +15,12 @@ from typing import Any
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
-from ligh_audit_accessibility import audit_source_root, suggest_app_job_steps, suggest_verification  # noqa: E402
+from ligh_audit_accessibility import (  # noqa: E402
+    audit_source_root,
+    suggest_app_goal,
+    suggest_app_job_steps,
+    suggest_verification,
+)
 
 
 def _run(cmd: list[str], *, timeout: int = 120) -> subprocess.CompletedProcess[str]:
@@ -224,6 +229,7 @@ def detect(path: str, *, build: bool = False) -> dict[str, Any]:
         steps = suggest_app_job_steps(audit)
         doc["audit"] = audit
         doc["suggested_app_job"] = steps
+        doc["suggested_app_goal"] = suggest_app_goal(audit, steps)
         doc["suggested_verification"] = suggest_verification(audit, steps)
 
     return doc
@@ -235,6 +241,11 @@ def write_agent_bundle(doc: dict[str, Any], out_dir: str) -> None:
     json.dump(
         doc.get("suggested_app_job") or [],
         open(os.path.join(out_dir, "app-job.json"), "w"),
+        indent=2,
+    )
+    json.dump(
+        doc.get("suggested_app_goal") or {"setup": [], "postconditions": []},
+        open(os.path.join(out_dir, "app-goal.json"), "w"),
         indent=2,
     )
     task_skeleton = {
@@ -262,12 +273,19 @@ You have **LIGH MCP** on this Mac. Verify my iOS Simulator Debug build — fail-
 
 ## Loop
 
-1. `ligh_up` → `ligh_ready` if `eyes_unusable`
-2. `ligh_cap_app_job` with steps below (edit ids to match audit)
-3. On `{{ ok: false, fault, detail }}` → fix Swift → rebuild → retry
-4. Success = `ok: true` only — never claim from screenshots
+1. `ligh_init` on the Xcode project (once) — or `./scripts/ligh-paradise.sh`
+2. `ligh_up` → `ligh_viewer` (optional — watch sim in browser)
+3. **`ligh_test`** — goal-first verify from `.ligh/app-goal.json`
+4. On `{{ ok: false, fault, detail }}` → fix Swift → rebuild → `ligh_test`
+5. Success = `ok: true` only — never claim from screenshots
 
-## Suggested app-job
+## Suggested app-goal (preferred)
+
+```json
+{json.dumps(doc.get("suggested_app_goal") or {}, indent=2)}
+```
+
+## Fallback app-job (explicit steps)
 
 ```json
 {steps}

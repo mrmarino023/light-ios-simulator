@@ -147,6 +147,29 @@ def suggest_app_job_steps(audit: dict[str, Any]) -> list[dict[str, Any]]:
     return steps
 
 
+def suggest_app_goal(audit: dict[str, Any], steps: list[dict[str, Any]]) -> dict[str, Any]:
+    """Declarative postconditions for ligh_cap_app_goal (preferred agent path)."""
+    setup: list[dict[str, Any]] = []
+    bootstrap = pick_bootstrap_label(audit)
+    if bootstrap:
+        setup.append({"op": "wait", "label": bootstrap, "timeout_ms": 12000})
+
+    for s in steps:
+        if s["op"] == "type" and s.get("id"):
+            setup.append({"op": "type", "id": s["id"], "text": s.get("text", "")})
+        elif s["op"] == "tap" and s.get("id"):
+            setup.append({"op": "tap", "id": s["id"]})
+
+    post: list[dict[str, Any]] = []
+    for s in reversed(steps):
+        if s.get("op") == "wait" and s.get("id"):
+            post.append({"wait_id": s["id"], "timeout_ms": 15000})
+            break
+    if not post:
+        post = [{"wait_label": "REPLACE_SUCCESS_LABEL", "timeout_ms": 12000}]
+    return {"setup": setup, "postconditions": post}
+
+
 def suggest_verification(audit: dict[str, Any], steps: list[dict[str, Any]]) -> dict[str, Any]:
     ids = set(audit.get("identities") or [])
     last_wait = next((s["id"] for s in reversed(steps) if s.get("op") == "wait" and s.get("id")), None)

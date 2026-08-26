@@ -6,20 +6,30 @@ You test **iOS Simulator Debug builds** on this Mac via **LIGH MCP**. Fail-close
 
 ```bash
 ./scripts/ligh-paradise.sh /path/to/MyApp.xcodeproj --build
-# → .ligh/project.json · app-job.json · AGENT_PROMPT.md · MCP snippet
 ```
 
-Then paste MCP config, open `.ligh/AGENT_PROMPT.md` in chat, run `LIGH_WORKSPACE=/path/to/app ./scripts/ligh-test.sh`.
+**MCP (3 tools agents need):**
 
-Full guide: [`docs/AGENT_PARADISE.md`](docs/AGENT_PARADISE.md)
+| Tool | When |
+|------|------|
+| `ligh_init` | Once per project — audit + `.ligh/` bundle |
+| `ligh_test` | **After every code change** — goal-first verify |
+| `ligh_viewer` | Optional — watch sim in browser |
+
+Then paste MCP config, open `.ligh/AGENT_PROMPT.md` in chat.
+
+Competitive map: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
 
 ## Primary loop (verify)
 
 ```text
-ligh_up → ligh_ready (if eyes_unusable)
-→ ligh_cap_app_job(app, steps) OR ligh_cap_app_goal(setup, postconditions)
-→ { ok: true } or { fault, detail } → fix Swift → rebuild → retry
+ligh_init(path)  → once
+ligh_up → ligh_viewer (optional)
+ligh_test        → goal-first verify from .ligh/app-goal.json
+→ { ok: true } or { fault, detail } → fix Swift → rebuild → ligh_test
 ```
+
+Legacy: `ligh_cap_app_goal` / `ligh_cap_app_job` — prefer **`ligh_test`**.
 
 **Never** claim success without `ok: true`. **Never** plan taps from screenshots.
 
