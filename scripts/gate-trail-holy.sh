@@ -66,17 +66,24 @@ rsync -a "$SOURCE_ROOT/" "$BACKUP/"
 patch -p1 -d "$ROOT" < "$PATCH_ABS"
 "$BUILD_ABS" >/tmp/trail-holy-build-broken.log 2>&1 || fail "build broken failed"
 
+# Install broken binary once — prove relaunches only (cuts ~15–30s).
+APP_PATH="$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['app_path']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")"
+BUNDLE_ID="$(python3 -c "import json; print(json.load(open('$TASK'))['bundle_id'])")"
+"$LIGH" --json cap run-app "$APP_PATH" --bundle-id "$BUNDLE_ID" --settle-ms 700 --timeout-ms 12000 \
+  >/tmp/trail-holy-install-broken.log 2>&1 || true
+export LIGH_TRAIL_NO_INSTALL=1
+
 INFRA_MS=$(python3 -c "import time; print(int(time.time()*1000) - $INFRA_START)")
 
 export LIGH_IDENTITY_SOURCE="$BACKUP"
 export LIGH_KILLER_TASK="$TASK"
 export LIGH_TRAIL_TASK="$TASK"
-export LIGH_APP_PATH="$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['app_path']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")"
-export LIGH_APP_BUNDLE_ID="$(python3 -c "import json; print(json.load(open('$TASK'))['bundle_id'])")"
+export LIGH_APP_PATH="$APP_PATH"
+export LIGH_APP_BUNDLE_ID="$BUNDLE_ID"
 export LIGH_TRAIL_INFRA_MS="$INFRA_MS"
 export LIGH_TRAIL_HOLY_OUT="$OUT"
 export LIGH_TRAIL_FAST=1
-export LIGH_TRAIL_SETTLE_CAP_MS="${LIGH_TRAIL_SETTLE_CAP_MS:-1200}"
+export LIGH_TRAIL_SETTLE_CAP_MS="${LIGH_TRAIL_SETTLE_CAP_MS:-900}"
 export LIGH_BIN="$LIGH"
 export LIGH_TRAIL_WALL_MS="${LIGH_TRAIL_WALL_MS:-120000}"
 

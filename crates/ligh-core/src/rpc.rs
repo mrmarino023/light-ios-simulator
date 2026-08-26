@@ -336,6 +336,30 @@ pub enum DaemonRequest {
         #[serde(default, skip_serializing_if = "Option::is_none")]
         launch_args: Option<Vec<String>>,
     },
+    /// TRAIL repair job: exercise prove → RepairContract; optional patch + certify.
+    RepairJob {
+        app: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        bundle_id: Option<String>,
+        /// Motor steps (`op`/`action` + id/label/text) — same shape as AppJob / frozen exercise.
+        exercise: Vec<serde_json::Value>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        workspace: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        settle_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        timeout_ms: Option<u64>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        install: Option<bool>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        launch_args: Option<Vec<String>>,
+        /// Optional scoped file replacement (host applies before certify).
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        patch: Option<crate::EditPlan>,
+        /// When true, treat a green exercise as verified certify.
+        #[serde(default)]
+        certify: bool,
+    },
     /// UX graph: status (nodes, edges, baselines).
     UxStatus {
         #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -515,6 +539,19 @@ fn read_timeout_for(req: &DaemonRequest) -> Duration {
             let per = timeout_ms.unwrap_or(8_000);
             let n = max_steps.unwrap_or(24).max(1) as u64;
             Duration::from_millis(per.saturating_mul(n).saturating_add(120_000))
+        }
+        DaemonRequest::RepairJob {
+            timeout_ms,
+            exercise,
+            ..
+        } => {
+            let per = timeout_ms.unwrap_or(10_000);
+            let n = exercise.len().max(1) as u64;
+            Duration::from_millis(
+                per.saturating_mul(n)
+                    .saturating_add(crate::REPAIR_JOB_WALL_MS)
+                    .saturating_add(30_000),
+            )
         }
         DaemonRequest::RunApp { timeout_ms, .. } => {
             Duration::from_millis(timeout_ms.unwrap_or(8_000).saturating_add(60_000))

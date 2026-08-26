@@ -201,9 +201,9 @@ See [References](#references-literature) below.
 
 | Task | Arm | Wall | Pass | ≤120s |
 |------|-----|------|------|-------|
-| login-never-navigates | **TRAIL** | **39s** | ✓ | ✓ |
-| onboarding-home-broken | **TRAIL** | **73s** | ✓ | ✓ |
-| kix-notes-tab-missing | **TRAIL** | 232s | ✓ | ✗ over budget |
+| login-never-navigates | **TRAIL** | **41s** | ✓ | ✓ |
+| onboarding-home-broken | **TRAIL** | **67s** | ✓ | ✓ |
+| kix-notes-tab-missing | **TRAIL** | **91s** | ✓ | ✓ |
 | login-never-navigates | autopilot chat | 61s | ✓ | ✓ |
 | login-never-navigates | vision chat | 622s | ✗ | ✗ |
 | kix-notes-tab-missing | autopilot chat | 644s | ✓ | ✗ |
@@ -278,10 +278,10 @@ Implement in `ligh-core::repair` + `pilot_cap`; retire Python orchestrator for g
 |-------|-----------|--------|
 | **L0 Motor** | Autopilot generality 6/6 apps, 0 LLM | ✅ |
 | **L1 Narrow repair** | One frozen task ≤120s, ≥3× vision, no UI LLM | ✅ login |
-| **L2 Generalized repair** | ≥2/3 frozen verified ≤120s, no `bug_patch`, ≤2 LLM shots | ✅ **2/3 ≤120s** (login 39s, onboarding 73s); Kix verified but 232s |
+| **L2 Generalized repair** | ≥2/3 frozen verified ≤120s, no `bug_patch`, ≤2 LLM shots | ✅ **3/3 ≤120s** (login 41s, onboarding 67s, Kix 91s) |
 | **L3 OSS unknown** | Blind apps, no golden, ≥50% pass | ❌ not measured |
 
-**Published:** `docs/assets/trail-holy-multi-latest.json` — `tasks_verified: 3`, `tasks_holy_shit: 2` (≤120s count), `claim_pass: true`.
+**Published:** `docs/assets/trail-holy-multi-latest.json` — `tasks_verified: 3`, `tasks_holy_shit: 3`, `claim_pass: true`.
 
 Gate: `./scripts/gate-trail-holy-multi.sh` (orchestrator `scripts/trail_holy.py`).
 

@@ -11,6 +11,7 @@ mod motor;
 mod physical_motor;
 mod pilot_cap;
 mod qa_cap;
+mod repair_cap;
 mod ux_cap;
 mod wda;
 
@@ -1450,6 +1451,43 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 run_timeout,
                 install.unwrap_or(true),
                 launch_args.as_deref(),
+            );
+            if let Some(ref mut obs) = r.observe {
+                attach_sense(state, obs, Instant::now());
+            }
+            cap_response(r)
+        }
+
+        DaemonRequest::RepairJob {
+            app,
+            bundle_id,
+            exercise,
+            workspace,
+            settle_ms,
+            timeout_ms,
+            install,
+            launch_args,
+            patch,
+            certify,
+        } => {
+            let settle = settle_ms.unwrap_or(900);
+            let timeout = timeout_ms.unwrap_or(10_000);
+            let ws = workspace.as_deref().map(std::path::Path::new);
+            let state_c = state.clone();
+            let build = move || build_observe_once(&state_c, true);
+            let mut r = repair_cap::cap_repair_job(
+                &build,
+                state,
+                &app,
+                bundle_id.as_deref(),
+                &exercise,
+                ws,
+                settle,
+                timeout,
+                install.unwrap_or(true),
+                launch_args.as_deref(),
+                patch.as_ref(),
+                certify,
             );
             if let Some(ref mut obs) = r.observe {
                 attach_sense(state, obs, Instant::now());

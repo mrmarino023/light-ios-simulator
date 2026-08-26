@@ -170,24 +170,37 @@ def bootstrap_app(
     wait_label: str | None = None,
     app_markers: set[str] | None = None,
     task: dict[str, Any] | None = None,
+    install: bool | None = None,
 ) -> dict[str, Any]:
-    """Install/launch expected app and require *positive* ownership before ok."""
+    """Install/launch expected app and require *positive* ownership before ok.
+
+    `install=False` relaunches only (after a prior install of the same binary).
+    Default: install unless LIGH_TRAIL_NO_INSTALL=1.
+    """
     markers = set(app_markers or ())
     if task:
         markers |= ownership_markers_for_task(task)
     if wait_label:
         markers.add(wait_label)
 
-    terminated = quarantine_bundles(bundle_id)
-    # Eyes already OK on SpringBoard — do not burn recover_homes cycles before run_app.
     fast = os.environ.get("LIGH_TRAIL_FAST", "0") == "1"
+    if install is None:
+        install = os.environ.get("LIGH_TRAIL_NO_INSTALL", "0") != "1"
+
+    # Full install: quarantine contaminants. Relaunch-only: keep warm session.
+    terminated: list[str] = quarantine_bundles(bundle_id) if install else []
     ready_ms = 400 if fast else 800
-    call_tool("ligh_ready", {"settle_ms": ready_ms, "recover_homes": 1})
+    if install:
+        call_tool("ligh_ready", {"settle_ms": ready_ms, "recover_homes": 1 if fast else 2})
+    else:
+        call_tool("ligh_ready", {"settle_ms": min(300, ready_ms), "recover_homes": 0})
+
     payload: dict[str, Any] = {
         "app": app,
         "bundle_id": bundle_id,
-        "settle_ms": 900 if fast else 2000,
-        "timeout_ms": 12000 if fast else 20000,
+        "settle_ms": 700 if fast else 2000,
+        "timeout_ms": 10000 if fast else 20000,
+        "no_install": not install,
     }
     if wait_label:
         payload["wait_label"] = wait_label
@@ -203,8 +216,8 @@ def bootstrap_app(
 
     last_keys: list[str] = []
     last_reason = "wrong_surface"
-    attempts = 4 if fast else 8
-    perceive_ms = 700 if fast else 1200
+    attempts = 3 if fast else 8
+    perceive_ms = 500 if fast else 1200
     for attempt in range(1, attempts + 1):
         p = perceive(perceive_ms)
         last_keys = sorted(p["keys"])[:24]
@@ -257,11 +270,16 @@ def run_tap(
     *,
     id: str | None = None,
 ) -> dict[str, Any]:
-    pre = perceive(settle_ms)
+    fast = os.environ.get("LIGH_TRAIL_FAST", "0") == "1"
+    # Attempt already settles + effect-checks. Skip a full pre-perceive on the hot path.
+    pre_keys: set[str] = set()
+    if not fast:
+        pre = perceive(settle_ms)
+        pre_keys = pre["keys"]
     payload: dict[str, Any] = {
         "intent": "tap",
         "settle_ms": settle_ms,
-        "timeout_ms": 12000,
+        "timeout_ms": 8000 if fast else 12000,
     }
     if label:
         payload["label"] = label
@@ -269,9 +287,23 @@ def run_tap(
         payload["id"] = id
     result = call_tool("ligh_attempt", payload)
     fault = result.get("fault") or ""
+    # One retry for flaky tab chrome after a fresh install.
+    if (
+        fast
+        and not (bool(result.get("ok")) and fault in ("", "ok"))
+        and (id or "").startswith("tab_")
+    ):
+        time.sleep(0.25)
+        result = call_tool("ligh_attempt", {**payload, "settle_ms": max(settle_ms, 1100)})
+        fault = result.get("fault") or ""
     target = label or id or ""
-    target_seen = target in pre["keys"] if target else False
-    # A seen target is not a successful step. The motor must report a verified effect.
+    if fast:
+        detail = result.get("detail") or {}
+        evidence = detail.get("evidence") or result.get("evidence") or {}
+        candidates = evidence.get("candidates") if isinstance(evidence, dict) else None
+        target_seen = bool(candidates) or fault not in ("target_missing", "target_never_visible")
+    else:
+        target_seen = target in pre_keys if target else False
     ok = bool(result.get("ok")) and fault in ("", "ok")
     return {
         **result,

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""TRAIL holy-shit orchestrator — generalize repair without golden/template.
+"""TRAIL repair orchestrator — generalize repair without golden/template.
 
 Pipeline (single wall, hot path):
   prove (trace) → localize → constrained LLM fix (≤2 shots) → build → certify
@@ -31,7 +31,6 @@ from killer_loop_verify import (  # noqa: E402
     strict_verify,
     verification_markers,
 )
-from ligh_mcp import call_tool  # noqa: E402
 from repair_job import (  # noqa: E402
     build_repair_bundle,
     ensure_ligh_session,
@@ -125,7 +124,7 @@ def localize_fallback(source_root: str, mode: str, expected: str) -> dict[str, A
     }
 
 
-def prove_with_post(task: dict[str, Any]) -> dict[str, Any]:
+def prove_with_post(task: dict[str, Any], *, install: bool | None = None) -> dict[str, Any]:
     """Exercise then postcondition — TraceFailure from first motor or oracle miss."""
     from goal_spec import compile_task_goal  # local import
     from killer_loop_verify import evaluate_goal_stable
@@ -135,12 +134,20 @@ def prove_with_post(task: dict[str, Any]) -> dict[str, Any]:
     ver = task.get("verification") or {}
     wait_label = task.get("bootstrap_wait_label")
     markers = verification_markers(task)
+    fast = os.environ.get("LIGH_TRAIL_FAST", "0") == "1"
+    post_ms = 800 if fast else 2500
+    peek_ms = 400 if fast else 800
 
     if not ensure_ligh_session().get("ok"):
         return {"ok": False, "phase": "session"}
 
     boot = bootstrap_app(
-        app, bundle_id, wait_label=wait_label, app_markers=markers, task=task
+        app,
+        bundle_id,
+        wait_label=wait_label,
+        app_markers=markers,
+        task=task,
+        install=install,
     )
     if not boot.get("foreground_ok"):
         return {"ok": False, "phase": "bootstrap", "evidence": boot}
@@ -155,14 +162,14 @@ def prove_with_post(task: dict[str, Any]) -> dict[str, Any]:
                 "step": fail.get("step") or 1,
                 "action": fail.get("action") or "tap",
                 "expected_identity": fail.get("id") or fail.get("label") or "",
-                "observed_identities": sorted(perceive(800)["keys"])[:24],
+                "observed_identities": sorted(perceive(peek_ms)["keys"])[:24],
                 "fault": fail.get("fault") or "setup_failed",
                 "label": fail.get("label"),
             },
             "trace": setup,
         }
 
-    pre = eval_spec(ver.get("preconditions") or {}, perceive(1200)["keys"])
+    pre = eval_spec(ver.get("preconditions") or {}, perceive(min(900, post_ms + 100))["keys"])
     if not pre.get("ok"):
         return {"ok": False, "phase": "precondition", "evidence": pre}
 
@@ -177,7 +184,7 @@ def prove_with_post(task: dict[str, Any]) -> dict[str, Any]:
                 "step": fail_idx + 1,
                 "action": fail.get("action") or "unknown",
                 "expected_identity": fail.get("id") or fail.get("label") or "",
-                "observed_identities": sorted(perceive(800)["keys"])[:24],
+                "observed_identities": sorted(perceive(peek_ms)["keys"])[:24],
                 "fault": fail.get("fault") or "exercise_failed",
                 "label": fail.get("label"),
             },
@@ -185,7 +192,7 @@ def prove_with_post(task: dict[str, Any]) -> dict[str, Any]:
         }
 
     goal = compile_task_goal(task)
-    post, obs = evaluate_goal_stable(goal, 2500)
+    post, obs = evaluate_goal_stable(goal, post_ms)
     if post.get("ok"):
         return {"ok": True, "phase": "postcondition", "trace": exercise}
 
@@ -213,8 +220,119 @@ def prove_with_post(task: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
+    """Same exercise + postconditions as prove — no open-ended autopilot on the hot path."""
+    from goal_spec import compile_task_goal
+    from ligh_mcp import call_tool
+
+    app = os.environ.get("LIGH_APP_PATH", task["app_path"])
+    bundle_id = task["bundle_id"]
+    ver = task.get("verification") or {}
+    wait_label = task.get("bootstrap_wait_label")
+    markers = verification_markers(task)
+    fast = os.environ.get("LIGH_TRAIL_FAST", "0") == "1"
+    post_ms = 700 if fast else 2000
+
+    # Fixed binary must be reinstalled once after build.
+    # Clear relaunch-only so bootstrap installs the rebuilt .app.
+    prev_no = os.environ.pop("LIGH_TRAIL_NO_INSTALL", None)
+    try:
+        # Force-install rebuilt product onto the booted sim (DerivedData → .app path).
+        try:
+            udid = subprocess.check_output(
+                ["xcrun", "simctl", "list", "devices", "booted", "-j"],
+                text=True,
+                timeout=15,
+            )
+            # Prefer CLI install by path — ignores stale container.
+            subprocess.run(
+                ["xcrun", "simctl", "install", "booted", app],
+                capture_output=True,
+                text=True,
+                timeout=60,
+            )
+            subprocess.run(
+                ["xcrun", "simctl", "terminate", "booted", bundle_id],
+                capture_output=True,
+                text=True,
+                timeout=15,
+            )
+            _ = udid
+        except (OSError, subprocess.SubprocessError):
+            pass
+        boot = bootstrap_app(
+            app,
+            bundle_id,
+            wait_label=wait_label,
+            app_markers=markers,
+            task=task,
+            install=True,
+        )
+    finally:
+        if prev_no is not None:
+            os.environ["LIGH_TRAIL_NO_INSTALL"] = prev_no
+
+    if not boot.get("foreground_ok"):
+        return {"verified": False, "reason": "certify_bootstrap_failed", "bootstrap": boot}
+
+    setup = run_steps(ver.get("initial_setup") or [], "certify_setup")
+    if setup and not all(s.get("ok") for s in setup):
+        fail = next(s for s in setup if not s.get("ok"))
+        return {
+            "verified": False,
+            "reason": "certify_setup_failed",
+            "fail": fail,
+        }
+
+    exercise = run_steps(ver.get("exercise") or [], "certify_exercise")
+    if exercise and not all(s.get("ok") for s in exercise):
+        fail = next(s for s in exercise if not s.get("ok"))
+        # One short autopilot recovery — still fail-closed on postconditions.
+        goal = compile_task_goal(task)
+        params = task.get("run_goal_params") or []
+        auto = call_tool(
+            "ligh_cap_autopilot",
+            {
+                "goal_spec": goal,
+                "params": params,
+                "max_steps": 10,
+                "settle_ms": 600,
+                "timeout_ms": 25000,
+                "no_install": True,
+            },
+        )
+        reached = bool(auto.get("reached") or (auto.get("ok") and auto.get("fault") in (None, "ok")))
+        if reached:
+            post = eval_spec(ver.get("postconditions") or {}, perceive(post_ms)["keys"])
+            if post.get("ok"):
+                return {
+                    "verified": True,
+                    "reason": "verified",
+                    "post": post,
+                    "trace": exercise,
+                    "autopilot_recovery": True,
+                }
+        return {
+            "verified": False,
+            "reason": "certify_exercise_failed",
+            "fail": fail,
+            "trace": exercise,
+            "autopilot": {"reached": reached, "fault": auto.get("fault")},
+        }
+
+    post = eval_spec(ver.get("postconditions") or {}, perceive(post_ms)["keys"])
+    if post.get("ok"):
+        return {"verified": True, "reason": "verified", "post": post, "trace": exercise}
+    return {
+        "verified": False,
+        "reason": "postcondition_not_satisfied",
+        "post": post,
+        "trace": exercise,
+    }
+
+
 def main() -> int:
-    # Fast settle for holy-shit wall.
+    # Fast settle for repair wall.
     os.environ.setdefault("LIGH_TRAIL_FAST", "1")
     os.environ.setdefault("LIGH_TRAIL_SETTLE_CAP_MS", "900")
 
@@ -351,6 +469,17 @@ def main() -> int:
         if not ok_change and attempt == 1:
             feedback = "Returned unchanged file — apply the fix plan to the target file."
             continue
+        # Mode-specific sanity before build (cheap reject of no-op LLM thrash).
+        expected_id = str(tf.get("expected_identity") or "")
+        if mode == "tab_chrome_missing" and expected_id and expected_id not in candidate:
+            feedback = (
+                f"Missing accessibilityIdentifier '{expected_id}' in the TabView composition. "
+                "Restore that tab item and identifier. Keep the rest of the file unchanged."
+            )
+            continue
+        if candidate.count("{") != candidate.count("}"):
+            feedback = "Output looks truncated or unbalanced braces — return the complete Swift file only."
+            continue
         apply_candidate(abs_target, candidate, bundle)
         candidate_text = candidate
         changed = True
@@ -392,51 +521,9 @@ def main() -> int:
 
     # Last successful build already done inside the fix loop.
 
-    # Certify: prefer host autopilot (same motor, fewer settle taxes) when FAST.
-    verify: dict[str, Any]
+    # Certify with the same exercise oracle (not 90s open-ended autopilot).
     if os.environ.get("LIGH_TRAIL_FAST", "0") == "1":
-        from goal_spec import compile_task_goal
-
-        goal = compile_task_goal(task)
-        params = task.get("run_goal_params") or []
-        # Relaunch fixed app, then autopilot to acceptance.
-        boot = bootstrap_app(
-            os.environ.get("LIGH_APP_PATH", task["app_path"]),
-            task["bundle_id"],
-            wait_label=task.get("bootstrap_wait_label"),
-            app_markers=verification_markers(task),
-            task=task,
-        )
-        if not boot.get("foreground_ok"):
-            verify = {"verified": False, "reason": "certify_bootstrap_failed", "bootstrap": boot}
-        else:
-            # Reset to login surface if needed by terminating+relaunch is already in bootstrap.
-            auto = call_tool(
-                "ligh_cap_autopilot",
-                {
-                    "goal_spec": goal,
-                    "params": params,
-                    "max_steps": 16,
-                    "settle_ms": 700,
-                    "timeout_ms": 90000,
-                },
-            )
-            reached = bool(auto.get("reached") or (auto.get("ok") and auto.get("fault") in (None, "ok")))
-            # Double-check with a cheap postcondition perceive when reached.
-            if reached:
-                post_keys = perceive(800)["keys"]
-                post = eval_spec(task.get("verification", {}).get("postconditions") or {}, post_keys)
-                verify = {
-                    "verified": bool(post.get("ok")),
-                    "reason": "verified" if post.get("ok") else "postcondition_not_satisfied",
-                    "autopilot": {"reached": reached, "steps": auto.get("steps")},
-                    "post": post,
-                }
-            else:
-                # Fallback: full harness if autopilot missed (still honest).
-                verify = strict_verify(task)
-                verify["autopilot_fallback"] = True
-                verify["autopilot"] = {"reached": False, "fault": auto.get("fault")}
+        verify = certify_trace(task)
     else:
         verify = strict_verify(task)
     mark("certify", verified=verify.get("verified"), reason=verify.get("reason"))

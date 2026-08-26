@@ -49,23 +49,23 @@ Same protocol across tasks. No golden diff. No per-app repair templates. ≤2 LL
 
 | Task | App | Wall | Tokens | Outcome |
 |------|-----|------|--------|---------|
-| Login never navigates | XCUITestDemo (vendored) | **39s** | 1.5k | verified |
-| Onboarding stuck | OnboardingDemo (frozen) | **73s** | 3.8k | verified |
-| Notes tab missing after login | [Kix](https://github.com/byKosta/Kix-app) | 232s | 3.5k | verified |
+| Login never navigates | XCUITestDemo (vendored) | **41s** | 1.2k | verified ≤120s |
+| Onboarding stuck | OnboardingDemo (frozen) | **67s** | 3.3k | verified ≤120s |
+| Notes tab missing after login | [Kix](https://github.com/byKosta/Kix-app) | **91s** | 3.2k | verified ≤120s |
 
-**3/3 verified** · 2/3 under 120s → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)
+**3/3 verified ≤120s** → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)
 
 | Baseline (login) | Wall | Tokens |
 |------------------|------|--------|
 | Vision chat | 622s | 212k |
 | Autopilot + chat loop | 61s | 14k |
-| **TRAIL** | **39s** | **1.5k** |
+| **TRAIL** | **41s** | **1.2k** |
 
 | Baseline (Kix Notes tab) | Wall | Tokens |
 |--------------------------|------|--------|
 | Vision chat | 460s | 128k |
 | Autopilot + chat loop | 644s | 148k |
-| **TRAIL** | **232s** | **3.5k** |
+| **TRAIL** | **91s** | **3.2k** |
 
 Full compare: [`trail-holy-compare-latest.json`](docs/assets/trail-holy-compare-latest.json)
 
@@ -184,6 +184,7 @@ Full developer trial: [`docs/DEVELOPER_TRIAL.md`](docs/DEVELOPER_TRIAL.md)
 |------|-----|
 | `ligh_perceive` | Settled world + Feel IR |
 | `ligh_cap_autopilot` | Goal + params → path → verified (0 UI tokens) |
+| `ligh_cap_repair_job` | TRAIL: prove → localize → fix → build → certify (`task_path`) |
 | `ligh_attempt` | Act + host verdict |
 | `ligh_cap_app_job` | Scripted wait/tap/type + assert |
 | `ligh_perceive_routed` | AX first; vision only if eyes fail |

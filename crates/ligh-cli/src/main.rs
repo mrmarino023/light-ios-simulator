@@ -474,6 +474,31 @@ enum CapCommands {
         #[arg(long = "launch-arg")]
         launch_args: Vec<String>,
     },
+    /// TRAIL repair: exercise prove → RepairContract; optional --patch-json + --certify.
+    #[command(name = "repair-job")]
+    RepairJob {
+        app: String,
+        #[arg(long)]
+        bundle_id: Option<String>,
+        /// JSON array of exercise motor steps (op/action + id/label/text).
+        #[arg(long)]
+        exercise: String,
+        #[arg(long)]
+        workspace: Option<String>,
+        #[arg(long, default_value_t = 900)]
+        settle_ms: u64,
+        #[arg(long, default_value_t = 10000)]
+        timeout_ms: u64,
+        #[arg(long, default_value_t = false)]
+        no_install: bool,
+        #[arg(long = "launch-arg")]
+        launch_args: Vec<String>,
+        /// Optional EditPlan JSON: {path, content, source}.
+        #[arg(long)]
+        patch_json: Option<String>,
+        #[arg(long, default_value_t = false)]
+        certify: bool,
+    },
 }
 
 #[derive(Subcommand)]
@@ -1627,6 +1652,44 @@ fn main() -> anyhow::Result<()> {
                         } else {
                             Some(launch_args)
                         },
+                    }
+                },
+                CapCommands::RepairJob {
+                    app,
+                    bundle_id,
+                    exercise,
+                    workspace,
+                    settle_ms,
+                    timeout_ms,
+                    no_install,
+                    launch_args,
+                    patch_json,
+                    certify,
+                } => {
+                    let parsed: Vec<serde_json::Value> = serde_json::from_str(&exercise)
+                        .map_err(|e| anyhow::anyhow!("--exercise JSON: {e}"))?;
+                    let patch = match patch_json {
+                        Some(raw) => Some(
+                            serde_json::from_str(&raw)
+                                .map_err(|e| anyhow::anyhow!("--patch-json: {e}"))?,
+                        ),
+                        None => None,
+                    };
+                    DaemonRequest::RepairJob {
+                        app,
+                        bundle_id,
+                        exercise: parsed,
+                        workspace,
+                        settle_ms: Some(settle_ms),
+                        timeout_ms: Some(timeout_ms),
+                        install: Some(!no_install),
+                        launch_args: if launch_args.is_empty() {
+                            None
+                        } else {
+                            Some(launch_args)
+                        },
+                        patch,
+                        certify,
                     }
                 },
             };

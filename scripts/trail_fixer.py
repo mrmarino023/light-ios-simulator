@@ -33,6 +33,7 @@ def openai_full_file(messages: list[dict[str, Any]]) -> tuple[str, dict[str, int
     body = {
         "model": MODEL,
         "messages": messages,
+        "max_completion_tokens": int(os.environ.get("LIGH_TRAIL_MAX_TOKENS", "2800")),
     }
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
         json.dump(body, f)
@@ -116,8 +117,9 @@ def build_messages(bundle: dict[str, Any], original: str, attempt: int, feedback
         {
             "role": "system",
             "content": (
-                "You repair one Swift file under hard scope control. "
-                "Return only the full final contents of the target file, no markdown."
+                "You repair one SwiftUI file under hard scope control. "
+                "Return only the full final file contents — no markdown, no explanation. "
+                "Keep the file short; make the minimal edit that satisfies the fix plan."
             ),
         },
         {

@@ -633,6 +633,39 @@ TOOLS = [
         },
     },
     {
+        "name": "ligh_cap_repair_job",
+        "description": (
+            "TRAIL repair: run exercise steps to prove a TraceFailure + RepairContract, "
+            "or pass task_path to run the full prove→localize→fix→build→certify hot path. "
+            "Daemon owns prove/certify motors; LLM fixer runs on task_path path only."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "task_path": {
+                    "type": "string",
+                    "description": "Frozen/task.json path — full TRAIL repair (preferred product entry).",
+                },
+                "app": {"type": "string", "description": "Absolute path to .app (daemon prove/certify)"},
+                "bundle_id": {"type": "string"},
+                "exercise": {
+                    "type": "array",
+                    "description": "Motor steps [{op|action, id?, label?, text?}]",
+                    "items": {"type": "object"},
+                },
+                "workspace": {"type": "string"},
+                "settle_ms": {"type": "integer", "default": 900},
+                "timeout_ms": {"type": "integer", "default": 10000},
+                "no_install": {"type": "boolean", "default": False},
+                "patch": {
+                    "type": "object",
+                    "description": "EditPlan {path, content, source} applied before certify",
+                },
+                "certify": {"type": "boolean", "default": False},
+            },
+        },
+    },
+    {
         "name": "ligh_cap_wait_label",
         "description": "Capability: settle → wait until AX label exists (app chrome).",
         "inputSchema": {
@@ -912,6 +945,8 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
             cmd += ["--bundle-id", str(args["bundle_id"])]
         if args.get("wait_label"):
             cmd += ["--wait-label", str(args["wait_label"])]
+        if args.get("no_install") or args.get("install") is False:
+            cmd += ["--no-install"]
         return ligh(*cmd, timeout=180)
     if name == "ligh_cap_autopilot":
         goal_spec = args.get("goal_spec")
@@ -945,7 +980,89 @@ def call_tool(name: str, args: dict[str, Any]) -> dict[str, Any]:
             cmd += ["--bundle-id", str(args["bundle_id"])]
         if args.get("workspace"):
             cmd += ["--workspace", str(args["workspace"])]
+        if args.get("no_install") or args.get("install") is False:
+            cmd += ["--no-install"]
         return compact_autopilot(ligh(*cmd, timeout=420))
+    if name == "ligh_cap_repair_job":
+        import json as _json
+        import os as _os
+        import subprocess as _sp
+
+        task_path = args.get("task_path")
+        if task_path:
+            env = _os.environ.copy()
+            env["LIGH_TRAIL_TASK"] = str(task_path)
+            env.setdefault("LIGH_TRAIL_FAST", "1")
+            script = _os.path.join(_os.path.dirname(__file__), "trail_holy.py")
+            proc = _sp.run(
+                ["python3", script],
+                cwd=_os.path.join(_os.path.dirname(__file__), ".."),
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=420,
+            )
+            out_path = env.get(
+                "LIGH_TRAIL_HOLY_OUT",
+                _os.path.join(
+                    _os.path.dirname(__file__),
+                    "..",
+                    "docs/assets/trail-holy-latest.json",
+                ),
+            )
+            doc = {}
+            if _os.path.isfile(out_path):
+                try:
+                    doc = _json.load(open(out_path))
+                except Exception:
+                    doc = {}
+            return {
+                "ok": bool(doc.get("verified")),
+                "capability": "repair_job",
+                "verified": doc.get("verified"),
+                "wall_ms": doc.get("wall_ms"),
+                "mode": doc.get("mode"),
+                "primary_path": doc.get("primary_path"),
+                "llm_tokens": doc.get("llm_tokens"),
+                "reason": doc.get("reason"),
+                "exit_code": proc.returncode,
+                "stdout_tail": (proc.stdout or "")[-800:],
+                "stderr_tail": (proc.stderr or "")[-400:],
+            }
+
+        app = str(args.get("app") or "")
+        exercise = args.get("exercise")
+        if not app or not isinstance(exercise, list):
+            return {
+                "ok": False,
+                "fault": "infra",
+                "error": "need task_path, or app + exercise[]",
+            }
+        ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 900)
+        to = str(args.get("timeout_ms") if args.get("timeout_ms") is not None else 10000)
+        cmd = [
+            "--json",
+            "cap",
+            "repair-job",
+            app,
+            "--exercise",
+            _json.dumps(exercise),
+            "--settle-ms",
+            ms,
+            "--timeout-ms",
+            to,
+        ]
+        if args.get("bundle_id"):
+            cmd += ["--bundle-id", str(args["bundle_id"])]
+        if args.get("workspace"):
+            cmd += ["--workspace", str(args["workspace"])]
+        if args.get("no_install"):
+            cmd += ["--no-install"]
+        if args.get("certify"):
+            cmd += ["--certify"]
+        if isinstance(args.get("patch"), dict):
+            cmd += ["--patch-json", _json.dumps(args["patch"])]
+        return compact_cap(ligh(*cmd, timeout=300))
     if name == "ligh_cap_wait_label":
         lab = str(args.get("label") or "")
         ms = str(args.get("settle_ms") if args.get("settle_ms") is not None else 2500)
