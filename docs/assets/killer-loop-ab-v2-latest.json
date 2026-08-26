@@ -17,8 +17,8 @@
     "autopilot": {
       "runs": 1,
       "passes": 1,
-      "median_wall_ms": 41862,
-      "median_tokens": 9034,
+      "median_wall_ms": 61334,
+      "median_tokens": 13737,
       "median_builds": 1,
       "median_patches": 1,
       "top1_acceptance": 1.0,
@@ -33,24 +33,24 @@
     },
     "baseline": {
       "runs": 1,
-      "passes": 1,
-      "median_wall_ms": 152391,
-      "median_tokens": 67040,
-      "median_builds": 1,
-      "median_patches": 1,
-      "top1_acceptance": 1.0,
+      "passes": 0,
+      "median_wall_ms": 622280,
+      "median_tokens": 212473,
+      "median_builds": 4,
+      "median_patches": 4,
+      "top1_acceptance": null,
       "accepted_at_patch": [
-        1
+        null
       ],
       "llm_drove_ui": true,
       "false_success": false,
       "reasons": [
-        "verified"
+        "exercise_failed"
       ]
     }
   },
-  "speedup_vs_vision": 3.64,
-  "token_ratio_vs_vision": 7.42,
+  "speedup_vs_vision": 10.15,
+  "token_ratio_vs_vision": 15.47,
   "speedup_target": 3.0,
   "verdict": {
     "autopilot_passed_all": true,

@@ -1,0 +1,147 @@
+{
+  "bench": "trail_holy_compare",
+  "version": 1,
+  "ts": "2026-08-26T10:45:00Z",
+  "claim": "TRAIL repair generalizes across frozen killer tasks without golden diff/templates; ≥2/3 holy-shit (verified ≤120s)",
+  "protocol": {
+    "no_bug_patch_reverse": true,
+    "no_golden_diff": true,
+    "no_per_app_templates": true,
+    "max_llm_shots": 2,
+    "wall_budget_ms": 120000,
+    "gate": "scripts/gate-trail-holy-multi.sh"
+  },
+  "trail_holy_multi": {
+    "tasks_run": 3,
+    "tasks_verified": 3,
+    "tasks_holy_shit": 2,
+    "claim_pass": true,
+    "holy_shit_generalized": true,
+    "tasks": [
+      {
+        "task": "login-never-navigates",
+        "mode": "state_gate_stuck",
+        "primary_path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+        "wall_ms": 39005,
+        "llm_tokens": 1460,
+        "verified": true,
+        "holy_shit": true
+      },
+      {
+        "task": "onboarding-home-broken",
+        "mode": "blocked_overlay",
+        "primary_path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift",
+        "wall_ms": 73234,
+        "llm_tokens": 3765,
+        "verified": true,
+        "holy_shit": true
+      },
+      {
+        "task": "kix-notes-tab-missing",
+        "mode": "tab_chrome_missing",
+        "primary_path": "fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift",
+        "wall_ms": 231922,
+        "llm_tokens": 3461,
+        "verified": true,
+        "holy_shit": false,
+        "note": "Correct file + verify pass; wall over 120s budget"
+      }
+    ]
+  },
+  "comparisons": {
+    "login-never-navigates": {
+      "vision_chat": {
+        "source": "docs/assets/killer-loop-ab-v2-latest.json",
+        "wall_ms": 622280,
+        "tokens": 212473,
+        "verified": false,
+        "patches": 4
+      },
+      "autopilot_chat": {
+        "source": "docs/assets/killer-loop-ab-v2-latest.json",
+        "wall_ms": 61334,
+        "tokens": 13737,
+        "verified": true,
+        "patches": 1
+      },
+      "trail_holy": {
+        "source": "docs/assets/trail-holy-login-never-navigates.json",
+        "wall_ms": 39005,
+        "tokens": 1460,
+        "verified": true,
+        "patches": 1
+      },
+      "trail_vs_vision": {
+        "speedup_wall": 15.95,
+        "token_ratio": 145.5,
+        "note": "vision arm failed; speedup vs wall only"
+      },
+      "trail_vs_autopilot_chat": {
+        "speedup_wall": 1.57,
+        "token_ratio": 9.41
+      }
+    },
+    "kix-notes-tab-missing": {
+      "vision_chat": {
+        "source": "docs/assets/killer-loop-ab-v2-kix-notes-tab-missing.json",
+        "wall_ms": 459854,
+        "tokens": 128342,
+        "verified": true,
+        "patches": 2
+      },
+      "autopilot_chat": {
+        "source": "docs/assets/killer-loop-ab-v2-kix-notes-tab-missing.json",
+        "wall_ms": 644175,
+        "tokens": 147754,
+        "verified": true,
+        "patches": 4,
+        "note": "slower than vision; wrong-scope thrash"
+      },
+      "trail_holy": {
+        "source": "docs/assets/trail-holy-kix-notes-tab-missing.json",
+        "wall_ms": 231922,
+        "tokens": 3461,
+        "verified": true,
+        "patches": 1
+      },
+      "trail_vs_vision": {
+        "speedup_wall": 1.98,
+        "token_ratio": 37.08
+      },
+      "trail_vs_autopilot_chat": {
+        "speedup_wall": 2.78,
+        "token_ratio": 42.69
+      }
+    },
+    "onboarding-home-broken": {
+      "vision_chat": {
+        "source": null,
+        "wall_ms": null,
+        "note": "no published A/B v2 for this task in assets"
+      },
+      "trail_holy": {
+        "source": "docs/assets/trail-holy-onboarding-home-broken.json",
+        "wall_ms": 73234,
+        "tokens": 3765,
+        "verified": true,
+        "patches": 1
+      }
+    }
+  },
+  "summary": {
+    "median_trail_wall_ms": 73234,
+    "median_trail_tokens": 3461,
+    "holy_tasks": ["login-never-navigates", "onboarding-home-broken"],
+    "verified_over_budget": ["kix-notes-tab-missing"],
+    "vs_vision_login_speedup": 15.95,
+    "vs_vision_kix_speedup": 1.98,
+    "vs_chat_kix_speedup": 2.78,
+    "product_verdict": {
+      "motor_generalizes": true,
+      "repair_generalizes": true,
+      "holy_shit_generalized": true,
+      "beats_vision_when_measured": true,
+      "all_tasks_under_120s": false
+    }
+  }
+}

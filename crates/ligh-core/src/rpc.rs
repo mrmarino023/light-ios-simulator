@@ -316,8 +316,9 @@ pub enum DaemonRequest {
         app: Option<String>,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         bundle_id: Option<String>,
-        /// Acceptance target + typed params (no step list).
-        goal: serde_json::Value,
+        /// Typed GoalSpec on the wire — never `Value`, so unknown predicate
+        /// fields fail at the RPC boundary instead of deserializing to `{}`.
+        goal: crate::PilotGoal,
         #[serde(default, skip_serializing_if = "Option::is_none")]
         max_steps: Option<u32>,
         #[serde(default, skip_serializing_if = "Option::is_none")]

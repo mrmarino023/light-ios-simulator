@@ -1,0 +1,10 @@
+{
+  "name": "ligh-dev-driver",
+  "version": "0.2.0",
+  "description": "Deprecated alias — use @mm-labs/ligh-expo",
+  "main": "app.plugin.js",
+  "license": "MIT",
+  "peerDependencies": {
+    "expo": ">=51.0.0"
+  }
+}

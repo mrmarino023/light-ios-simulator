@@ -42,7 +42,7 @@ activate (VoiceOver-style) → DevDriver tap → WDA tap → WDA label
          ↓ screen_sig effect check (~480ms poll budget) per attempt
 ```
 
-Benchmark: `./scripts/holy-shit-bench.sh` or `ligh bench holy [--physical]`.
+Benchmark: `./scripts/gate-trail-holy-multi.sh` (Simulator repair) or physical arms in this runbook.
 
 ### What failed (and must not return)
 

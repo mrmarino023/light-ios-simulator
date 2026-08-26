@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import subprocess
 import sys
 import time
 from typing import Any
@@ -38,12 +39,16 @@ def perceive(settle_ms: int = 2500) -> dict[str, Any]:
     perceive_doc = r.get("perceive") or {}
     keys = affordance_keys(perceive_doc)
     surface = (perceive_doc.get("scene") or {}).get("surface")
+    observe = r.get("observe") or {}
     return {
         "ok": bool(r.get("ok")),
         "keys": keys,
         "surface": surface,
         "perceive": perceive_doc,
         "raw": r,
+        "app_bundle_id": observe.get("app_bundle_id")
+        or (r.get("detail") or {}).get("app_bundle_id"),
+        "observed_app_label": observe.get("observed_app_label"),
     }
 
 
@@ -75,45 +80,176 @@ def is_springboard(
     return len(icon_like) >= 6
 
 
+def _sim_udid() -> str:
+    return os.environ.get("LIGH_UDID") or os.environ.get("SIMULATOR_UDID") or "booted"
+
+
+def simctl_terminate(bundle_id: str) -> None:
+    """Best-effort: remove an app from foreground. Never raises."""
+    if not bundle_id:
+        return
+    try:
+        subprocess.run(
+            ["xcrun", "simctl", "terminate", _sim_udid(), bundle_id],
+            capture_output=True,
+            text=True,
+            timeout=15,
+            check=False,
+        )
+    except Exception:
+        pass
+
+
+def quarantine_bundles(expected_bundle_id: str) -> list[str]:
+    """Terminate expected (clean relaunch) + optional contaminant list."""
+    terminated = []
+    extras = [
+        b.strip()
+        for b in (os.environ.get("LIGH_QUARANTINE_BUNDLES") or "").split(",")
+        if b.strip()
+    ]
+    # Known lab contaminants that have poisoned killer verifies.
+    extras.extend(
+        [
+            "com.mae.app",
+            "com.mae.Mae",
+            "io.mae.app",
+            "app.mae",
+        ]
+    )
+    seen = set()
+    for bid in [expected_bundle_id, *extras]:
+        if not bid or bid in seen:
+            continue
+        seen.add(bid)
+        simctl_terminate(bid)
+        terminated.append(bid)
+    time.sleep(0.4)
+    return terminated
+
+
+def surface_owned(
+    *,
+    keys: set[str],
+    surface: str | None,
+    expected_bundle_id: str,
+    observed_bundle_id: str | None,
+    ownership_markers: set[str],
+) -> tuple[bool, str]:
+    """Positive ownership — ¬springboard is never enough (Q1)."""
+    if is_springboard(keys, surface, app_markers=ownership_markers):
+        return False, "springboard"
+    if observed_bundle_id and expected_bundle_id and observed_bundle_id == expected_bundle_id:
+        return True, "bundle_id"
+    if ownership_markers and (keys & ownership_markers):
+        return True, "task_markers"
+    return False, "wrong_surface"
+
+
+def ownership_markers_for_task(task: dict[str, Any]) -> set[str]:
+    ver = task.get("verification") or {}
+    pre = ver.get("preconditions") or {}
+    markers: set[str] = set(pre.get("must_see_labels") or [])
+    markers |= set(pre.get("must_see") or [])
+    markers |= set(pre.get("must_see_ids") or [])
+    if task.get("bootstrap_wait_label"):
+        markers.add(str(task["bootstrap_wait_label"]))
+    # Bundle-specific chrome often present on login even when wait label varies.
+    bid = str(task.get("bundle_id") or "")
+    if "Kix" in bid or task.get("app_id") == "kix":
+        markers |= {"Welcome Back", "SIGN IN", "login_button", "KIX"}
+    if "XCUITestDemo" in bid or task.get("app_id") == "xcuitestdemo":
+        markers |= {"Welcome", "Login", "loginButton", "homeTitle"}
+    return {m for m in markers if m}
+
+
 def bootstrap_app(
     app: str,
     bundle_id: str,
     *,
     wait_label: str | None = None,
     app_markers: set[str] | None = None,
+    task: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    call_tool("ligh_ready", {"settle_ms": 2500, "recover_homes": 4})
+    """Install/launch expected app and require *positive* ownership before ok."""
+    markers = set(app_markers or ())
+    if task:
+        markers |= ownership_markers_for_task(task)
+    if wait_label:
+        markers.add(wait_label)
+
+    terminated = quarantine_bundles(bundle_id)
+    # Eyes already OK on SpringBoard — do not burn recover_homes cycles before run_app.
+    fast = os.environ.get("LIGH_TRAIL_FAST", "0") == "1"
+    ready_ms = 400 if fast else 800
+    call_tool("ligh_ready", {"settle_ms": ready_ms, "recover_homes": 1})
     payload: dict[str, Any] = {
         "app": app,
         "bundle_id": bundle_id,
-        "settle_ms": 3500,
-        "timeout_ms": 15000,
+        "settle_ms": 900 if fast else 2000,
+        "timeout_ms": 12000 if fast else 20000,
     }
     if wait_label:
         payload["wait_label"] = wait_label
     boot = call_tool("ligh_cap_run_app", payload)
     fault = boot.get("fault") or (boot.get("detail") or {}).get("fault")
     if fault and fault not in ("ok", None):
-        return {**boot, "foreground_ok": False, "trust_fault": fault}
+        return {
+            **boot,
+            "foreground_ok": False,
+            "trust_fault": fault,
+            "quarantine_terminated": terminated,
+        }
 
-    for attempt in range(1, 8):
-        p = perceive(2500)
-        if is_springboard(p["keys"], p.get("surface"), app_markers=app_markers):
-            call_tool("ligh_launch", {"bundle_id": bundle_id})
-            time.sleep(1.5)
-            p = perceive(3000)
-        if not is_springboard(p["keys"], p.get("surface"), app_markers=app_markers):
-            return {**boot, "foreground_ok": True, "attempt": attempt, "keys": sorted(p["keys"])[:16]}
+    last_keys: list[str] = []
+    last_reason = "wrong_surface"
+    attempts = 4 if fast else 8
+    perceive_ms = 700 if fast else 1200
+    for attempt in range(1, attempts + 1):
+        p = perceive(perceive_ms)
+        last_keys = sorted(p["keys"])[:24]
+        owned, reason = surface_owned(
+            keys=p["keys"],
+            surface=p.get("surface"),
+            expected_bundle_id=bundle_id,
+            observed_bundle_id=p.get("app_bundle_id"),
+            ownership_markers=markers,
+        )
+        last_reason = reason
+        if owned:
+            return {
+                **boot,
+                "foreground_ok": True,
+                "attempt": attempt,
+                "ownership": reason,
+                "keys": last_keys,
+                "quarantine_terminated": terminated,
+            }
+        # Contaminant or SpringBoard: kill expected + relaunch; never soft-ok.
+        quarantine_bundles(bundle_id)
+        call_tool("ligh_launch", {"bundle_id": bundle_id})
+        time.sleep(0.8)
         app_label = os.path.basename(app).replace(".app", "")
         if app_label in p["keys"]:
             call_tool(
                 "ligh_attempt",
-                {"intent": "tap", "label": app_label, "settle_ms": 2500, "timeout_ms": 10000},
+                {
+                    "intent": "tap",
+                    "label": app_label,
+                    "settle_ms": 1500,
+                    "timeout_ms": 8000,
+                },
             )
-            time.sleep(1.2)
-            continue
-    return {**boot, "foreground_ok": False, "trust_fault": "app_not_foreground"}
+            time.sleep(0.6)
 
+    return {
+        **boot,
+        "foreground_ok": False,
+        "trust_fault": last_reason,
+        "keys": last_keys,
+        "quarantine_terminated": terminated,
+        "ownership_markers": sorted(markers),
+    }
 
 def run_tap(
     label: str | None = None,
@@ -206,9 +342,14 @@ def evaluate_goal_stable(goal: dict[str, Any], settle_ms: int = 3500) -> tuple[d
 
 def run_steps(steps: list[dict[str, Any]], phase: str) -> list[dict[str, Any]]:
     trace: list[dict[str, Any]] = []
+    settle_cap = None
+    if os.environ.get("LIGH_TRAIL_FAST", "0") == "1":
+        settle_cap = int(os.environ.get("LIGH_TRAIL_SETTLE_CAP_MS", "900"))
     for i, step in enumerate(steps, start=1):
         action = (step.get("action") or "tap").lower()
         settle = int(step.get("settle_ms") or 2500)
+        if settle_cap is not None:
+            settle = min(settle, settle_cap)
         label = str(step.get("label") or "") or None
         sid = str(step.get("id") or "") or None
         if action == "tap":
@@ -284,7 +425,13 @@ def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None,
     wait_label = task.get("bootstrap_wait_label") or "Show Onboarding"
 
     markers = verification_markers(task)
-    boot = bootstrap_app(app, bundle_id, wait_label=wait_label, app_markers=markers)
+    boot = bootstrap_app(
+        app,
+        bundle_id,
+        wait_label=wait_label,
+        app_markers=markers,
+        task=task,
+    )
     if not boot.get("foreground_ok"):
         return {
             "verified": False,
@@ -319,7 +466,7 @@ def strict_verify(task: dict[str, Any] | None = None, *, app: str | None = None,
         call_tool("ligh_launch", {"bundle_id": bundle_id})
         time.sleep(1.5)
         boot2 = bootstrap_app(
-            app, bundle_id, wait_label=wait_label, app_markers=markers
+            app, bundle_id, wait_label=wait_label, app_markers=markers, task=task
         )
         if boot2.get("foreground_ok"):
             boot = boot2
@@ -384,7 +531,13 @@ def establish_initial_state(task: dict[str, Any] | None = None, *, app: str | No
     wait_label = task.get("bootstrap_wait_label") or "Show Onboarding"
 
     markers = verification_markers(task)
-    boot = bootstrap_app(app, bundle_id, wait_label=wait_label, app_markers=markers)
+    boot = bootstrap_app(
+        app,
+        bundle_id,
+        wait_label=wait_label,
+        app_markers=markers,
+        task=task,
+    )
     if not boot.get("foreground_ok"):
         return {
             "ok": False,

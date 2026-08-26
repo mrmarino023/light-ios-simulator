@@ -6,8 +6,8 @@
   "reached": true,
   "ok": true,
   "steps": 2,
-  "wall_ms": 10035,
-  "pilot_ms": 9986,
+  "wall_ms": 9466,
+  "pilot_ms": 9413,
   "llm_tokens": 0,
   "spec_inputs": {
     "goal_id": "ModalConfirmed",
@@ -17,12 +17,12 @@
   "diagnosis": null,
   "trace": [
     {
-      "boot_epoch": 1787569468257679,
+      "boot_epoch": 1787611085083849,
       "event": "operation_started",
       "expected_bundle_id": "dev.ligh.Modal",
       "launch_epoch": 1,
       "run_deadline_ms": 222000,
-      "session_id": "session-000659c8f32ab58f"
+      "session_id": "session-000659d2a3b914c9"
     },
     {
       "act": {
@@ -30,6 +30,7 @@
         "intent": "tap",
         "kind": "button",
         "label": "OpenSheet",
+        "motor_strategy": null,
         "reason": "best-first candidate rank 1 (Button)",
         "slot": null,
         "stop_code": null,
@@ -38,13 +39,14 @@
       "action_spec": {
         "action_id": "action-1-1",
         "epoch": {
-          "boot_epoch": 1787569468257679,
+          "boot_epoch": 1787611085083849,
           "launch_epoch": 1,
           "screen_epoch": 4,
-          "session_id": "session-000659c8f32ab58f"
+          "session_id": "session-000659d2a3b914c9"
         },
         "operation": {
           "intent": "tap",
+          "motor_strategy": null,
           "slot": null,
           "text": null
         },
@@ -70,17 +72,17 @@
       },
       "changed": true,
       "epoch": {
-        "boot_epoch": 1787569468257679,
+        "boot_epoch": 1787611085083849,
         "launch_epoch": 1,
         "screen_epoch": 4,
-        "session_id": "session-000659c8f32ab58f"
+        "session_id": "session-000659d2a3b914c9"
       },
       "fault": "ok",
       "fired": true,
       "fp": "fp_f09fd088f763b6c0",
       "fp_after": "fp_ba2d47f0d2002f52",
       "goal_progress": false,
-      "ms": 359,
+      "ms": 402,
       "outcome": "delivered_and_verified",
       "post_snapshot_hash": "fp_ba2d47f0d2002f52",
       "pre_snapshot_hash": "fp_f09fd088f763b6c0",
@@ -90,9 +92,10 @@
       "act": {
         "id": "ConfirmAction",
         "intent": "tap",
-        "kind": "button",
+        "kind": "primary_button",
         "label": "ConfirmAction",
-        "reason": "best-first candidate rank 1 (Button)",
+        "motor_strategy": null,
+        "reason": "best-first candidate rank 1 (PrimaryButton)",
         "slot": null,
         "stop_code": null,
         "text": null
@@ -100,13 +103,14 @@
       "action_spec": {
         "action_id": "action-1-2",
         "epoch": {
-          "boot_epoch": 1787569468257679,
+          "boot_epoch": 1787611085083849,
           "launch_epoch": 1,
           "screen_epoch": 5,
-          "session_id": "session-000659c8f32ab58f"
+          "session_id": "session-000659d2a3b914c9"
         },
         "operation": {
           "intent": "tap",
+          "motor_strategy": null,
           "slot": null,
           "text": null
         },
@@ -126,25 +130,25 @@
         "target": {
           "identifier": "ConfirmAction",
           "label": "ConfirmAction",
-          "role": "Button",
-          "stable_key": "fp_ba2d47f0d2002f52|tap|Button|ConfirmAction"
+          "role": "PrimaryButton",
+          "stable_key": "fp_ba2d47f0d2002f52|tap|PrimaryButton|ConfirmAction"
         }
       },
       "changed": true,
       "epoch": {
-        "boot_epoch": 1787569468257679,
+        "boot_epoch": 1787611085083849,
         "launch_epoch": 1,
         "screen_epoch": 5,
-        "session_id": "session-000659c8f32ab58f"
+        "session_id": "session-000659d2a3b914c9"
       },
       "fault": "ok",
       "fired": true,
       "fp": "fp_ba2d47f0d2002f52",
-      "fp_after": "fp_df7dcce197701e0c",
-      "goal_progress": false,
-      "ms": 839,
+      "fp_after": "fp_f81deb774bb59cc5",
+      "goal_progress": true,
+      "ms": 1211,
       "outcome": "delivered_and_verified",
-      "post_snapshot_hash": "fp_df7dcce197701e0c",
+      "post_snapshot_hash": "fp_f81deb774bb59cc5",
       "pre_snapshot_hash": "fp_ba2d47f0d2002f52",
       "step": 2
     }

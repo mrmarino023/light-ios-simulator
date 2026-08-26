@@ -1,10 +1,13 @@
 {
+  "artifact_schema_version": 2,
   "gate": "killer_loop",
-  "protocol": "honest",
+  "protocol": "scored",
   "protocol_version": 2,
   "arm": "baseline",
   "task": "login-never-navigates",
   "task_prompt": "The XCUITestDemo login flow is broken \u2014 after tapping Login with valid credentials the user never reaches the Home screen. Find and fix the issue in the Swift source under fixtures/third-party/XCUITestDemo/, rebuild the app, exercise login in the Simulator, and verify. Known good credentials: username alice, password secret. Success = Home screen visible (homeTitle) after Login.",
+  "prompt_hash": "fb3dc8ad80ddc8aac3b2b3056f1e0d12a8ca209aab806945e8266b7b2ff82456",
+  "system_prompt_hash": "10fdeb5ddd097b9c18f70f10973764fecd770c07b49f50ab61269167829c8e20",
   "app_id": "xcuitestdemo",
   "app_commit": "third-party-vendored",
   "upstream_url": "https://github.com/himalimarasinghe/XCUITestDemo",
@@ -12,6 +15,7 @@
   "initial_state_setup": {
     "ok": true,
     "reason": "initial_state_ready",
+    "phase": null,
     "bootstrap": {
       "ok": true,
       "data": {
@@ -25,6 +29,7 @@
           "wait_label": "Login"
         },
         "fault": "ok",
+        "fault_owner": "none",
         "observe": {
           "accessibility_tree": {
             "element_count": 5,
@@ -382,16 +387,20 @@
           ],
           "app_bundle_id": "com.himali.XCUITestDemo",
           "ax_quality": "ready",
+          "boot_epoch": 1787666219387071,
           "booted": true,
+          "expected_bundle_id": "com.himali.XCUITestDemo",
           "eyes_unusable": false,
           "frame": {
-            "fps": 61.160394980812974,
+            "fps": 62.37531732806443,
             "h": 2556,
-            "id": 692,
+            "id": 674,
             "imports_ok": true,
             "w": 1179
           },
-          "observe_ms": 0.000416,
+          "launch_epoch": 2,
+          "observe_ms": 0.000334,
+          "observed_app_label": "XCUITestDemo",
           "overlay": "none",
           "path": "lighd",
           "phase": "ready",
@@ -401,8 +410,12 @@
             "surface": "app"
           },
           "schema_version": 2,
+          "screen_epoch": 7,
+          "screen_sig": "fp_67f84fe6fa9605dc",
+          "session_id": "session-000659df79fbc8bf",
           "settled": true,
           "simulator_app_running": false,
+          "stability_streak": 8,
           "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
         },
         "ok": true,
@@ -442,33 +455,73 @@
       ]
     }
   },
-  "final_state": "verified",
-  "verified": true,
-  "claim_pass": true,
+  "final_state": "failed",
+  "verified": false,
+  "claim_pass": false,
   "false_success": false,
-  "verification_reason": "verified",
+  "verification_reason": "exercise_failed",
   "verification_evidence": {
-    "homeTitle": true,
+    "homeTitle": false,
     "onboardingOverlay": false,
     "post": {
-      "ok": true,
-      "must_see": {
-        "homeTitle": true,
-        "Home": true
+      "ok": false,
+      "all": {
+        "identity:homeTitle": false,
+        "identity:Home": false
       },
-      "must_not_see": {
-        "loginButton": true
+      "none": {
+        "identity:loginButton": false
       },
-      "keys_sample": [
-        "Home",
-        "You\u2019re logged in!",
-        "homeMessage",
-        "homeTitle"
-      ]
+      "stable_observations": 0
     },
-    "legacy_weak_pass": true
+    "goal_spec": {
+      "all": [
+        {
+          "identity": "homeTitle"
+        },
+        {
+          "identity": "Home"
+        }
+      ],
+      "none": [
+        {
+          "identity": "loginButton"
+        }
+      ],
+      "starting": [
+        {
+          "identity": "Welcome"
+        },
+        {
+          "identity": "Login"
+        }
+      ],
+      "expected_bundle_id": "com.himali.XCUITestDemo",
+      "stable_observations": 2,
+      "stability_window_ms": 250,
+      "slots": [
+        {
+          "name": "usernameTextField",
+          "value": "alice",
+          "secure": false,
+          "constraints": [
+            "usernameTextField"
+          ]
+        },
+        {
+          "name": "passwordSecureField",
+          "value": "secret",
+          "secure": true,
+          "constraints": [
+            "passwordSecureField"
+          ]
+        }
+      ],
+      "allow_destructive": false
+    },
+    "legacy_weak_pass": false
   },
-  "legacy_weak_pass": null,
+  "legacy_weak_pass": false,
   "exercise_executed": [
     {
       "phase": "exercise",
@@ -477,62 +530,532 @@
       "id": "usernameTextField",
       "label": null,
       "text_len": 5,
-      "ok": true,
-      "fault": "ok"
-    },
-    {
-      "phase": "exercise",
-      "step": 2,
-      "action": "type",
-      "id": "passwordSecureField",
-      "label": null,
-      "text_len": 6,
-      "ok": true,
-      "fault": "ok"
-    },
-    {
-      "phase": "exercise",
-      "step": 3,
-      "action": "tap",
-      "label": "Login",
-      "id": "loginButton",
-      "ok": true,
-      "fault": "ok"
+      "ok": false,
+      "fault": "motor_failed"
     }
   ],
   "model": "gpt-5-nano",
-  "wall_time_ms": 152391,
-  "llm_tokens": 67040,
+  "git_sha": "76f7e3d829055d8aad60d6c0af26d9ba66631f15",
+  "wall_time_ms": 622280,
+  "llm_tokens": 212473,
   "tokens": {
-    "in": 48672,
-    "out": 18368,
-    "total": 67040
+    "in": 153410,
+    "out": 59063,
+    "total": 212473
   },
-  "steps_used": 16,
+  "steps_used": 30,
   "strict_verify": {
-    "verified": true,
-    "reason": "verified",
-    "false_success": false,
+    "verified": false,
+    "reason": "exercise_failed",
+    "phase": "exercise",
     "evidence": {
-      "homeTitle": true,
+      "homeTitle": false,
       "onboardingOverlay": false,
       "post": {
-        "ok": true,
-        "must_see": {
-          "homeTitle": true,
-          "Home": true
+        "ok": false,
+        "all": {
+          "identity:homeTitle": false,
+          "identity:Home": false
         },
-        "must_not_see": {
-          "loginButton": true
+        "none": {
+          "identity:loginButton": false
         },
-        "keys_sample": [
-          "Home",
-          "You\u2019re logged in!",
-          "homeMessage",
-          "homeTitle"
-        ]
+        "stable_observations": 0
       },
-      "legacy_weak_pass": true
+      "goal_spec": {
+        "all": [
+          {
+            "identity": "homeTitle"
+          },
+          {
+            "identity": "Home"
+          }
+        ],
+        "none": [
+          {
+            "identity": "loginButton"
+          }
+        ],
+        "starting": [
+          {
+            "identity": "Welcome"
+          },
+          {
+            "identity": "Login"
+          }
+        ],
+        "expected_bundle_id": "com.himali.XCUITestDemo",
+        "stable_observations": 2,
+        "stability_window_ms": 250,
+        "slots": [
+          {
+            "name": "usernameTextField",
+            "value": "alice",
+            "secure": false,
+            "constraints": [
+              "usernameTextField"
+            ]
+          },
+          {
+            "name": "passwordSecureField",
+            "value": "secret",
+            "secure": true,
+            "constraints": [
+              "passwordSecureField"
+            ]
+          }
+        ],
+        "allow_destructive": false
+      },
+      "legacy_weak_pass": false
+    },
+    "bootstrap": {
+      "ok": true,
+      "data": {
+        "capability": "run_app",
+        "detail": {
+          "app_ready": true,
+          "attempt": "1",
+          "bundle_id": "com.himali.XCUITestDemo",
+          "install": true,
+          "wait_id": null,
+          "wait_label": "Login"
+        },
+        "fault": "ok",
+        "fault_owner": "none",
+        "observe": {
+          "accessibility_tree": {
+            "element_count": 5,
+            "nodes": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 852,
+                  "width": 393,
+                  "x": 0,
+                  "y": 0
+                },
+                "hittable": true,
+                "id": "n8e51e0b4",
+                "label": "XCUITestDemo",
+                "path_id": "n88c59054",
+                "role": "AXApplication",
+                "selected": false,
+                "text": "XCUITestDemo",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5000000000000001,
+                  "y": 0.4264475743348983
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.666666666666686,
+                  "width": 136.66666666666669,
+                  "x": 128.16666666666669,
+                  "y": 343
+                },
+                "hittable": true,
+                "id": "n157d4fda",
+                "label": "Welcome",
+                "parent_id": "n8e51e0b4",
+                "path_id": "n2d657359",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Welcome",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.48904538341158055
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34,
+                  "width": 361,
+                  "x": 16,
+                  "y": 399.66666666666663
+                },
+                "hittable": true,
+                "id": "nb4f5abd1",
+                "identifier": "usernameTextField",
+                "parent_id": "n8e51e0b4",
+                "path_id": "n2dfa2f53",
+                "placeholder": "Username",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Username",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5477308294209702
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34,
+                  "width": 361,
+                  "x": 16,
+                  "y": 449.66666666666663
+                },
+                "hittable": true,
+                "id": "n0a75f426",
+                "identifier": "passwordSecureField",
+                "parent_id": "n8e51e0b4",
+                "path_id": "nc828fa29",
+                "placeholder": "Password",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Password",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.6066118935837245
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34.33333333333337,
+                  "width": 65.66666666666666,
+                  "x": 163.66666666666666,
+                  "y": 499.66666666666663
+                },
+                "hittable": true,
+                "id": "n90ddeefd",
+                "identifier": "loginButton",
+                "label": "Login",
+                "parent_id": "n8e51e0b4",
+                "path_id": "n885034ad",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Login",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "point_size": [
+              393.0,
+              852.0
+            ],
+            "root": {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "children": [
+                {
+                  "center_norm": {
+                    "x": 0.5000000000000001,
+                    "y": 0.4264475743348983
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 40.666666666666686,
+                    "width": 136.66666666666669,
+                    "x": 128.16666666666669,
+                    "y": 343
+                  },
+                  "hittable": true,
+                  "id": "n157d4fda",
+                  "label": "Welcome",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "n2d657359",
+                  "role": "AXStaticText",
+                  "selected": false,
+                  "text": "Welcome",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.48904538341158055
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 399.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "nb4f5abd1",
+                  "identifier": "usernameTextField",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "n2dfa2f53",
+                  "placeholder": "Username",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Username",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.5477308294209702
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34,
+                    "width": 361,
+                    "x": 16,
+                    "y": 449.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n0a75f426",
+                  "identifier": "passwordSecureField",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "nc828fa29",
+                  "placeholder": "Password",
+                  "role": "AXTextField",
+                  "selected": false,
+                  "traits": "editable",
+                  "value": "Password",
+                  "visible": true
+                },
+                {
+                  "center_norm": {
+                    "x": 0.5,
+                    "y": 0.6066118935837245
+                  },
+                  "enabled": true,
+                  "focused": false,
+                  "frame": {
+                    "height": 34.33333333333337,
+                    "width": 65.66666666666666,
+                    "x": 163.66666666666666,
+                    "y": 499.66666666666663
+                  },
+                  "hittable": true,
+                  "id": "n90ddeefd",
+                  "identifier": "loginButton",
+                  "label": "Login",
+                  "parent_id": "n8e51e0b4",
+                  "path_id": "n885034ad",
+                  "role": "AXButton",
+                  "selected": false,
+                  "text": "Login",
+                  "traits": "button",
+                  "visible": true
+                }
+              ],
+              "children_ids": [
+                "n157d4fda",
+                "nb4f5abd1",
+                "n0a75f426",
+                "n90ddeefd"
+              ],
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 852,
+                "width": 393,
+                "x": 0,
+                "y": 0
+              },
+              "hittable": true,
+              "id": "n8e51e0b4",
+              "label": "XCUITestDemo",
+              "path_id": "n88c59054",
+              "role": "AXApplication",
+              "selected": false,
+              "text": "XCUITestDemo",
+              "visible": true
+            },
+            "status": "available"
+          },
+          "actionable_topk": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.48904538341158055
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34,
+                "width": 361,
+                "x": 16,
+                "y": 399.66666666666663
+              },
+              "hittable": true,
+              "id": "nb4f5abd1",
+              "identifier": "usernameTextField",
+              "parent_id": "n8e51e0b4",
+              "placeholder": "Username",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Username",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5477308294209702
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34,
+                "width": 361,
+                "x": 16,
+                "y": 449.66666666666663
+              },
+              "hittable": true,
+              "id": "n0a75f426",
+              "identifier": "passwordSecureField",
+              "parent_id": "n8e51e0b4",
+              "placeholder": "Password",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Password",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6066118935837245
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34.33333333333337,
+                "width": 65.66666666666666,
+                "x": 163.66666666666666,
+                "y": 499.66666666666663
+              },
+              "hittable": true,
+              "id": "n90ddeefd",
+              "identifier": "loginButton",
+              "label": "Login",
+              "parent_id": "n8e51e0b4",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Login",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5000000000000001,
+                "y": 0.4264475743348983
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 40.666666666666686,
+                "width": 136.66666666666669,
+                "x": 128.16666666666669,
+                "y": 343
+              },
+              "hittable": true,
+              "id": "n157d4fda",
+              "label": "Welcome",
+              "parent_id": "n8e51e0b4",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "Welcome",
+              "visible": true
+            }
+          ],
+          "app_bundle_id": "com.himali.XCUITestDemo",
+          "ax_quality": "ready",
+          "boot_epoch": 1787666219387071,
+          "booted": true,
+          "events": [
+            {
+              "kind": "focus_changed",
+              "payload": {
+                "from": "n0a75f426",
+                "to": null
+              },
+              "t": 1787666836.902381
+            },
+            {
+              "kind": "value_changed",
+              "payload": {
+                "from": "Alice",
+                "id": "nb4f5abd1",
+                "label": "",
+                "to": "Username"
+              },
+              "t": 1787666836.902381
+            },
+            {
+              "kind": "value_changed",
+              "payload": {
+                "from": "\u2022\u2022\u2022\u2022\u2022\u2022",
+                "id": "n0a75f426",
+                "label": "",
+                "to": "Password"
+              },
+              "t": 1787666836.902381
+            }
+          ],
+          "expected_bundle_id": "com.himali.XCUITestDemo",
+          "eyes_unusable": false,
+          "frame": {
+            "fps": 50.015688994612226,
+            "h": 2556,
+            "id": 30915,
+            "imports_ok": true,
+            "w": 1179
+          },
+          "launch_epoch": 7,
+          "observe_ms": 0.000375,
+          "observed_app_label": "XCUITestDemo",
+          "overlay": "none",
+          "path": "lighd",
+          "phase": "ready",
+          "scene": {
+            "bundle_id": "com.himali.XCUITestDemo",
+            "keyboard_visible": false,
+            "surface": "app"
+          },
+          "schema_version": 2,
+          "screen_epoch": 27,
+          "screen_sig": "fp_67f84fe6fa9605dc",
+          "session_id": "session-000659df79fbc8bf",
+          "settled": true,
+          "simulator_app_running": false,
+          "stability_streak": 7,
+          "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+        },
+        "ok": true,
+        "overlay": "none",
+        "phase": "ready",
+        "surface": "app"
+      },
+      "foreground_ok": true,
+      "attempt": 1,
+      "keys": [
+        "Login",
+        "Welcome",
+        "loginButton",
+        "n157d4fda",
+        "passwordSecureField",
+        "usernameTextField"
+      ]
     },
     "setup_trace": [],
     "exercise_trace": [
@@ -543,27 +1066,8 @@
         "id": "usernameTextField",
         "label": null,
         "text_len": 5,
-        "ok": true,
-        "fault": "ok"
-      },
-      {
-        "phase": "exercise",
-        "step": 2,
-        "action": "type",
-        "id": "passwordSecureField",
-        "label": null,
-        "text_len": 6,
-        "ok": true,
-        "fault": "ok"
-      },
-      {
-        "phase": "exercise",
-        "step": 3,
-        "action": "tap",
-        "label": "Login",
-        "id": "loginButton",
-        "ok": true,
-        "fault": "ok"
+        "ok": false,
+        "fault": "motor_failed"
       }
     ],
     "preconditions": {
@@ -584,8 +1088,14 @@
         "passwordSecureField",
         "usernameTextField"
       ]
-    }
+    },
+    "legacy_weak_pass": false,
+    "false_success": false
   },
+  "failure_phase": "exercise",
+  "failure_class": "planner_wrong_path",
+  "protocol_violations": [],
+  "scored_eligible": true,
   "agent_actions": [
     {
       "step": 1,
@@ -614,65 +1124,175 @@
     },
     {
       "step": 6,
-      "action": "write_file",
+      "action": "screenshot",
       "ok": true
     },
     {
       "step": 7,
-      "action": "bootstrap_app",
+      "action": "vision_type",
       "ok": true
     },
     {
       "step": 8,
-      "action": "vision_tap",
+      "action": "vision_type",
       "ok": true
     },
     {
       "step": 9,
-      "action": "vision_type",
+      "action": "vision_tap",
       "ok": true
     },
     {
       "step": 10,
-      "action": "vision_tap",
-      "ok": true
+      "action": "verify",
+      "ok": false
     },
     {
       "step": 11,
-      "action": "vision_type",
+      "action": "write_file",
       "ok": true
     },
     {
       "step": 12,
-      "action": "vision_tap",
+      "action": "write_file",
       "ok": true
     },
     {
       "step": 13,
-      "action": "vision_tap",
+      "action": "write_file",
       "ok": true
     },
     {
       "step": 14,
-      "action": "verify",
+      "action": "write_file",
       "ok": true
+    },
+    {
+      "step": 15,
+      "action": "write_file",
+      "ok": true
+    },
+    {
+      "step": 16,
+      "action": "write_file",
+      "ok": true
+    },
+    {
+      "step": 17,
+      "action": "verify",
+      "ok": false
+    },
+    {
+      "step": 18,
+      "action": "write_file",
+      "ok": true
+    },
+    {
+      "step": 19,
+      "action": "build_app",
+      "ok": true
+    },
+    {
+      "step": 20,
+      "action": "vision_type",
+      "ok": true
+    },
+    {
+      "step": 21,
+      "action": "vision_type",
+      "ok": true
+    },
+    {
+      "step": 22,
+      "action": "vision_tap",
+      "ok": true
+    },
+    {
+      "step": 23,
+      "action": "verify",
+      "ok": false
+    },
+    {
+      "step": 24,
+      "action": "write_file",
+      "ok": true
+    },
+    {
+      "step": 25,
+      "action": "build_app",
+      "ok": false
+    },
+    {
+      "step": 26,
+      "action": "write_file",
+      "ok": true
+    },
+    {
+      "step": 27,
+      "action": "build_app",
+      "ok": true
+    },
+    {
+      "step": 28,
+      "action": "verify",
+      "ok": false
     }
   ],
   "faults": [],
   "code_changes": [
     {
       "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
-      "bytes": 854,
+      "bytes": 1075,
       "preview": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            logi"
     },
     {
+      "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+      "bytes": 325,
+      "preview": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    @StateObject private var viewModel = LoginViewModel()\n\n    var body: some Scene {\n        WindowGroup {\n            ContentView(viewModel: viewModel)\n        }\n    }\n}\n"
+    },
+    {
+      "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+      "bytes": 2041,
+      "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+    },
+    {
+      "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+      "bytes": 2021,
+      "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+    },
+    {
+      "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+      "bytes": 2023,
+      "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+    },
+    {
+      "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+      "bytes": 2022,
+      "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+    },
+    {
+      "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+      "bytes": 2040,
+      "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+    },
+    {
       "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
-      "bytes": 921,
+      "bytes": 840,
       "preview": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            logi"
+    },
+    {
+      "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+      "bytes": 351,
+      "preview": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    @StateObject private var viewModel = LoginViewModel()\n\n    var body: some Scene {\n        WindowGroup {\n            ContentView()\n                .environmentObject(viewModel)\n        }\n    }\n}\n"
+    },
+    {
+      "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+      "bytes": 325,
+      "preview": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    @StateObject private var viewModel = LoginViewModel()\n\n    var body: some Scene {\n        WindowGroup {\n            ContentView(viewModel: viewModel)\n        }\n    }\n}\n"
     }
   ],
-  "build_attempts": 1,
-  "verification_attempts": 4,
+  "build_attempts": 4,
+  "verification_attempts": 3,
   "human_interventions": 0,
   "perception_channels": {
     "ax": 0,
@@ -681,27 +1301,858 @@
     "vision_escalations": 0
   },
   "patch_economics": {
-    "patch_attempts": 1,
-    "accepted_at_patch": 1,
-    "top1_accepted": true,
+    "patch_attempts": 4,
+    "accepted_at_patch": null,
+    "top1_accepted": false,
     "patch_trail": [
       {
         "patch": 1,
         "paths": [
           "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift"
         ],
+        "writes": 1,
+        "outcome": "rejected"
+      },
+      {
+        "patch": 2,
+        "paths": [
+          "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+          "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift"
+        ],
+        "writes": 6,
+        "outcome": "rejected"
+      },
+      {
+        "patch": 3,
+        "paths": [
+          "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift"
+        ],
+        "writes": 1,
+        "outcome": "rejected"
+      },
+      {
+        "patch": 4,
+        "paths": [
+          "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift"
+        ],
         "writes": 2,
-        "outcome": "passed"
+        "outcome": "rejected"
       }
     ]
   },
   "trace": [
     {
-      "step": 0,
-      "phase": "initial_state",
+      "step": 6,
+      "action": {
+        "action": "screenshot"
+      },
       "result": {
         "ok": true,
-        "reason": "initial_state_ready",
+        "image_b64_len": 176200
+      }
+    },
+    {
+      "step": 7,
+      "action": {
+        "action": "vision_type",
+        "identifier": "usernameTextField",
+        "text": "alice"
+      },
+      "result": {
+        "ok": true,
+        "typed": "alice"
+      }
+    },
+    {
+      "step": 8,
+      "action": {
+        "action": "vision_type",
+        "identifier": "passwordSecureField",
+        "text": "secret"
+      },
+      "result": {
+        "ok": true,
+        "typed": "secret"
+      }
+    },
+    {
+      "step": 9,
+      "action": {
+        "action": "vision_tap",
+        "identifier": "loginButton"
+      },
+      "result": {
+        "ok": true,
+        "data": {
+          "ok": true,
+          "path": "lighd",
+          "x": 0.5,
+          "y": 0.5
+        }
+      }
+    },
+    {
+      "step": 10,
+      "action": {
+        "action": "verify"
+      },
+      "result": {
+        "ok": false,
+        "verified": false,
+        "reason": "postcondition_not_satisfied",
+        "false_success": false,
+        "evidence": {
+          "homeTitle": false,
+          "onboardingOverlay": false,
+          "post": {
+            "ok": false,
+            "all": {
+              "identity:homeTitle": false,
+              "identity:Home": false
+            },
+            "none": {
+              "identity:loginButton": false
+            },
+            "stable_observations": 0
+          },
+          "goal_spec": {
+            "all": [
+              {
+                "identity": "homeTitle"
+              },
+              {
+                "identity": "Home"
+              }
+            ],
+            "none": [
+              {
+                "identity": "loginButton"
+              }
+            ],
+            "starting": [
+              {
+                "identity": "Welcome"
+              },
+              {
+                "identity": "Login"
+              }
+            ],
+            "expected_bundle_id": "com.himali.XCUITestDemo",
+            "stable_observations": 2,
+            "stability_window_ms": 250,
+            "slots": [
+              {
+                "name": "usernameTextField",
+                "value": "alice",
+                "secure": false,
+                "constraints": [
+                  "usernameTextField"
+                ]
+              },
+              {
+                "name": "passwordSecureField",
+                "value": "secret",
+                "secure": true,
+                "constraints": [
+                  "passwordSecureField"
+                ]
+              }
+            ],
+            "allow_destructive": false
+          },
+          "legacy_weak_pass": false
+        },
+        "setup_trace": [],
+        "exercise_trace": [
+          {
+            "phase": "exercise",
+            "step": 1,
+            "action": "type",
+            "id": "usernameTextField",
+            "label": null,
+            "text_len": 5,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 2,
+            "action": "type",
+            "id": "passwordSecureField",
+            "label": null,
+            "text_len": 6,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 3,
+            "action": "tap",
+            "label": "Login",
+            "id": "loginButton",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "preconditions": {
+          "ok": true,
+          "must_see": {
+            "Welcome": true,
+            "Login": true
+          },
+          "must_not_see": {
+            "homeTitle": true,
+            "Home": true
+          },
+          "keys_sample": [
+            "Login",
+            "Welcome",
+            "loginButton",
+            "n157d4fda",
+            "passwordSecureField",
+            "usernameTextField"
+          ]
+        }
+      }
+    },
+    {
+      "step": 11,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+        "content": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    @StateObject private var viewModel = LoginViewModel()\n\n    var body: some Scene {\n        WindowGroup {\n            ContentView(viewModel: viewModel)\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+        "bytes": 325,
+        "preview": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    @StateObject private var viewModel = LoginViewModel()\n\n    var body: some Scene {\n        WindowGroup {\n            ContentView(viewModel: viewModel)\n        }\n    }\n}\n"
+      }
+    },
+    {
+      "step": 12,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView(viewModel: viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @ObservedObject var vm: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.vm = viewModel\n    }\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginButton\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You\u0019re logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "bytes": 2041,
+        "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+      }
+    },
+    {
+      "step": 13,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView(viewModel: viewModel)\n                    .environmentObject(viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @EnvironmentObject var vm: LoginViewModel\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginButton\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You\u0019re logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "bytes": 2021,
+        "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+      }
+    },
+    {
+      "step": 14,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView(viewModel: viewModel)\n                    .environmentObject(viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @EnvironmentObject var vm: LoginViewModel\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginButton\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You\u2019re logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "bytes": 2023,
+        "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+      }
+    },
+    {
+      "step": 15,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView(viewModel: viewModel)\n                    .environmentObject(viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @EnvironmentObject var vm: LoginViewModel\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginButton\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You\\'re logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "bytes": 2022,
+        "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+      }
+    },
+    {
+      "step": 16,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView(viewModel: viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @ObservedObject var vm: LoginViewModel\n    init(viewModel: LoginViewModel) {\n        self.vm = viewModel\n    }\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginButton\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You're logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
+        "bytes": 2040,
+        "preview": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @ObservedObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        self.viewModel = viewModel\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n "
+      }
+    },
+    {
+      "step": 17,
+      "action": {
+        "action": "verify"
+      },
+      "result": {
+        "ok": false,
+        "verified": false,
+        "reason": "postcondition_not_satisfied",
+        "false_success": false,
+        "evidence": {
+          "homeTitle": false,
+          "onboardingOverlay": false,
+          "post": {
+            "ok": false,
+            "all": {
+              "identity:homeTitle": false,
+              "identity:Home": false
+            },
+            "none": {
+              "identity:loginButton": false
+            },
+            "stable_observations": 0
+          },
+          "goal_spec": {
+            "all": [
+              {
+                "identity": "homeTitle"
+              },
+              {
+                "identity": "Home"
+              }
+            ],
+            "none": [
+              {
+                "identity": "loginButton"
+              }
+            ],
+            "starting": [
+              {
+                "identity": "Welcome"
+              },
+              {
+                "identity": "Login"
+              }
+            ],
+            "expected_bundle_id": "com.himali.XCUITestDemo",
+            "stable_observations": 2,
+            "stability_window_ms": 250,
+            "slots": [
+              {
+                "name": "usernameTextField",
+                "value": "alice",
+                "secure": false,
+                "constraints": [
+                  "usernameTextField"
+                ]
+              },
+              {
+                "name": "passwordSecureField",
+                "value": "secret",
+                "secure": true,
+                "constraints": [
+                  "passwordSecureField"
+                ]
+              }
+            ],
+            "allow_destructive": false
+          },
+          "legacy_weak_pass": false
+        },
+        "setup_trace": [],
+        "exercise_trace": [
+          {
+            "phase": "exercise",
+            "step": 1,
+            "action": "type",
+            "id": "usernameTextField",
+            "label": null,
+            "text_len": 5,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 2,
+            "action": "type",
+            "id": "passwordSecureField",
+            "label": null,
+            "text_len": 6,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 3,
+            "action": "tap",
+            "label": "Login",
+            "id": "loginButton",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "preconditions": {
+          "ok": true,
+          "must_see": {
+            "Welcome": true,
+            "Login": true
+          },
+          "must_not_see": {
+            "homeTitle": true,
+            "Home": true
+          },
+          "keys_sample": [
+            "Login",
+            "Welcome",
+            "loginButton",
+            "n157d4fda",
+            "passwordSecureField",
+            "usernameTextField"
+          ]
+        }
+      }
+    },
+    {
+      "step": 18,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+        "content": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            loginError = \"Please enter both username and password\"\n            return\n        }\n\n        isLoading = true\n        defer { isLoading = false }\n\n        // Minimal change: remove artificial delay and failure mode\n        if username == \"alice\" && password == \"secret\" {\n            loginError = nil\n            isLoggedIn = true\n        } else {\n            loginError = \"Invalid credentials\"\n            isLoggedIn = false\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+        "bytes": 840,
+        "preview": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            logi"
+      }
+    },
+    {
+      "step": 19,
+      "action": {
+        "action": "build_app"
+      },
+      "result": {
+        "ok": true,
+        "ms": 14152,
+        "tail": "ter-for-swift-os\nIgnoring --strip-bitcode because --sign was not passed\n\nProcessInfoPlistFile /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Info.plist /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/empty-XCUITestDemo.plist (in target 'XCUITestDemo' from project 'XCUITestDemo')\n    cd /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo\n    builtin-infoPlistUtility /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/empty-XCUITestDemo.plist -producttype com.apple.product-type.application -genpkginfo /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/assetcatalog_generated_info.plist -o /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Info.plist\n\n** BUILD SUCCEEDED **\n\n\u2713 /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n"
+      }
+    },
+    {
+      "step": 20,
+      "action": {
+        "action": "vision_type",
+        "identifier": "usernameTextField",
+        "text": "alice"
+      },
+      "result": {
+        "ok": true,
+        "typed": "alice"
+      }
+    },
+    {
+      "step": 21,
+      "action": {
+        "action": "vision_type",
+        "identifier": "passwordSecureField",
+        "text": "secret"
+      },
+      "result": {
+        "ok": true,
+        "typed": "secret"
+      }
+    },
+    {
+      "step": 22,
+      "action": {
+        "action": "vision_tap",
+        "identifier": "loginButton"
+      },
+      "result": {
+        "ok": true,
+        "data": {
+          "ok": true,
+          "path": "lighd",
+          "x": 0.5,
+          "y": 0.5
+        }
+      }
+    },
+    {
+      "step": 23,
+      "action": {
+        "action": "verify"
+      },
+      "result": {
+        "ok": false,
+        "verified": false,
+        "reason": "postcondition_not_satisfied",
+        "false_success": false,
+        "evidence": {
+          "homeTitle": false,
+          "onboardingOverlay": false,
+          "post": {
+            "ok": false,
+            "all": {
+              "identity:homeTitle": false,
+              "identity:Home": false
+            },
+            "none": {
+              "identity:loginButton": false
+            },
+            "stable_observations": 0
+          },
+          "goal_spec": {
+            "all": [
+              {
+                "identity": "homeTitle"
+              },
+              {
+                "identity": "Home"
+              }
+            ],
+            "none": [
+              {
+                "identity": "loginButton"
+              }
+            ],
+            "starting": [
+              {
+                "identity": "Welcome"
+              },
+              {
+                "identity": "Login"
+              }
+            ],
+            "expected_bundle_id": "com.himali.XCUITestDemo",
+            "stable_observations": 2,
+            "stability_window_ms": 250,
+            "slots": [
+              {
+                "name": "usernameTextField",
+                "value": "alice",
+                "secure": false,
+                "constraints": [
+                  "usernameTextField"
+                ]
+              },
+              {
+                "name": "passwordSecureField",
+                "value": "secret",
+                "secure": true,
+                "constraints": [
+                  "passwordSecureField"
+                ]
+              }
+            ],
+            "allow_destructive": false
+          },
+          "legacy_weak_pass": false
+        },
+        "setup_trace": [],
+        "exercise_trace": [
+          {
+            "phase": "exercise",
+            "step": 1,
+            "action": "type",
+            "id": "usernameTextField",
+            "label": null,
+            "text_len": 5,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 2,
+            "action": "type",
+            "id": "passwordSecureField",
+            "label": null,
+            "text_len": 6,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 3,
+            "action": "tap",
+            "label": "Login",
+            "id": "loginButton",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "preconditions": {
+          "ok": true,
+          "must_see": {
+            "Welcome": true,
+            "Login": true
+          },
+          "must_not_see": {
+            "homeTitle": true,
+            "Home": true
+          },
+          "keys_sample": [
+            "Login",
+            "Welcome",
+            "loginButton",
+            "n157d4fda",
+            "passwordSecureField",
+            "usernameTextField"
+          ]
+        }
+      }
+    },
+    {
+      "step": 24,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+        "content": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    @StateObject private var viewModel = LoginViewModel()\n\n    var body: some Scene {\n        WindowGroup {\n            ContentView()\n                .environmentObject(viewModel)\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+        "bytes": 351,
+        "preview": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    @StateObject private var viewModel = LoginViewModel()\n\n    var body: some Scene {\n        WindowGroup {\n            ContentView()\n                .environmentObject(viewModel)\n        }\n    }\n}\n"
+      }
+    },
+    {
+      "step": 25,
+      "action": {
+        "action": "build_app"
+      },
+      "result": {
+        "ok": false,
+        "ms": 7982,
+        "tail": "ents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins -plugin-path /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/local/lib/swift/host/plugins -o /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/Objects-normal/arm64/XCUITestDemoApp.o -index-unit-output-path /XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/Objects-normal/arm64/XCUITestDemoApp.o -index-store-path /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Index.noindex/DataStore -index-system-modules\n/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift:16:25: error: missing argument for parameter 'viewModel' in call\n            ContentView()\n                        ^\n                        viewModel: <#LoginViewModel#>\n/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift:13:5: note: 'init(viewModel:)' declared here\n    init(viewModel: LoginViewModel) {\n    ^\n\n** BUILD FAILED **\n\n\nThe following build commands failed:\n\tSwiftCompile normal arm64 /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift (in target 'XCUITestDemo' from project 'XCUITestDemo')\n\tSwiftCompile normal arm64 Compiling\\ XCUITestDemoApp.swift /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift (in target 'XCUITestDemo' from project 'XCUITestDemo')\n\tBuilding project XCUITestDemo with scheme XCUITestDemo and configuration Debug\n(3 failures)\n"
+      }
+    },
+    {
+      "step": 26,
+      "action": {
+        "action": "write_file",
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+        "content": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    @StateObject private var viewModel = LoginViewModel()\n\n    var body: some Scene {\n        WindowGroup {\n            ContentView(viewModel: viewModel)\n        }\n    }\n}\n"
+      },
+      "result": {
+        "ok": true,
+        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
+        "bytes": 325,
+        "preview": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    @StateObject private var viewModel = LoginViewModel()\n\n    var body: some Scene {\n        WindowGroup {\n            ContentView(viewModel: viewModel)\n        }\n    }\n}\n"
+      }
+    },
+    {
+      "step": 27,
+      "action": {
+        "action": "build_app"
+      },
+      "result": {
+        "ok": true,
+        "ms": 13082,
+        "tail": "ter-for-swift-os\nIgnoring --strip-bitcode because --sign was not passed\n\nProcessInfoPlistFile /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Info.plist /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/empty-XCUITestDemo.plist (in target 'XCUITestDemo' from project 'XCUITestDemo')\n    cd /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo\n    builtin-infoPlistUtility /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/empty-XCUITestDemo.plist -producttype com.apple.product-type.application -genpkginfo /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/assetcatalog_generated_info.plist -o /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Info.plist\n\n** BUILD SUCCEEDED **\n\n\u2713 /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n"
+      }
+    },
+    {
+      "step": 28,
+      "action": {
+        "action": "verify"
+      },
+      "result": {
+        "ok": false,
+        "verified": false,
+        "reason": "postcondition_not_satisfied",
+        "false_success": false,
+        "evidence": {
+          "homeTitle": false,
+          "onboardingOverlay": false,
+          "post": {
+            "ok": false,
+            "all": {
+              "identity:homeTitle": false,
+              "identity:Home": false
+            },
+            "none": {
+              "identity:loginButton": false
+            },
+            "stable_observations": 0
+          },
+          "goal_spec": {
+            "all": [
+              {
+                "identity": "homeTitle"
+              },
+              {
+                "identity": "Home"
+              }
+            ],
+            "none": [
+              {
+                "identity": "loginButton"
+              }
+            ],
+            "starting": [
+              {
+                "identity": "Welcome"
+              },
+              {
+                "identity": "Login"
+              }
+            ],
+            "expected_bundle_id": "com.himali.XCUITestDemo",
+            "stable_observations": 2,
+            "stability_window_ms": 250,
+            "slots": [
+              {
+                "name": "usernameTextField",
+                "value": "alice",
+                "secure": false,
+                "constraints": [
+                  "usernameTextField"
+                ]
+              },
+              {
+                "name": "passwordSecureField",
+                "value": "secret",
+                "secure": true,
+                "constraints": [
+                  "passwordSecureField"
+                ]
+              }
+            ],
+            "allow_destructive": false
+          },
+          "legacy_weak_pass": false
+        },
+        "setup_trace": [],
+        "exercise_trace": [
+          {
+            "phase": "exercise",
+            "step": 1,
+            "action": "type",
+            "id": "usernameTextField",
+            "label": null,
+            "text_len": 5,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 2,
+            "action": "type",
+            "id": "passwordSecureField",
+            "label": null,
+            "text_len": 6,
+            "ok": true,
+            "fault": "ok"
+          },
+          {
+            "phase": "exercise",
+            "step": 3,
+            "action": "tap",
+            "label": "Login",
+            "id": "loginButton",
+            "ok": true,
+            "fault": "ok"
+          }
+        ],
+        "preconditions": {
+          "ok": true,
+          "must_see": {
+            "Welcome": true,
+            "Login": true
+          },
+          "must_not_see": {
+            "homeTitle": true,
+            "Home": true
+          },
+          "keys_sample": [
+            "Login",
+            "Welcome",
+            "loginButton",
+            "n157d4fda",
+            "passwordSecureField",
+            "usernameTextField"
+          ]
+        }
+      }
+    },
+    {
+      "step": "final",
+      "strict_verify": {
+        "verified": false,
+        "reason": "exercise_failed",
+        "phase": "exercise",
+        "evidence": {
+          "homeTitle": false,
+          "onboardingOverlay": false,
+          "post": {
+            "ok": false,
+            "all": {
+              "identity:homeTitle": false,
+              "identity:Home": false
+            },
+            "none": {
+              "identity:loginButton": false
+            },
+            "stable_observations": 0
+          },
+          "goal_spec": {
+            "all": [
+              {
+                "identity": "homeTitle"
+              },
+              {
+                "identity": "Home"
+              }
+            ],
+            "none": [
+              {
+                "identity": "loginButton"
+              }
+            ],
+            "starting": [
+              {
+                "identity": "Welcome"
+              },
+              {
+                "identity": "Login"
+              }
+            ],
+            "expected_bundle_id": "com.himali.XCUITestDemo",
+            "stable_observations": 2,
+            "stability_window_ms": 250,
+            "slots": [
+              {
+                "name": "usernameTextField",
+                "value": "alice",
+                "secure": false,
+                "constraints": [
+                  "usernameTextField"
+                ]
+              },
+              {
+                "name": "passwordSecureField",
+                "value": "secret",
+                "secure": true,
+                "constraints": [
+                  "passwordSecureField"
+                ]
+              }
+            ],
+            "allow_destructive": false
+          },
+          "legacy_weak_pass": false
+        },
         "bootstrap": {
           "ok": true,
           "data": {
@@ -715,6 +2166,7 @@
               "wait_label": "Login"
             },
             "fault": "ok",
+            "fault_owner": "none",
             "observe": {
               "accessibility_tree": {
                 "element_count": 5,
@@ -1072,16 +2524,50 @@
               ],
               "app_bundle_id": "com.himali.XCUITestDemo",
               "ax_quality": "ready",
+              "boot_epoch": 1787666219387071,
               "booted": true,
+              "events": [
+                {
+                  "kind": "focus_changed",
+                  "payload": {
+                    "from": "n0a75f426",
+                    "to": null
+                  },
+                  "t": 1787666836.902381
+                },
+                {
+                  "kind": "value_changed",
+                  "payload": {
+                    "from": "Alice",
+                    "id": "nb4f5abd1",
+                    "label": "",
+                    "to": "Username"
+                  },
+                  "t": 1787666836.902381
+                },
+                {
+                  "kind": "value_changed",
+                  "payload": {
+                    "from": "\u2022\u2022\u2022\u2022\u2022\u2022",
+                    "id": "n0a75f426",
+                    "label": "",
+                    "to": "Password"
+                  },
+                  "t": 1787666836.902381
+                }
+              ],
+              "expected_bundle_id": "com.himali.XCUITestDemo",
               "eyes_unusable": false,
               "frame": {
-                "fps": 61.160394980812974,
+                "fps": 50.015688994612226,
                 "h": 2556,
-                "id": 692,
+                "id": 30915,
                 "imports_ok": true,
                 "w": 1179
               },
-              "observe_ms": 0.000416,
+              "launch_epoch": 7,
+              "observe_ms": 0.000375,
+              "observed_app_label": "XCUITestDemo",
               "overlay": "none",
               "path": "lighd",
               "phase": "ready",
@@ -1091,8 +2577,12 @@
                 "surface": "app"
               },
               "schema_version": 2,
+              "screen_epoch": 27,
+              "screen_sig": "fp_67f84fe6fa9605dc",
+              "session_id": "session-000659df79fbc8bf",
               "settled": true,
               "simulator_app_running": false,
+              "stability_streak": 7,
               "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
             },
             "ok": true,
@@ -1112,633 +2602,6 @@
           ]
         },
         "setup_trace": [],
-        "preconditions": {
-          "ok": true,
-          "must_see": {
-            "Welcome": true,
-            "Login": true
-          },
-          "must_not_see": {
-            "homeTitle": true,
-            "Home": true
-          },
-          "keys_sample": [
-            "Login",
-            "Welcome",
-            "loginButton",
-            "n157d4fda",
-            "passwordSecureField",
-            "usernameTextField"
-          ]
-        }
-      }
-    },
-    {
-      "step": 1,
-      "action": {
-        "action": "read_file",
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift"
-      },
-      "result": {
-        "ok": true,
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/ContentView.swift",
-        "content": "//\n//  ContentView.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\nstruct ContentView: View {\n    @StateObject var viewModel: LoginViewModel\n\n    init(viewModel: LoginViewModel) {\n        _viewModel = StateObject(wrappedValue: viewModel)\n    }\n\n    var body: some View {\n        Group {\n            if viewModel.isLoggedIn {\n                HomeView()\n            } else {\n                LoginView()\n                    .environmentObject(viewModel)\n            }\n        }\n        .animation(.default, value: viewModel.isLoggedIn)\n    }\n}\n\nprivate struct LoginView: View {\n    @EnvironmentObject var vm: LoginViewModel\n\n    var body: some View {\n        VStack(spacing: 16) {\n            Text(\"Welcome\").font(.largeTitle)\n\n            TextField(\"Username\", text: $vm.username)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"usernameTextField\")\n\n            SecureField(\"Password\", text: $vm.password)\n                .textFieldStyle(.roundedBorder)\n                .accessibilityIdentifier(\"passwordSecureField\")\n\n            if let error = vm.loginError {\n                Text(error)\n                    .foregroundStyle(.red)\n                    .accessibilityIdentifier(\"loginErrorLabel\")\n            }\n\n            Button {\n                Task { await vm.login() }\n            } label: {\n                if vm.isLoading {\n                    ProgressView().accessibilityIdentifier(\"loginProgressView\")\n                } else {\n                    Text(\"Login\")\n                }\n            }\n            .buttonStyle(.borderedProminent)\n            .accessibilityIdentifier(\"loginButton\")\n        }\n        .padding()\n    }\n}\n\nprivate struct HomeView: View {\n    var body: some View {\n        VStack(spacing: 12) {\n            Text(\"Home\").font(.largeTitle)\n                .accessibilityIdentifier(\"homeTitle\")\n            Text(\"You\u2019re logged in!\")\n                .accessibilityIdentifier(\"homeMessage\")\n        }\n    }\n}\n"
-      }
-    },
-    {
-      "step": 2,
-      "action": {
-        "action": "read_file",
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift"
-      },
-      "result": {
-        "ok": true,
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
-        "content": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            loginError = \"Please enter both username and password\"\n            return\n        }\n\n        isLoading = true\n        defer { isLoading = false }\n\n        let failure = ProcessInfo.processInfo.arguments.contains(\"--ui_test_login_failure\")\n        try? await Task.sleep(nanoseconds: 300_000_000)\n\n        if failure {\n            loginError = \"Invalid credentials\"\n        } else {\n            loginError = nil\n            isLoggedIn = false\n        }\n    }\n}\n"
-      }
-    },
-    {
-      "step": 3,
-      "action": {
-        "action": "read_file",
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift"
-      },
-      "result": {
-        "ok": true,
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/XCUITestDemoApp.swift",
-        "content": "//\n//  XCUITestDemoApp.swift\n//  XCUITestDemo\n//\n//  Created by Himali Marasinghe on 2025-08-31.\n//\n\nimport SwiftUI\n\n@main\nstruct XCUITestDemoApp: App {\n    var body: some Scene {\n        WindowGroup {\n            ContentView(viewModel: LoginViewModel())\n        }\n    }\n}\n"
-      }
-    },
-    {
-      "step": 4,
-      "action": {
-        "action": "write_file",
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
-        "content": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            loginError = \"Please enter both username and password\"\n            return\n        }\n\n        isLoading = true\n        defer { isLoading = false }\n\n        let failure = ProcessInfo.processInfo.arguments.contains(\"--ui_test_login_failure\")\n        try? await Task.sleep(nanoseconds: 300_000_000)\n\n        if failure {\n            loginError = \"Invalid credentials\"\n        } else {\n            loginError = nil\n            isLoggedIn = true\n        }\n    }\n}\n"
-      },
-      "result": {
-        "ok": true,
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
-        "bytes": 854,
-        "preview": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            logi"
-      }
-    },
-    {
-      "step": 5,
-      "action": {
-        "action": "build_app",
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo"
-      },
-      "result": {
-        "ok": true,
-        "ms": 14926,
-        "tail": "ter-for-swift-os\nIgnoring --strip-bitcode because --sign was not passed\n\nProcessInfoPlistFile /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Info.plist /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/empty-XCUITestDemo.plist (in target 'XCUITestDemo' from project 'XCUITestDemo')\n    cd /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo\n    builtin-infoPlistUtility /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/empty-XCUITestDemo.plist -producttype com.apple.product-type.application -genpkginfo /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/PkgInfo -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Intermediates.noindex/XCUITestDemo.build/Debug-iphonesimulator/XCUITestDemo.build/assetcatalog_generated_info.plist -o /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/DerivedData/Build/Products/Debug-iphonesimulator/XCUITestDemo.app/Info.plist\n\n** BUILD SUCCEEDED **\n\n\u2713 /Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/build/XCUITestDemo.app\n"
-      }
-    },
-    {
-      "step": 6,
-      "action": {
-        "action": "write_file",
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
-        "content": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            loginError = \"Please enter both username and password\"\n            return\n        }\n\n        isLoading = true\n        defer { isLoading = false }\n\n        // Simulate network delay\n        try? await Task.sleep(nanoseconds: 300_000_000)\n\n        // Validate credentials against known good values\n        if username == \"alice\" && password == \"secret\" {\n            loginError = nil\n            isLoggedIn = true\n        } else {\n            loginError = \"Invalid credentials\"\n            isLoggedIn = false\n        }\n    }\n}\n"
-      },
-      "result": {
-        "ok": true,
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
-        "bytes": 921,
-        "preview": "import Combine\nimport Foundation\n\n@MainActor\nfinal class LoginViewModel: ObservableObject {\n    @Published var username: String = \"\"\n    @Published var password: String = \"\"\n    @Published var isLoading: Bool = false\n    @Published var loginError: String?\n    @Published var isLoggedIn: Bool = false\n\n    func login() async {\n        guard !username.isEmpty, !password.isEmpty else {\n            logi"
-      }
-    },
-    {
-      "step": 7,
-      "action": {
-        "action": "bootstrap_app",
-        "path": "fixtures/third-party/XCUITestDemo/XCUITestDemo"
-      },
-      "result": {
-        "ok": true,
-        "data": {
-          "capability": "run_app",
-          "detail": {
-            "app_ready": true,
-            "attempt": "1",
-            "bundle_id": "com.himali.XCUITestDemo",
-            "install": true,
-            "wait_id": null,
-            "wait_label": "Login"
-          },
-          "fault": "ok",
-          "observe": {
-            "accessibility_tree": {
-              "element_count": 5,
-              "nodes": [
-                {
-                  "center_norm": {
-                    "x": 0.5,
-                    "y": 0.5
-                  },
-                  "enabled": true,
-                  "focused": false,
-                  "frame": {
-                    "height": 852,
-                    "width": 393,
-                    "x": 0,
-                    "y": 0
-                  },
-                  "hittable": true,
-                  "id": "n8e51e0b4",
-                  "label": "XCUITestDemo",
-                  "path_id": "n88c59054",
-                  "role": "AXApplication",
-                  "selected": false,
-                  "text": "XCUITestDemo",
-                  "visible": true
-                },
-                {
-                  "center_norm": {
-                    "x": 0.5000000000000001,
-                    "y": 0.4264475743348983
-                  },
-                  "enabled": true,
-                  "focused": false,
-                  "frame": {
-                    "height": 40.666666666666686,
-                    "width": 136.66666666666669,
-                    "x": 128.16666666666669,
-                    "y": 343
-                  },
-                  "hittable": true,
-                  "id": "n157d4fda",
-                  "label": "Welcome",
-                  "parent_id": "n8e51e0b4",
-                  "path_id": "n2d657359",
-                  "role": "AXStaticText",
-                  "selected": false,
-                  "text": "Welcome",
-                  "visible": true
-                },
-                {
-                  "center_norm": {
-                    "x": 0.5,
-                    "y": 0.48904538341158055
-                  },
-                  "enabled": true,
-                  "focused": false,
-                  "frame": {
-                    "height": 34,
-                    "width": 361,
-                    "x": 16,
-                    "y": 399.66666666666663
-                  },
-                  "hittable": true,
-                  "id": "nb4f5abd1",
-                  "identifier": "usernameTextField",
-                  "parent_id": "n8e51e0b4",
-                  "path_id": "n2dfa2f53",
-                  "placeholder": "Username",
-                  "role": "AXTextField",
-                  "selected": false,
-                  "traits": "editable",
-                  "value": "Username",
-                  "visible": true
-                },
-                {
-                  "center_norm": {
-                    "x": 0.5,
-                    "y": 0.5477308294209702
-                  },
-                  "enabled": true,
-                  "focused": false,
-                  "frame": {
-                    "height": 34,
-                    "width": 361,
-                    "x": 16,
-                    "y": 449.66666666666663
-                  },
-                  "hittable": true,
-                  "id": "n0a75f426",
-                  "identifier": "passwordSecureField",
-                  "parent_id": "n8e51e0b4",
-                  "path_id": "nc828fa29",
-                  "placeholder": "Password",
-                  "role": "AXTextField",
-                  "selected": false,
-                  "traits": "editable",
-                  "value": "Password",
-                  "visible": true
-                },
-                {
-                  "center_norm": {
-                    "x": 0.5,
-                    "y": 0.6066118935837245
-                  },
-                  "enabled": true,
-                  "focused": false,
-                  "frame": {
-                    "height": 34.33333333333337,
-                    "width": 65.66666666666666,
-                    "x": 163.66666666666666,
-                    "y": 499.66666666666663
-                  },
-                  "hittable": true,
-                  "id": "n90ddeefd",
-                  "identifier": "loginButton",
-                  "label": "Login",
-                  "parent_id": "n8e51e0b4",
-                  "path_id": "n885034ad",
-                  "role": "AXButton",
-                  "selected": false,
-                  "text": "Login",
-                  "traits": "button",
-                  "visible": true
-                }
-              ],
-              "point_size": [
-                393.0,
-                852.0
-              ],
-              "root": {
-                "center_norm": {
-                  "x": 0.5,
-                  "y": 0.5
-                },
-                "children": [
-                  {
-                    "center_norm": {
-                      "x": 0.5000000000000001,
-                      "y": 0.4264475743348983
-                    },
-                    "enabled": true,
-                    "focused": false,
-                    "frame": {
-                      "height": 40.666666666666686,
-                      "width": 136.66666666666669,
-                      "x": 128.16666666666669,
-                      "y": 343
-                    },
-                    "hittable": true,
-                    "id": "n157d4fda",
-                    "label": "Welcome",
-                    "parent_id": "n8e51e0b4",
-                    "path_id": "n2d657359",
-                    "role": "AXStaticText",
-                    "selected": false,
-                    "text": "Welcome",
-                    "visible": true
-                  },
-                  {
-                    "center_norm": {
-                      "x": 0.5,
-                      "y": 0.48904538341158055
-                    },
-                    "enabled": true,
-                    "focused": false,
-                    "frame": {
-                      "height": 34,
-                      "width": 361,
-                      "x": 16,
-                      "y": 399.66666666666663
-                    },
-                    "hittable": true,
-                    "id": "nb4f5abd1",
-                    "identifier": "usernameTextField",
-                    "parent_id": "n8e51e0b4",
-                    "path_id": "n2dfa2f53",
-                    "placeholder": "Username",
-                    "role": "AXTextField",
-                    "selected": false,
-                    "traits": "editable",
-                    "value": "Username",
-                    "visible": true
-                  },
-                  {
-                    "center_norm": {
-                      "x": 0.5,
-                      "y": 0.5477308294209702
-                    },
-                    "enabled": true,
-                    "focused": false,
-                    "frame": {
-                      "height": 34,
-                      "width": 361,
-                      "x": 16,
-                      "y": 449.66666666666663
-                    },
-                    "hittable": true,
-                    "id": "n0a75f426",
-                    "identifier": "passwordSecureField",
-                    "parent_id": "n8e51e0b4",
-                    "path_id": "nc828fa29",
-                    "placeholder": "Password",
-                    "role": "AXTextField",
-                    "selected": false,
-                    "traits": "editable",
-                    "value": "Password",
-                    "visible": true
-                  },
-                  {
-                    "center_norm": {
-                      "x": 0.5,
-                      "y": 0.6066118935837245
-                    },
-                    "enabled": true,
-                    "focused": false,
-                    "frame": {
-                      "height": 34.33333333333337,
-                      "width": 65.66666666666666,
-                      "x": 163.66666666666666,
-                      "y": 499.66666666666663
-                    },
-                    "hittable": true,
-                    "id": "n90ddeefd",
-                    "identifier": "loginButton",
-                    "label": "Login",
-                    "parent_id": "n8e51e0b4",
-                    "path_id": "n885034ad",
-                    "role": "AXButton",
-                    "selected": false,
-                    "text": "Login",
-                    "traits": "button",
-                    "visible": true
-                  }
-                ],
-                "children_ids": [
-                  "n157d4fda",
-                  "nb4f5abd1",
-                  "n0a75f426",
-                  "n90ddeefd"
-                ],
-                "enabled": true,
-                "focused": false,
-                "frame": {
-                  "height": 852,
-                  "width": 393,
-                  "x": 0,
-                  "y": 0
-                },
-                "hittable": true,
-                "id": "n8e51e0b4",
-                "label": "XCUITestDemo",
-                "path_id": "n88c59054",
-                "role": "AXApplication",
-                "selected": false,
-                "text": "XCUITestDemo",
-                "visible": true
-              },
-              "status": "available"
-            },
-            "actionable_topk": [
-              {
-                "center_norm": {
-                  "x": 0.5,
-                  "y": 0.48904538341158055
-                },
-                "enabled": true,
-                "focused": false,
-                "frame": {
-                  "height": 34,
-                  "width": 361,
-                  "x": 16,
-                  "y": 399.66666666666663
-                },
-                "hittable": true,
-                "id": "nb4f5abd1",
-                "identifier": "usernameTextField",
-                "parent_id": "n8e51e0b4",
-                "placeholder": "Username",
-                "role": "AXTextField",
-                "selected": false,
-                "traits": "editable",
-                "value": "Username",
-                "visible": true
-              },
-              {
-                "center_norm": {
-                  "x": 0.5,
-                  "y": 0.5477308294209702
-                },
-                "enabled": true,
-                "focused": false,
-                "frame": {
-                  "height": 34,
-                  "width": 361,
-                  "x": 16,
-                  "y": 449.66666666666663
-                },
-                "hittable": true,
-                "id": "n0a75f426",
-                "identifier": "passwordSecureField",
-                "parent_id": "n8e51e0b4",
-                "placeholder": "Password",
-                "role": "AXTextField",
-                "selected": false,
-                "traits": "editable",
-                "value": "Password",
-                "visible": true
-              },
-              {
-                "center_norm": {
-                  "x": 0.5,
-                  "y": 0.6066118935837245
-                },
-                "enabled": true,
-                "focused": false,
-                "frame": {
-                  "height": 34.33333333333337,
-                  "width": 65.66666666666666,
-                  "x": 163.66666666666666,
-                  "y": 499.66666666666663
-                },
-                "hittable": true,
-                "id": "n90ddeefd",
-                "identifier": "loginButton",
-                "label": "Login",
-                "parent_id": "n8e51e0b4",
-                "role": "AXButton",
-                "selected": false,
-                "text": "Login",
-                "traits": "button",
-                "visible": true
-              },
-              {
-                "center_norm": {
-                  "x": 0.5000000000000001,
-                  "y": 0.4264475743348983
-                },
-                "enabled": true,
-                "focused": false,
-                "frame": {
-                  "height": 40.666666666666686,
-                  "width": 136.66666666666669,
-                  "x": 128.16666666666669,
-                  "y": 343
-                },
-                "hittable": true,
-                "id": "n157d4fda",
-                "label": "Welcome",
-                "parent_id": "n8e51e0b4",
-                "role": "AXStaticText",
-                "selected": false,
-                "text": "Welcome",
-                "visible": true
-              }
-            ],
-            "app_bundle_id": "com.himali.XCUITestDemo",
-            "ax_quality": "ready",
-            "booted": true,
-            "eyes_unusable": false,
-            "frame": {
-              "fps": 48.82095041358594,
-              "h": 2556,
-              "id": 5259,
-              "imports_ok": true,
-              "w": 1179
-            },
-            "observe_ms": 0.000417,
-            "overlay": "none",
-            "path": "lighd",
-            "phase": "ready",
-            "scene": {
-              "bundle_id": "com.himali.XCUITestDemo",
-              "keyboard_visible": false,
-              "surface": "app"
-            },
-            "schema_version": 2,
-            "settled": true,
-            "simulator_app_running": false,
-            "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
-          },
-          "ok": true,
-          "overlay": "none",
-          "phase": "ready",
-          "surface": "app"
-        },
-        "foreground_ok": true,
-        "attempt": 1
-      }
-    },
-    {
-      "step": 8,
-      "action": {
-        "action": "vision_tap",
-        "x": 0.5,
-        "y": 0.489
-      },
-      "result": {
-        "ok": true,
-        "data": {
-          "ok": true,
-          "path": "lighd",
-          "x": 0.5,
-          "y": 0.489
-        }
-      }
-    },
-    {
-      "step": 9,
-      "action": {
-        "action": "vision_type",
-        "text": "alice"
-      },
-      "result": {
-        "ok": true,
-        "typed": "alice"
-      }
-    },
-    {
-      "step": 10,
-      "action": {
-        "action": "vision_tap",
-        "x": 0.5,
-        "y": 0.5477
-      },
-      "result": {
-        "ok": true,
-        "data": {
-          "ok": true,
-          "path": "lighd",
-          "x": 0.5,
-          "y": 0.5477
-        }
-      }
-    },
-    {
-      "step": 11,
-      "action": {
-        "action": "vision_type",
-        "text": "secret"
-      },
-      "result": {
-        "ok": true,
-        "typed": "secret"
-      }
-    },
-    {
-      "step": 12,
-      "action": {
-        "action": "vision_tap",
-        "x": 0.5,
-        "y": 0.6066118935837245
-      },
-      "result": {
-        "ok": true,
-        "data": {
-          "ok": true,
-          "path": "lighd",
-          "x": 0.5,
-          "y": 0.6066118935837245
-        }
-      }
-    },
-    {
-      "step": 13,
-      "action": {
-        "action": "vision_tap",
-        "x": 0.5,
-        "y": 0.6066
-      },
-      "result": {
-        "ok": true,
-        "data": {
-          "ok": true,
-          "path": "lighd",
-          "x": 0.5,
-          "y": 0.6066
-        }
-      }
-    },
-    {
-      "step": 14,
-      "action": {
-        "action": "verify"
-      },
-      "result": {
-        "ok": true,
-        "verified": true,
-        "reason": "verified",
-        "false_success": false,
-        "evidence": {
-          "homeTitle": true,
-          "onboardingOverlay": false,
-          "post": {
-            "ok": true,
-            "must_see": {
-              "homeTitle": true,
-              "Home": true
-            },
-            "must_not_see": {
-              "loginButton": true
-            },
-            "keys_sample": [
-              "Home",
-              "You\u2019re logged in!",
-              "homeMessage",
-              "homeTitle"
-            ]
-          },
-          "legacy_weak_pass": true
-        },
-        "setup_trace": [],
         "exercise_trace": [
           {
             "phase": "exercise",
@@ -1747,27 +2610,8 @@
             "id": "usernameTextField",
             "label": null,
             "text_len": 5,
-            "ok": true,
-            "fault": "ok"
-          },
-          {
-            "phase": "exercise",
-            "step": 2,
-            "action": "type",
-            "id": "passwordSecureField",
-            "label": null,
-            "text_len": 6,
-            "ok": true,
-            "fault": "ok"
-          },
-          {
-            "phase": "exercise",
-            "step": 3,
-            "action": "tap",
-            "label": "Login",
-            "id": "loginButton",
-            "ok": true,
-            "fault": "ok"
+            "ok": false,
+            "fault": "motor_failed"
           }
         ],
         "preconditions": {
@@ -1788,87 +2632,9 @@
             "passwordSecureField",
             "usernameTextField"
           ]
-        }
-      }
-    },
-    {
-      "step": 14,
-      "strict_verify": {
-        "verified": true,
-        "reason": "verified",
-        "false_success": false,
-        "evidence": {
-          "homeTitle": true,
-          "onboardingOverlay": false,
-          "post": {
-            "ok": true,
-            "must_see": {
-              "homeTitle": true,
-              "Home": true
-            },
-            "must_not_see": {
-              "loginButton": true
-            },
-            "keys_sample": [
-              "Home",
-              "You\u2019re logged in!",
-              "homeMessage",
-              "homeTitle"
-            ]
-          },
-          "legacy_weak_pass": true
         },
-        "setup_trace": [],
-        "exercise_trace": [
-          {
-            "phase": "exercise",
-            "step": 1,
-            "action": "type",
-            "id": "usernameTextField",
-            "label": null,
-            "text_len": 5,
-            "ok": true,
-            "fault": "ok"
-          },
-          {
-            "phase": "exercise",
-            "step": 2,
-            "action": "type",
-            "id": "passwordSecureField",
-            "label": null,
-            "text_len": 6,
-            "ok": true,
-            "fault": "ok"
-          },
-          {
-            "phase": "exercise",
-            "step": 3,
-            "action": "tap",
-            "label": "Login",
-            "id": "loginButton",
-            "ok": true,
-            "fault": "ok"
-          }
-        ],
-        "preconditions": {
-          "ok": true,
-          "must_see": {
-            "Welcome": true,
-            "Login": true
-          },
-          "must_not_see": {
-            "homeTitle": true,
-            "Home": true
-          },
-          "keys_sample": [
-            "Login",
-            "Welcome",
-            "loginButton",
-            "n157d4fda",
-            "passwordSecureField",
-            "usernameTextField"
-          ]
-        }
+        "legacy_weak_pass": false,
+        "false_success": false
       }
     }
   ],

@@ -6,8 +6,8 @@
   "reached": true,
   "ok": true,
   "steps": 2,
-  "wall_ms": 11457,
-  "pilot_ms": 11395,
+  "wall_ms": 11500,
+  "pilot_ms": 11426,
   "llm_tokens": 0,
   "spec_inputs": {
     "goal_id": "LighDone",
@@ -17,12 +17,12 @@
   "diagnosis": null,
   "trace": [
     {
-      "boot_epoch": 1787569312706212,
+      "boot_epoch": 1787610927645556,
       "event": "operation_started",
       "expected_bundle_id": "dev.ligh.Fixture",
       "launch_epoch": 1,
       "run_deadline_ms": 222000,
-      "session_id": "session-000659c8e9e52ea4"
+      "session_id": "session-000659d29a56c374"
     },
     {
       "act": {
@@ -30,7 +30,8 @@
         "intent": "type",
         "kind": "text_field",
         "label": "NameField",
-        "reason": "fill TextField (param 1 of class)",
+        "motor_strategy": "focus_hid",
+        "reason": "fill TextField (param 1 of class) via focus_hid",
         "slot": null,
         "stop_code": null,
         "text": "pilot"
@@ -38,13 +39,14 @@
       "action_spec": {
         "action_id": "action-1-1",
         "epoch": {
-          "boot_epoch": 1787569312706212,
+          "boot_epoch": 1787610927645556,
           "launch_epoch": 1,
-          "screen_epoch": 4,
-          "session_id": "session-000659c8e9e52ea4"
+          "screen_epoch": 5,
+          "session_id": "session-000659d29a56c374"
         },
         "operation": {
           "intent": "type",
+          "motor_strategy": "focus_hid",
           "slot": null,
           "text": "pilot"
         },
@@ -65,22 +67,22 @@
           "identifier": "NameField",
           "label": "NameField",
           "role": "TextField",
-          "stable_key": "field|NameField"
+          "stable_key": "field|NameField|focus_hid"
         }
       },
       "changed": false,
       "epoch": {
-        "boot_epoch": 1787569312706212,
+        "boot_epoch": 1787610927645556,
         "launch_epoch": 1,
-        "screen_epoch": 4,
-        "session_id": "session-000659c8e9e52ea4"
+        "screen_epoch": 5,
+        "session_id": "session-000659d29a56c374"
       },
       "fault": "ok",
       "fired": true,
       "fp": "fp_6b0db857f2d2985e",
       "fp_after": "fp_6b0db857f2d2985e",
       "goal_progress": false,
-      "ms": 1336,
+      "ms": 1577,
       "outcome": "delivered_and_verified",
       "post_snapshot_hash": "fp_6b0db857f2d2985e",
       "pre_snapshot_hash": "fp_6b0db857f2d2985e",
@@ -92,6 +94,7 @@
         "intent": "tap",
         "kind": "primary_button",
         "label": "GoNext",
+        "motor_strategy": null,
         "reason": "best-first candidate rank 2 (PrimaryButton)",
         "slot": null,
         "stop_code": null,
@@ -100,13 +103,14 @@
       "action_spec": {
         "action_id": "action-1-2",
         "epoch": {
-          "boot_epoch": 1787569312706212,
+          "boot_epoch": 1787610927645556,
           "launch_epoch": 1,
-          "screen_epoch": 4,
-          "session_id": "session-000659c8e9e52ea4"
+          "screen_epoch": 5,
+          "session_id": "session-000659d29a56c374"
         },
         "operation": {
           "intent": "tap",
+          "motor_strategy": null,
           "slot": null,
           "text": null
         },
@@ -132,17 +136,17 @@
       },
       "changed": true,
       "epoch": {
-        "boot_epoch": 1787569312706212,
+        "boot_epoch": 1787610927645556,
         "launch_epoch": 1,
-        "screen_epoch": 4,
-        "session_id": "session-000659c8e9e52ea4"
+        "screen_epoch": 5,
+        "session_id": "session-000659d29a56c374"
       },
       "fault": "ok",
       "fired": true,
       "fp": "fp_6b0db857f2d2985e",
       "fp_after": "fp_b298712fd4e2ab33",
       "goal_progress": true,
-      "ms": 800,
+      "ms": 462,
       "outcome": "delivered_and_verified",
       "post_snapshot_hash": "fp_b298712fd4e2ab33",
       "pre_snapshot_hash": "fp_6b0db857f2d2985e",

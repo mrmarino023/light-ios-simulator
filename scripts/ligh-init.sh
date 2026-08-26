@@ -54,4 +54,4 @@ echo
 echo "✓ init done"
 echo "  sim:     $LIGH up && $LIGH observe --json"
 echo "  phone:   edit ~/.ligh/wda.env → ./scripts/start-appium-wda.sh → $LIGH device wait"
-echo "  prove:   ./scripts/holy-shit-bench.sh"
+echo "  prove:   ./scripts/gate-trail-holy-multi.sh"

@@ -26,6 +26,33 @@ class GoalSpecTests(unittest.TestCase):
         self.assertEqual(goal["expected_bundle_id"], "com.test")
         self.assertEqual([slot["name"] for slot in goal["slots"]], ["emailField", "passwordField"])
         self.assertTrue(goal["slots"][1]["secure"])
+        # Legacy must_see_labels compile to identity needles — not label guesses.
+        self.assertEqual(goal["all"], [{"identity": "Home"}])
+        self.assertEqual(goal["none"], [{"identity": "Login"}])
+        self.assertEqual(goal["starting"], [{"identity": "Login"}])
+
+    def test_homeTitle_identity_matches_identifier_affordance(self) -> None:
+        goal = compile_task_goal(
+            {
+                "bundle_id": "com.himali.XCUITestDemo",
+                "verification": {
+                    "postconditions": {
+                        "must_see_labels": ["homeTitle", "Home"],
+                        "must_not_see_labels": ["loginButton"],
+                    }
+                },
+            }
+        )
+        self.assertEqual(
+            goal["all"],
+            [{"identity": "homeTitle"}, {"identity": "Home"}],
+        )
+        home = {
+            "affordances": [
+                {"label": "Home", "identifier": "homeTitle", "id": "n1"},
+            ]
+        }
+        self.assertTrue(evaluate_goal(goal, home)["ok"])
 
     def test_all_and_none_are_both_required(self) -> None:
         goal = {

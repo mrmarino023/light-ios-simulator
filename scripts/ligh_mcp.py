@@ -205,8 +205,16 @@ def compact_autopilot(raw: dict[str, Any]) -> dict[str, Any]:
         return out
     if detail.get("diagnosis"):
         out["diagnosis"] = detail["diagnosis"]
+    if detail.get("repair_contract"):
+        out["repair_contract"] = detail["repair_contract"]
     if detail.get("source_hint"):
         out["source_hint"] = detail["source_hint"]
+        hint = detail["source_hint"]
+        if isinstance(hint, dict):
+            if hint.get("avoid_paths"):
+                out["repair_scope"] = hint["avoid_paths"]
+            if hint.get("diagnosis_code"):
+                out["diagnosis_code"] = hint["diagnosis_code"]
     if detail.get("stop_code"):
         out["stop_code"] = detail["stop_code"]
     # Trace stays short: what was driven, not every observation.

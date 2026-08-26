@@ -2,7 +2,7 @@
   "action_outcome": "delivered_and_verified",
   "capability": "autopilot",
   "detail": {
-    "elapsed_ms": 11114,
+    "elapsed_ms": 11774,
     "goal": {
       "allow_destructive": false,
       "params": [
@@ -24,12 +24,12 @@
     "steps": 3,
     "trace": [
       {
-        "boot_epoch": 1787569616420712,
+        "boot_epoch": 1787611233682611,
         "event": "operation_started",
         "expected_bundle_id": "com.himali.XCUITestDemo",
         "launch_epoch": 1,
         "run_deadline_ms": 222000,
-        "session_id": "session-000659c8fbff7f68"
+        "session_id": "session-000659d2ac9484b3"
       },
       {
         "act": {
@@ -37,7 +37,8 @@
           "intent": "type",
           "kind": "text_field",
           "label": null,
-          "reason": "fill TextField (param 1 of class)",
+          "motor_strategy": "focus_hid",
+          "reason": "fill TextField (param 1 of class) via focus_hid",
           "slot": null,
           "stop_code": null,
           "text": "alice"
@@ -45,13 +46,14 @@
         "action_spec": {
           "action_id": "action-1-1",
           "epoch": {
-            "boot_epoch": 1787569616420712,
+            "boot_epoch": 1787611233682611,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8fbff7f68"
+            "session_id": "session-000659d2ac9484b3"
           },
           "operation": {
             "intent": "type",
+            "motor_strategy": "focus_hid",
             "slot": null,
             "text": "alice"
           },
@@ -71,22 +73,22 @@
           "target": {
             "identifier": "usernameTextField",
             "role": "TextField",
-            "stable_key": "field|usernameTextField"
+            "stable_key": "field|usernameTextField|focus_hid"
           }
         },
         "changed": false,
         "epoch": {
-          "boot_epoch": 1787569616420712,
+          "boot_epoch": 1787611233682611,
           "launch_epoch": 1,
           "screen_epoch": 4,
-          "session_id": "session-000659c8fbff7f68"
+          "session_id": "session-000659d2ac9484b3"
         },
         "fault": "ok",
         "fired": true,
         "fp": "fp_67f84fe6fa9605dc",
         "fp_after": "fp_67f84fe6fa9605dc",
         "goal_progress": false,
-        "ms": 1111,
+        "ms": 1497,
         "outcome": "delivered_and_verified",
         "post_snapshot_hash": "fp_67f84fe6fa9605dc",
         "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
@@ -98,7 +100,8 @@
           "intent": "type",
           "kind": "secure_field",
           "label": null,
-          "reason": "fill SecureField (param 1 of class)",
+          "motor_strategy": "focus_hid",
+          "reason": "fill SecureField (param 1 of class) via focus_hid",
           "slot": null,
           "stop_code": null,
           "text": "***"
@@ -106,13 +109,14 @@
         "action_spec": {
           "action_id": "action-1-2",
           "epoch": {
-            "boot_epoch": 1787569616420712,
+            "boot_epoch": 1787611233682611,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8fbff7f68"
+            "session_id": "session-000659d2ac9484b3"
           },
           "operation": {
             "intent": "type",
+            "motor_strategy": "focus_hid",
             "slot": null,
             "text": "***"
           },
@@ -132,22 +136,22 @@
           "target": {
             "identifier": "passwordSecureField",
             "role": "SecureField",
-            "stable_key": "field|passwordSecureField"
+            "stable_key": "field|passwordSecureField|focus_hid"
           }
         },
         "changed": false,
         "epoch": {
-          "boot_epoch": 1787569616420712,
+          "boot_epoch": 1787611233682611,
           "launch_epoch": 1,
           "screen_epoch": 4,
-          "session_id": "session-000659c8fbff7f68"
+          "session_id": "session-000659d2ac9484b3"
         },
         "fault": "ok",
         "fired": true,
         "fp": "fp_67f84fe6fa9605dc",
         "fp_after": "fp_67f84fe6fa9605dc",
         "goal_progress": false,
-        "ms": 621,
+        "ms": 686,
         "outcome": "delivered_and_verified",
         "post_snapshot_hash": "fp_67f84fe6fa9605dc",
         "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
@@ -159,6 +163,7 @@
           "intent": "tap",
           "kind": "primary_button",
           "label": "Login",
+          "motor_strategy": null,
           "reason": "best-first candidate rank 2 (PrimaryButton)",
           "slot": null,
           "stop_code": null,
@@ -167,13 +172,14 @@
         "action_spec": {
           "action_id": "action-1-3",
           "epoch": {
-            "boot_epoch": 1787569616420712,
+            "boot_epoch": 1787611233682611,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8fbff7f68"
+            "session_id": "session-000659d2ac9484b3"
           },
           "operation": {
             "intent": "tap",
+            "motor_strategy": null,
             "slot": null,
             "text": null
           },
@@ -199,24 +205,24 @@
         },
         "changed": true,
         "epoch": {
-          "boot_epoch": 1787569616420712,
+          "boot_epoch": 1787611233682611,
           "launch_epoch": 1,
           "screen_epoch": 4,
-          "session_id": "session-000659c8fbff7f68"
+          "session_id": "session-000659d2ac9484b3"
         },
         "fault": "ok",
         "fired": true,
         "fp": "fp_67f84fe6fa9605dc",
         "fp_after": "fp_19f1529abee7518a",
         "goal_progress": true,
-        "ms": 757,
+        "ms": 831,
         "outcome": "delivered_and_verified",
         "post_snapshot_hash": "fp_19f1529abee7518a",
         "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
         "step": 3
       }
     ],
-    "trace_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/.ligh/runs/autopilot-session-000659c8fbff7f68-1787569626419.jsonl"
+    "trace_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/.ligh/runs/autopilot-session-000659d2ac9484b3-1787611243407.jsonl"
   },
   "fault": "ok",
   "fault_owner": "none",
@@ -427,7 +433,7 @@
     ],
     "app_bundle_id": "com.himali.XCUITestDemo",
     "ax_quality": "ready",
-    "boot_epoch": 1787569616420712,
+    "boot_epoch": 1787611233682611,
     "booted": true,
     "events": [
       {
@@ -435,24 +441,26 @@
         "payload": {
           "action": "act_type",
           "detail": {
-            "attempt": 0,
-            "text": "alice"
+            "strategy": "focus_hid",
+            "text": "alice",
+            "verified": "field_value"
           },
           "ok": true
         },
-        "t": 1787569627.560065
+        "t": 1787611244.942008
       },
       {
         "kind": "action_result",
         "payload": {
           "action": "act_type",
           "detail": {
-            "attempt": 0,
-            "text": "secret"
+            "strategy": "focus_hid",
+            "text": "secret",
+            "verified": "field_value"
           },
           "ok": true
         },
-        "t": 1787569628.199973
+        "t": 1787611245.644914
       },
       {
         "kind": "action_result",
@@ -465,20 +473,20 @@
           },
           "ok": true
         },
-        "t": 1787569628.900775
+        "t": 1787611246.411949
       }
     ],
     "expected_bundle_id": "com.himali.XCUITestDemo",
     "eyes_unusable": false,
     "frame": {
-      "fps": 57.39456192284643,
+      "fps": 57.418172086495424,
       "h": 2556,
-      "id": 769,
+      "id": 790,
       "imports_ok": true,
       "w": 1179
     },
     "launch_epoch": 1,
-    "observe_ms": 0.000583,
+    "observe_ms": 0.00025,
     "observed_app_label": "XCUITestDemo",
     "overlay": "none",
     "path": "lighd",
@@ -490,7 +498,8 @@
     },
     "schema_version": 2,
     "screen_epoch": 5,
-    "session_id": "session-000659c8fbff7f68",
+    "screen_sig": "fp_19f1529abee7518a",
+    "session_id": "session-000659d2ac9484b3",
     "settled": true,
     "simulator_app_running": false,
     "stability_streak": 8,

@@ -20,8 +20,8 @@
       "reached": true,
       "ok": true,
       "steps": 2,
-      "wall_ms": 11457,
-      "pilot_ms": 11395,
+      "wall_ms": 11500,
+      "pilot_ms": 11426,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "LighDone",
@@ -31,12 +31,12 @@
       "diagnosis": null,
       "trace": [
         {
-          "boot_epoch": 1787569312706212,
+          "boot_epoch": 1787610927645556,
           "event": "operation_started",
           "expected_bundle_id": "dev.ligh.Fixture",
           "launch_epoch": 1,
           "run_deadline_ms": 222000,
-          "session_id": "session-000659c8e9e52ea4"
+          "session_id": "session-000659d29a56c374"
         },
         {
           "act": {
@@ -44,7 +44,8 @@
             "intent": "type",
             "kind": "text_field",
             "label": "NameField",
-            "reason": "fill TextField (param 1 of class)",
+            "motor_strategy": "focus_hid",
+            "reason": "fill TextField (param 1 of class) via focus_hid",
             "slot": null,
             "stop_code": null,
             "text": "pilot"
@@ -52,13 +53,14 @@
           "action_spec": {
             "action_id": "action-1-1",
             "epoch": {
-              "boot_epoch": 1787569312706212,
+              "boot_epoch": 1787610927645556,
               "launch_epoch": 1,
-              "screen_epoch": 4,
-              "session_id": "session-000659c8e9e52ea4"
+              "screen_epoch": 5,
+              "session_id": "session-000659d29a56c374"
             },
             "operation": {
               "intent": "type",
+              "motor_strategy": "focus_hid",
               "slot": null,
               "text": "pilot"
             },
@@ -79,22 +81,22 @@
               "identifier": "NameField",
               "label": "NameField",
               "role": "TextField",
-              "stable_key": "field|NameField"
+              "stable_key": "field|NameField|focus_hid"
             }
           },
           "changed": false,
           "epoch": {
-            "boot_epoch": 1787569312706212,
+            "boot_epoch": 1787610927645556,
             "launch_epoch": 1,
-            "screen_epoch": 4,
-            "session_id": "session-000659c8e9e52ea4"
+            "screen_epoch": 5,
+            "session_id": "session-000659d29a56c374"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_6b0db857f2d2985e",
           "fp_after": "fp_6b0db857f2d2985e",
           "goal_progress": false,
-          "ms": 1336,
+          "ms": 1577,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_6b0db857f2d2985e",
           "pre_snapshot_hash": "fp_6b0db857f2d2985e",
@@ -106,6 +108,7 @@
             "intent": "tap",
             "kind": "primary_button",
             "label": "GoNext",
+            "motor_strategy": null,
             "reason": "best-first candidate rank 2 (PrimaryButton)",
             "slot": null,
             "stop_code": null,
@@ -114,13 +117,14 @@
           "action_spec": {
             "action_id": "action-1-2",
             "epoch": {
-              "boot_epoch": 1787569312706212,
+              "boot_epoch": 1787610927645556,
               "launch_epoch": 1,
-              "screen_epoch": 4,
-              "session_id": "session-000659c8e9e52ea4"
+              "screen_epoch": 5,
+              "session_id": "session-000659d29a56c374"
             },
             "operation": {
               "intent": "tap",
+              "motor_strategy": null,
               "slot": null,
               "text": null
             },
@@ -146,17 +150,17 @@
           },
           "changed": true,
           "epoch": {
-            "boot_epoch": 1787569312706212,
+            "boot_epoch": 1787610927645556,
             "launch_epoch": 1,
-            "screen_epoch": 4,
-            "session_id": "session-000659c8e9e52ea4"
+            "screen_epoch": 5,
+            "session_id": "session-000659d29a56c374"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_6b0db857f2d2985e",
           "fp_after": "fp_b298712fd4e2ab33",
           "goal_progress": true,
-          "ms": 800,
+          "ms": 462,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_b298712fd4e2ab33",
           "pre_snapshot_hash": "fp_6b0db857f2d2985e",
@@ -172,8 +176,8 @@
       "reached": true,
       "ok": true,
       "steps": 4,
-      "wall_ms": 14207,
-      "pilot_ms": 14134,
+      "wall_ms": 15200,
+      "pilot_ms": 15146,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "HomeReady",
@@ -183,12 +187,12 @@
       "diagnosis": null,
       "trace": [
         {
-          "boot_epoch": 1787569389226553,
+          "boot_epoch": 1787611003945636,
           "event": "operation_started",
           "expected_bundle_id": "dev.ligh.Onboard",
           "launch_epoch": 1,
           "run_deadline_ms": 222000,
-          "session_id": "session-000659c8ee74ca39"
+          "session_id": "session-000659d29ee302a4"
         },
         {
           "act": {
@@ -196,6 +200,7 @@
             "intent": "tap",
             "kind": "primary_button",
             "label": "Continue",
+            "motor_strategy": null,
             "reason": "best-first candidate rank 1 (PrimaryButton)",
             "slot": null,
             "stop_code": null,
@@ -204,13 +209,14 @@
           "action_spec": {
             "action_id": "action-1-1",
             "epoch": {
-              "boot_epoch": 1787569389226553,
+              "boot_epoch": 1787611003945636,
               "launch_epoch": 1,
-              "screen_epoch": 5,
-              "session_id": "session-000659c8ee74ca39"
+              "screen_epoch": 4,
+              "session_id": "session-000659d29ee302a4"
             },
             "operation": {
               "intent": "tap",
+              "motor_strategy": null,
               "slot": null,
               "text": null
             },
@@ -236,17 +242,17 @@
           },
           "changed": true,
           "epoch": {
-            "boot_epoch": 1787569389226553,
+            "boot_epoch": 1787611003945636,
             "launch_epoch": 1,
-            "screen_epoch": 5,
-            "session_id": "session-000659c8ee74ca39"
+            "screen_epoch": 4,
+            "session_id": "session-000659d29ee302a4"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_ab0895f8ab1dcb92",
           "fp_after": "fp_6773b114c7c21f15",
           "goal_progress": false,
-          "ms": 1955,
+          "ms": 1956,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_6773b114c7c21f15",
           "pre_snapshot_hash": "fp_ab0895f8ab1dcb92",
@@ -258,7 +264,8 @@
             "intent": "type",
             "kind": "text_field",
             "label": null,
-            "reason": "fill TextField (param 1 of class)",
+            "motor_strategy": "focus_hid",
+            "reason": "fill TextField (param 1 of class) via focus_hid",
             "slot": null,
             "stop_code": null,
             "text": "pilot"
@@ -266,13 +273,14 @@
           "action_spec": {
             "action_id": "action-1-2",
             "epoch": {
-              "boot_epoch": 1787569389226553,
+              "boot_epoch": 1787611003945636,
               "launch_epoch": 1,
-              "screen_epoch": 6,
-              "session_id": "session-000659c8ee74ca39"
+              "screen_epoch": 5,
+              "session_id": "session-000659d29ee302a4"
             },
             "operation": {
               "intent": "type",
+              "motor_strategy": "focus_hid",
               "slot": null,
               "text": "pilot"
             },
@@ -292,22 +300,22 @@
             "target": {
               "identifier": "OnboardNameField",
               "role": "TextField",
-              "stable_key": "field|OnboardNameField"
+              "stable_key": "field|OnboardNameField|focus_hid"
             }
           },
           "changed": false,
           "epoch": {
-            "boot_epoch": 1787569389226553,
+            "boot_epoch": 1787611003945636,
             "launch_epoch": 1,
-            "screen_epoch": 6,
-            "session_id": "session-000659c8ee74ca39"
+            "screen_epoch": 5,
+            "session_id": "session-000659d29ee302a4"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_6773b114c7c21f15",
           "fp_after": "fp_6773b114c7c21f15",
           "goal_progress": false,
-          "ms": 1107,
+          "ms": 1407,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_6773b114c7c21f15",
           "pre_snapshot_hash": "fp_6773b114c7c21f15",
@@ -319,6 +327,7 @@
             "intent": "tap",
             "kind": "primary_button",
             "label": "Next",
+            "motor_strategy": null,
             "reason": "best-first candidate rank 2 (PrimaryButton)",
             "slot": null,
             "stop_code": null,
@@ -327,13 +336,14 @@
           "action_spec": {
             "action_id": "action-1-3",
             "epoch": {
-              "boot_epoch": 1787569389226553,
+              "boot_epoch": 1787611003945636,
               "launch_epoch": 1,
-              "screen_epoch": 6,
-              "session_id": "session-000659c8ee74ca39"
+              "screen_epoch": 5,
+              "session_id": "session-000659d29ee302a4"
             },
             "operation": {
               "intent": "tap",
+              "motor_strategy": null,
               "slot": null,
               "text": null
             },
@@ -359,17 +369,17 @@
           },
           "changed": true,
           "epoch": {
-            "boot_epoch": 1787569389226553,
+            "boot_epoch": 1787611003945636,
             "launch_epoch": 1,
-            "screen_epoch": 6,
-            "session_id": "session-000659c8ee74ca39"
+            "screen_epoch": 5,
+            "session_id": "session-000659d29ee302a4"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_6773b114c7c21f15",
           "fp_after": "fp_4cf50893082415a3",
           "goal_progress": false,
-          "ms": 1832,
+          "ms": 1872,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_4cf50893082415a3",
           "pre_snapshot_hash": "fp_6773b114c7c21f15",
@@ -379,9 +389,10 @@
           "act": {
             "id": "OnboardFinish",
             "intent": "tap",
-            "kind": "button",
+            "kind": "primary_button",
             "label": "Finish",
-            "reason": "best-first candidate rank 1 (Button)",
+            "motor_strategy": null,
+            "reason": "best-first candidate rank 1 (PrimaryButton)",
             "slot": null,
             "stop_code": null,
             "text": null
@@ -389,13 +400,14 @@
           "action_spec": {
             "action_id": "action-1-4",
             "epoch": {
-              "boot_epoch": 1787569389226553,
+              "boot_epoch": 1787611003945636,
               "launch_epoch": 1,
-              "screen_epoch": 7,
-              "session_id": "session-000659c8ee74ca39"
+              "screen_epoch": 6,
+              "session_id": "session-000659d29ee302a4"
             },
             "operation": {
               "intent": "tap",
+              "motor_strategy": null,
               "slot": null,
               "text": null
             },
@@ -415,23 +427,23 @@
             "target": {
               "identifier": "OnboardFinish",
               "label": "Finish",
-              "role": "Button",
-              "stable_key": "fp_4cf50893082415a3|tap|Button|OnboardFinish"
+              "role": "PrimaryButton",
+              "stable_key": "fp_4cf50893082415a3|tap|PrimaryButton|OnboardFinish"
             }
           },
           "changed": true,
           "epoch": {
-            "boot_epoch": 1787569389226553,
+            "boot_epoch": 1787611003945636,
             "launch_epoch": 1,
-            "screen_epoch": 7,
-            "session_id": "session-000659c8ee74ca39"
+            "screen_epoch": 6,
+            "session_id": "session-000659d29ee302a4"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_4cf50893082415a3",
           "fp_after": "fp_2b03c8b62402be70",
           "goal_progress": true,
-          "ms": 296,
+          "ms": 426,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_2b03c8b62402be70",
           "pre_snapshot_hash": "fp_4cf50893082415a3",
@@ -447,8 +459,8 @@
       "reached": true,
       "ok": true,
       "steps": 2,
-      "wall_ms": 10035,
-      "pilot_ms": 9986,
+      "wall_ms": 9466,
+      "pilot_ms": 9413,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "ModalConfirmed",
@@ -458,12 +470,12 @@
       "diagnosis": null,
       "trace": [
         {
-          "boot_epoch": 1787569468257679,
+          "boot_epoch": 1787611085083849,
           "event": "operation_started",
           "expected_bundle_id": "dev.ligh.Modal",
           "launch_epoch": 1,
           "run_deadline_ms": 222000,
-          "session_id": "session-000659c8f32ab58f"
+          "session_id": "session-000659d2a3b914c9"
         },
         {
           "act": {
@@ -471,6 +483,7 @@
             "intent": "tap",
             "kind": "button",
             "label": "OpenSheet",
+            "motor_strategy": null,
             "reason": "best-first candidate rank 1 (Button)",
             "slot": null,
             "stop_code": null,
@@ -479,13 +492,14 @@
           "action_spec": {
             "action_id": "action-1-1",
             "epoch": {
-              "boot_epoch": 1787569468257679,
+              "boot_epoch": 1787611085083849,
               "launch_epoch": 1,
               "screen_epoch": 4,
-              "session_id": "session-000659c8f32ab58f"
+              "session_id": "session-000659d2a3b914c9"
             },
             "operation": {
               "intent": "tap",
+              "motor_strategy": null,
               "slot": null,
               "text": null
             },
@@ -511,17 +525,17 @@
           },
           "changed": true,
           "epoch": {
-            "boot_epoch": 1787569468257679,
+            "boot_epoch": 1787611085083849,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8f32ab58f"
+            "session_id": "session-000659d2a3b914c9"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_f09fd088f763b6c0",
           "fp_after": "fp_ba2d47f0d2002f52",
           "goal_progress": false,
-          "ms": 359,
+          "ms": 402,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_ba2d47f0d2002f52",
           "pre_snapshot_hash": "fp_f09fd088f763b6c0",
@@ -531,9 +545,10 @@
           "act": {
             "id": "ConfirmAction",
             "intent": "tap",
-            "kind": "button",
+            "kind": "primary_button",
             "label": "ConfirmAction",
-            "reason": "best-first candidate rank 1 (Button)",
+            "motor_strategy": null,
+            "reason": "best-first candidate rank 1 (PrimaryButton)",
             "slot": null,
             "stop_code": null,
             "text": null
@@ -541,13 +556,14 @@
           "action_spec": {
             "action_id": "action-1-2",
             "epoch": {
-              "boot_epoch": 1787569468257679,
+              "boot_epoch": 1787611085083849,
               "launch_epoch": 1,
               "screen_epoch": 5,
-              "session_id": "session-000659c8f32ab58f"
+              "session_id": "session-000659d2a3b914c9"
             },
             "operation": {
               "intent": "tap",
+              "motor_strategy": null,
               "slot": null,
               "text": null
             },
@@ -567,25 +583,25 @@
             "target": {
               "identifier": "ConfirmAction",
               "label": "ConfirmAction",
-              "role": "Button",
-              "stable_key": "fp_ba2d47f0d2002f52|tap|Button|ConfirmAction"
+              "role": "PrimaryButton",
+              "stable_key": "fp_ba2d47f0d2002f52|tap|PrimaryButton|ConfirmAction"
             }
           },
           "changed": true,
           "epoch": {
-            "boot_epoch": 1787569468257679,
+            "boot_epoch": 1787611085083849,
             "launch_epoch": 1,
             "screen_epoch": 5,
-            "session_id": "session-000659c8f32ab58f"
+            "session_id": "session-000659d2a3b914c9"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_ba2d47f0d2002f52",
-          "fp_after": "fp_df7dcce197701e0c",
-          "goal_progress": false,
-          "ms": 839,
+          "fp_after": "fp_f81deb774bb59cc5",
+          "goal_progress": true,
+          "ms": 1211,
           "outcome": "delivered_and_verified",
-          "post_snapshot_hash": "fp_df7dcce197701e0c",
+          "post_snapshot_hash": "fp_f81deb774bb59cc5",
           "pre_snapshot_hash": "fp_ba2d47f0d2002f52",
           "step": 2
         }
@@ -599,8 +615,8 @@
       "reached": true,
       "ok": true,
       "steps": 1,
-      "wall_ms": 9389,
-      "pilot_ms": 9334,
+      "wall_ms": 8226,
+      "pilot_ms": 8177,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "PostDetail",
@@ -610,12 +626,12 @@
       "diagnosis": null,
       "trace": [
         {
-          "boot_epoch": 1787569542422398,
+          "boot_epoch": 1787611161080291,
           "event": "operation_started",
           "expected_bundle_id": "dev.ligh.Feed",
           "launch_epoch": 1,
           "run_deadline_ms": 222000,
-          "session_id": "session-000659c8f7965f7e"
+          "session_id": "session-000659d2a840b1e3"
         },
         {
           "act": {
@@ -623,6 +639,7 @@
             "intent": "tap",
             "kind": "button",
             "label": "Post 1",
+            "motor_strategy": null,
             "reason": "best-first candidate rank 1 (Button)",
             "slot": null,
             "stop_code": null,
@@ -631,13 +648,14 @@
           "action_spec": {
             "action_id": "action-1-1",
             "epoch": {
-              "boot_epoch": 1787569542422398,
+              "boot_epoch": 1787611161080291,
               "launch_epoch": 1,
               "screen_epoch": 4,
-              "session_id": "session-000659c8f7965f7e"
+              "session_id": "session-000659d2a840b1e3"
             },
             "operation": {
               "intent": "tap",
+              "motor_strategy": null,
               "slot": null,
               "text": null
             },
@@ -663,17 +681,17 @@
           },
           "changed": true,
           "epoch": {
-            "boot_epoch": 1787569542422398,
+            "boot_epoch": 1787611161080291,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8f7965f7e"
+            "session_id": "session-000659d2a840b1e3"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_7587f6aae345346f",
           "fp_after": "fp_3878c6cafe950b2d",
           "goal_progress": true,
-          "ms": 595,
+          "ms": 639,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_3878c6cafe950b2d",
           "pre_snapshot_hash": "fp_7587f6aae345346f",
@@ -689,8 +707,8 @@
       "reached": true,
       "ok": true,
       "steps": 3,
-      "wall_ms": 11173,
-      "pilot_ms": 11114,
+      "wall_ms": 11845,
+      "pilot_ms": 11774,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "homeTitle",
@@ -700,12 +718,12 @@
       "diagnosis": null,
       "trace": [
         {
-          "boot_epoch": 1787569616420712,
+          "boot_epoch": 1787611233682611,
           "event": "operation_started",
           "expected_bundle_id": "com.himali.XCUITestDemo",
           "launch_epoch": 1,
           "run_deadline_ms": 222000,
-          "session_id": "session-000659c8fbff7f68"
+          "session_id": "session-000659d2ac9484b3"
         },
         {
           "act": {
@@ -713,7 +731,8 @@
             "intent": "type",
             "kind": "text_field",
             "label": null,
-            "reason": "fill TextField (param 1 of class)",
+            "motor_strategy": "focus_hid",
+            "reason": "fill TextField (param 1 of class) via focus_hid",
             "slot": null,
             "stop_code": null,
             "text": "alice"
@@ -721,13 +740,14 @@
           "action_spec": {
             "action_id": "action-1-1",
             "epoch": {
-              "boot_epoch": 1787569616420712,
+              "boot_epoch": 1787611233682611,
               "launch_epoch": 1,
               "screen_epoch": 4,
-              "session_id": "session-000659c8fbff7f68"
+              "session_id": "session-000659d2ac9484b3"
             },
             "operation": {
               "intent": "type",
+              "motor_strategy": "focus_hid",
               "slot": null,
               "text": "alice"
             },
@@ -747,22 +767,22 @@
             "target": {
               "identifier": "usernameTextField",
               "role": "TextField",
-              "stable_key": "field|usernameTextField"
+              "stable_key": "field|usernameTextField|focus_hid"
             }
           },
           "changed": false,
           "epoch": {
-            "boot_epoch": 1787569616420712,
+            "boot_epoch": 1787611233682611,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8fbff7f68"
+            "session_id": "session-000659d2ac9484b3"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_67f84fe6fa9605dc",
           "fp_after": "fp_67f84fe6fa9605dc",
           "goal_progress": false,
-          "ms": 1111,
+          "ms": 1497,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_67f84fe6fa9605dc",
           "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
@@ -774,7 +794,8 @@
             "intent": "type",
             "kind": "secure_field",
             "label": null,
-            "reason": "fill SecureField (param 1 of class)",
+            "motor_strategy": "focus_hid",
+            "reason": "fill SecureField (param 1 of class) via focus_hid",
             "slot": null,
             "stop_code": null,
             "text": "***"
@@ -782,13 +803,14 @@
           "action_spec": {
             "action_id": "action-1-2",
             "epoch": {
-              "boot_epoch": 1787569616420712,
+              "boot_epoch": 1787611233682611,
               "launch_epoch": 1,
               "screen_epoch": 4,
-              "session_id": "session-000659c8fbff7f68"
+              "session_id": "session-000659d2ac9484b3"
             },
             "operation": {
               "intent": "type",
+              "motor_strategy": "focus_hid",
               "slot": null,
               "text": "***"
             },
@@ -808,22 +830,22 @@
             "target": {
               "identifier": "passwordSecureField",
               "role": "SecureField",
-              "stable_key": "field|passwordSecureField"
+              "stable_key": "field|passwordSecureField|focus_hid"
             }
           },
           "changed": false,
           "epoch": {
-            "boot_epoch": 1787569616420712,
+            "boot_epoch": 1787611233682611,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8fbff7f68"
+            "session_id": "session-000659d2ac9484b3"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_67f84fe6fa9605dc",
           "fp_after": "fp_67f84fe6fa9605dc",
           "goal_progress": false,
-          "ms": 621,
+          "ms": 686,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_67f84fe6fa9605dc",
           "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
@@ -835,6 +857,7 @@
             "intent": "tap",
             "kind": "primary_button",
             "label": "Login",
+            "motor_strategy": null,
             "reason": "best-first candidate rank 2 (PrimaryButton)",
             "slot": null,
             "stop_code": null,
@@ -843,13 +866,14 @@
           "action_spec": {
             "action_id": "action-1-3",
             "epoch": {
-              "boot_epoch": 1787569616420712,
+              "boot_epoch": 1787611233682611,
               "launch_epoch": 1,
               "screen_epoch": 4,
-              "session_id": "session-000659c8fbff7f68"
+              "session_id": "session-000659d2ac9484b3"
             },
             "operation": {
               "intent": "tap",
+              "motor_strategy": null,
               "slot": null,
               "text": null
             },
@@ -875,17 +899,17 @@
           },
           "changed": true,
           "epoch": {
-            "boot_epoch": 1787569616420712,
+            "boot_epoch": 1787611233682611,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8fbff7f68"
+            "session_id": "session-000659d2ac9484b3"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_67f84fe6fa9605dc",
           "fp_after": "fp_19f1529abee7518a",
           "goal_progress": true,
-          "ms": 757,
+          "ms": 831,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_19f1529abee7518a",
           "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
@@ -901,8 +925,8 @@
       "reached": true,
       "ok": true,
       "steps": 3,
-      "wall_ms": 12676,
-      "pilot_ms": 12602,
+      "wall_ms": 11476,
+      "pilot_ms": 11416,
       "llm_tokens": 0,
       "spec_inputs": {
         "goal_id": "tab_home",
@@ -912,12 +936,12 @@
       "diagnosis": null,
       "trace": [
         {
-          "boot_epoch": 1787572940440393,
+          "boot_epoch": 1787611309464288,
           "event": "operation_started",
           "expected_bundle_id": "mybyKosta.Kix",
           "launch_epoch": 1,
           "run_deadline_ms": 222000,
-          "session_id": "session-000659c9c2200349"
+          "session_id": "session-000659d2b118dae0"
         },
         {
           "act": {
@@ -934,10 +958,10 @@
           "action_spec": {
             "action_id": "action-1-1",
             "epoch": {
-              "boot_epoch": 1787572940440393,
+              "boot_epoch": 1787611309464288,
               "launch_epoch": 1,
               "screen_epoch": 4,
-              "session_id": "session-000659c9c2200349"
+              "session_id": "session-000659d2b118dae0"
             },
             "operation": {
               "intent": "type",
@@ -966,17 +990,17 @@
           },
           "changed": false,
           "epoch": {
-            "boot_epoch": 1787572940440393,
+            "boot_epoch": 1787611309464288,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c9c2200349"
+            "session_id": "session-000659d2b118dae0"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_d27ec961d7c1781f",
           "fp_after": "fp_d27ec961d7c1781f",
           "goal_progress": false,
-          "ms": 1357,
+          "ms": 1607,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_d27ec961d7c1781f",
           "pre_snapshot_hash": "fp_d27ec961d7c1781f",
@@ -997,10 +1021,10 @@
           "action_spec": {
             "action_id": "action-1-2",
             "epoch": {
-              "boot_epoch": 1787572940440393,
+              "boot_epoch": 1787611309464288,
               "launch_epoch": 1,
               "screen_epoch": 4,
-              "session_id": "session-000659c9c2200349"
+              "session_id": "session-000659d2b118dae0"
             },
             "operation": {
               "intent": "type",
@@ -1029,17 +1053,17 @@
           },
           "changed": false,
           "epoch": {
-            "boot_epoch": 1787572940440393,
+            "boot_epoch": 1787611309464288,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c9c2200349"
+            "session_id": "session-000659d2b118dae0"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_d27ec961d7c1781f",
           "fp_after": "fp_d27ec961d7c1781f",
           "goal_progress": false,
-          "ms": 835,
+          "ms": 799,
           "outcome": "delivered_and_verified",
           "post_snapshot_hash": "fp_d27ec961d7c1781f",
           "pre_snapshot_hash": "fp_d27ec961d7c1781f",
@@ -1060,10 +1084,10 @@
           "action_spec": {
             "action_id": "action-1-3",
             "epoch": {
-              "boot_epoch": 1787572940440393,
+              "boot_epoch": 1787611309464288,
               "launch_epoch": 1,
               "screen_epoch": 4,
-              "session_id": "session-000659c9c2200349"
+              "session_id": "session-000659d2b118dae0"
             },
             "operation": {
               "intent": "tap",
@@ -1093,19 +1117,19 @@
           },
           "changed": true,
           "epoch": {
-            "boot_epoch": 1787572940440393,
+            "boot_epoch": 1787611309464288,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c9c2200349"
+            "session_id": "session-000659d2b118dae0"
           },
           "fault": "ok",
           "fired": true,
           "fp": "fp_d27ec961d7c1781f",
-          "fp_after": "fp_2808ce1870f8571e",
+          "fp_after": "fp_d8d22f4331848488",
           "goal_progress": true,
-          "ms": 1112,
+          "ms": 943,
           "outcome": "delivered_and_verified",
-          "post_snapshot_hash": "fp_2808ce1870f8571e",
+          "post_snapshot_hash": "fp_d8d22f4331848488",
           "pre_snapshot_hash": "fp_d27ec961d7c1781f",
           "step": 3
         }
@@ -1116,7 +1140,7 @@
     "all_reached": true,
     "distinct_flow_shapes": 6,
     "zero_llm": true,
-    "median_wall_ms": 11457
+    "median_wall_ms": 11500
   },
   "claim_pass": true
 }

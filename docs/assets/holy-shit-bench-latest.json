@@ -1,0 +1,1916 @@
+{
+  "bench": "holy_shit",
+  "version": 3,
+  "claim": "Motor + TRAIL repair: generalize across apps/tasks; repair beats vision/chat on frozen killers without golden cheats",
+  "ts": "2026-08-26T10:46:40Z",
+  "platform": "macOS-14.6.1-arm64-arm-64bit-Mach-O",
+  "workflow_matrix": {
+    "gate": "workflow_matrix",
+    "claim": "Motor regression only (Ligh* fixtures + one OSS app). NOT a generalization claim \u2014 see gate-external-apps.sh.",
+    "apps": 5,
+    "workflows_per_app": 5,
+    "workflows_total": 25,
+    "workflows_pass": 24,
+    "workflows_fail": 1,
+    "pass_rate": 0.96,
+    "by_app": {
+      "xcuitestdemo": {
+        "pass": 5,
+        "total": 5
+      },
+      "lighfixture": {
+        "pass": 4,
+        "total": 5
+      },
+      "lighfeed": {
+        "pass": 5,
+        "total": 5
+      },
+      "lighonboard": {
+        "pass": 5,
+        "total": 5
+      },
+      "lighmodal": {
+        "pass": 5,
+        "total": 5
+      }
+    },
+    "results": [
+      {
+        "app": "xcuitestdemo",
+        "workflow": "login_happy",
+        "skill": "form + assert",
+        "ok": true,
+        "fault": "ok",
+        "ms": 5033,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 8
+        }
+      },
+      {
+        "app": "xcuitestdemo",
+        "workflow": "login_user_first",
+        "skill": "field focus order",
+        "ok": true,
+        "fault": "ok",
+        "ms": 4214,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 9
+        }
+      },
+      {
+        "app": "xcuitestdemo",
+        "workflow": "login_minimal_waits",
+        "skill": "fast path",
+        "ok": true,
+        "fault": "ok",
+        "ms": 3990,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 8
+        }
+      },
+      {
+        "app": "xcuitestdemo",
+        "workflow": "login_password_then_user",
+        "skill": "reverse field order",
+        "ok": true,
+        "fault": "ok",
+        "ms": 3951,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 7
+        }
+      },
+      {
+        "app": "xcuitestdemo",
+        "workflow": "login_home_only_assert",
+        "skill": "postcondition only",
+        "ok": true,
+        "fault": "ok",
+        "ms": 3403,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "homeTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 8
+        }
+      },
+      {
+        "app": "lighfixture",
+        "workflow": "home_to_done",
+        "skill": "navigation push",
+        "ok": true,
+        "fault": "ok",
+        "ms": 2563,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "LighDone"
+          },
+          "motor": "ensure_path",
+          "steps": 3
+        }
+      },
+      {
+        "app": "lighfixture",
+        "workflow": "type_name_done",
+        "skill": "keyboard + nav",
+        "ok": true,
+        "fault": "ok",
+        "ms": 2945,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "LighDoneDetail"
+          },
+          "motor": "ensure_path",
+          "steps": 5
+        }
+      },
+      {
+        "app": "lighfixture",
+        "workflow": "done_and_back",
+        "skill": "back navigation",
+        "ok": true,
+        "fault": "ok",
+        "ms": 2708,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "LighHome"
+          },
+          "motor": "ensure_path",
+          "steps": 5
+        }
+      },
+      {
+        "app": "lighfixture",
+        "workflow": "empty_name_flow",
+        "skill": "default state",
+        "ok": true,
+        "fault": "ok",
+        "ms": 535,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "LighDone"
+          },
+          "motor": "ensure_path",
+          "steps": 3
+        }
+      },
+      {
+        "app": "lighfixture",
+        "workflow": "name_then_back",
+        "skill": "round trip",
+        "ok": false,
+        "fault": "motor_rejected",
+        "ms": 1291,
+        "detail": {
+          "detail": {
+            "actionable_topk": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.5715962441314554
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34,
+                  "width": 361,
+                  "x": 16,
+                  "y": 470
+                },
+                "hittable": true,
+                "id": "n4304014d",
+                "identifier": "NameField",
+                "label": "NameField",
+                "parent_id": "n70d32821",
+                "placeholder": "Name",
+                "role": "AXTextField",
+                "selected": false,
+                "text": "NameField",
+                "traits": "editable",
+                "value": "Name",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5004240882103477,
+                  "y": 0.6351721439749609
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 34.33333333333337,
+                  "width": 81.33333333333331,
+                  "x": 156,
+                  "y": 524
+                },
+                "hittable": true,
+                "id": "n8108c5bd",
+                "identifier": "GoNext",
+                "label": "GoNext",
+                "parent_id": "n70d32821",
+                "role": "AXButton",
+                "selected": false,
+                "text": "GoNext",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.16072943172179815,
+                  "y": 0.1428012519561815
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.66666666666667,
+                  "width": 94.33333333333334,
+                  "x": 16.000000000000007,
+                  "y": 101.33333333333331
+                },
+                "hittable": true,
+                "id": "n5bc86e33",
+                "label": "Home",
+                "parent_id": "n70d32821",
+                "role": "AXHeading",
+                "selected": false,
+                "text": "Home",
+                "traits": "heading",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.504303599374022
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 40.666666666666686,
+                  "width": 151.66666666666663,
+                  "x": 120.66666666666669,
+                  "y": 409.33333333333337
+                },
+                "hittable": true,
+                "id": "nf029cd15",
+                "identifier": "LighHome",
+                "label": "LighHome",
+                "parent_id": "n70d32821",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "LighHome",
+                "visible": true
+              }
+            ],
+            "error": "no focused editable field \u2014 tap target before type"
+          },
+          "op": "type",
+          "step": 1
+        }
+      },
+      {
+        "app": "lighfeed",
+        "workflow": "scroll_post_20",
+        "skill": "scroll_until + tap (deep list)",
+        "ok": true,
+        "fault": "ok",
+        "ms": 6026,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "PostDetail"
+          },
+          "motor": "ensure_path",
+          "steps": 4
+        }
+      },
+      {
+        "app": "lighfeed",
+        "workflow": "scroll_post_15",
+        "skill": "scroll list",
+        "ok": true,
+        "fault": "ok",
+        "ms": 6011,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "PostDetailTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 4
+        }
+      },
+      {
+        "app": "lighfeed",
+        "workflow": "tap_post_1",
+        "skill": "no scroll",
+        "ok": true,
+        "fault": "ok",
+        "ms": 5626,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "PostDetail"
+          },
+          "motor": "ensure_path",
+          "steps": 3
+        }
+      },
+      {
+        "app": "lighfeed",
+        "workflow": "scroll_post_30",
+        "skill": "deep scroll round-trip",
+        "ok": true,
+        "fault": "ok",
+        "ms": 7562,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "post-1"
+          },
+          "motor": "ensure_path",
+          "steps": 6
+        }
+      },
+      {
+        "app": "lighfeed",
+        "workflow": "scroll_detail_back",
+        "skill": "scroll + back",
+        "ok": true,
+        "fault": "ok",
+        "ms": 2459,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "FeedList"
+          },
+          "motor": "ensure_path",
+          "steps": 6
+        }
+      },
+      {
+        "app": "lighonboard",
+        "workflow": "skip_onboarding",
+        "skill": "skip path",
+        "ok": true,
+        "fault": "ok",
+        "ms": 3911,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "HomeReady"
+          },
+          "motor": "ensure_path",
+          "steps": 3
+        }
+      },
+      {
+        "app": "lighonboard",
+        "workflow": "full_onboarding",
+        "skill": "multi-step wizard",
+        "ok": true,
+        "fault": "ok",
+        "ms": 5112,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "HomeReady"
+          },
+          "motor": "ensure_path",
+          "steps": 9
+        }
+      },
+      {
+        "app": "lighonboard",
+        "workflow": "continue_to_name",
+        "skill": "partial flow",
+        "ok": true,
+        "fault": "ok",
+        "ms": 3918,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "OnboardNameTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 3
+        }
+      },
+      {
+        "app": "lighonboard",
+        "workflow": "name_only",
+        "skill": "form on step 2",
+        "ok": true,
+        "fault": "ok",
+        "ms": 3824,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "OnboardNext"
+          },
+          "motor": "ensure_path",
+          "steps": 5
+        }
+      },
+      {
+        "app": "lighonboard",
+        "workflow": "finish_from_almost",
+        "skill": "late step entry",
+        "ok": true,
+        "fault": "ok",
+        "ms": 5312,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "HomeReady"
+          },
+          "motor": "ensure_path",
+          "steps": 6
+        }
+      },
+      {
+        "app": "lighmodal",
+        "workflow": "sheet_confirm",
+        "skill": "modal confirm",
+        "ok": true,
+        "fault": "ok",
+        "ms": 3492,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "ModalConfirmed"
+          },
+          "motor": "ensure_path",
+          "steps": 5
+        }
+      },
+      {
+        "app": "lighmodal",
+        "workflow": "sheet_cancel",
+        "skill": "modal dismiss",
+        "ok": true,
+        "fault": "ok",
+        "ms": 1615,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "ModalHome"
+          },
+          "motor": "ensure_path",
+          "steps": 5
+        }
+      },
+      {
+        "app": "lighmodal",
+        "workflow": "sheet_open_only",
+        "skill": "present sheet",
+        "ok": true,
+        "fault": "ok",
+        "ms": 567,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "SheetTitle"
+          },
+          "motor": "ensure_path",
+          "steps": 3
+        }
+      },
+      {
+        "app": "lighmodal",
+        "workflow": "confirm_retry",
+        "skill": "cancel then confirm",
+        "ok": true,
+        "fault": "ok",
+        "ms": 4762,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "ModalConfirmed"
+          },
+          "motor": "ensure_path",
+          "steps": 8
+        }
+      },
+      {
+        "app": "lighmodal",
+        "workflow": "home_stable",
+        "skill": "no modal",
+        "ok": true,
+        "fault": "ok",
+        "ms": 289,
+        "detail": {
+          "detail": {
+            "motor": "ensure_path",
+            "target": "OpenSheet"
+          },
+          "motor": "ensure_path",
+          "steps": 2
+        }
+      }
+    ],
+    "interpretation": "Generalization across apps/workflows. Failures are signal \u2014 publish them."
+  },
+  "autopilot_generality": {
+    "gate": "autopilot_generality",
+    "claim": "One generic Feel-IR policy reaches the acceptance target on every app, with no per-app steps and zero LLM tokens",
+    "apps_total": 6,
+    "apps_reached": 6,
+    "flow_shapes_covered": [
+      "catalog_auth_tabs",
+      "form",
+      "list_drill_down",
+      "login_credentials",
+      "multi_step_wizard",
+      "sheet_overlay"
+    ],
+    "per_app": [
+      {
+        "app_id": "lighfixture",
+        "app": "LighFixture",
+        "flow_shape": "form",
+        "goal_id": "LighDone",
+        "reached": true,
+        "ok": true,
+        "steps": 2,
+        "wall_ms": 11500,
+        "pilot_ms": 11426,
+        "llm_tokens": 0,
+        "spec_inputs": {
+          "goal_id": "LighDone",
+          "params": 1
+        },
+        "stop_code": null,
+        "diagnosis": null,
+        "trace": [
+          {
+            "boot_epoch": 1787610927645556,
+            "event": "operation_started",
+            "expected_bundle_id": "dev.ligh.Fixture",
+            "launch_epoch": 1,
+            "run_deadline_ms": 222000,
+            "session_id": "session-000659d29a56c374"
+          },
+          {
+            "act": {
+              "id": "NameField",
+              "intent": "type",
+              "kind": "text_field",
+              "label": "NameField",
+              "motor_strategy": "focus_hid",
+              "reason": "fill TextField (param 1 of class) via focus_hid",
+              "slot": null,
+              "stop_code": null,
+              "text": "pilot"
+            },
+            "action_spec": {
+              "action_id": "action-1-1",
+              "epoch": {
+                "boot_epoch": 1787610927645556,
+                "launch_epoch": 1,
+                "screen_epoch": 5,
+                "session_id": "session-000659d29a56c374"
+              },
+              "operation": {
+                "intent": "type",
+                "motor_strategy": "focus_hid",
+                "slot": null,
+                "text": "pilot"
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "NameField",
+                "label": "NameField",
+                "role": "TextField",
+                "stable_key": "field|NameField|focus_hid"
+              }
+            },
+            "changed": false,
+            "epoch": {
+              "boot_epoch": 1787610927645556,
+              "launch_epoch": 1,
+              "screen_epoch": 5,
+              "session_id": "session-000659d29a56c374"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_6b0db857f2d2985e",
+            "fp_after": "fp_6b0db857f2d2985e",
+            "goal_progress": false,
+            "ms": 1577,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_6b0db857f2d2985e",
+            "pre_snapshot_hash": "fp_6b0db857f2d2985e",
+            "step": 1
+          },
+          {
+            "act": {
+              "id": "GoNext",
+              "intent": "tap",
+              "kind": "primary_button",
+              "label": "GoNext",
+              "motor_strategy": null,
+              "reason": "best-first candidate rank 2 (PrimaryButton)",
+              "slot": null,
+              "stop_code": null,
+              "text": null
+            },
+            "action_spec": {
+              "action_id": "action-1-2",
+              "epoch": {
+                "boot_epoch": 1787610927645556,
+                "launch_epoch": 1,
+                "screen_epoch": 5,
+                "session_id": "session-000659d29a56c374"
+              },
+              "operation": {
+                "intent": "tap",
+                "motor_strategy": null,
+                "slot": null,
+                "text": null
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "GoNext",
+                "label": "GoNext",
+                "role": "PrimaryButton",
+                "stable_key": "fp_6b0db857f2d2985e|tap|PrimaryButton|GoNext"
+              }
+            },
+            "changed": true,
+            "epoch": {
+              "boot_epoch": 1787610927645556,
+              "launch_epoch": 1,
+              "screen_epoch": 5,
+              "session_id": "session-000659d29a56c374"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_6b0db857f2d2985e",
+            "fp_after": "fp_b298712fd4e2ab33",
+            "goal_progress": true,
+            "ms": 462,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_b298712fd4e2ab33",
+            "pre_snapshot_hash": "fp_6b0db857f2d2985e",
+            "step": 2
+          }
+        ]
+      },
+      {
+        "app_id": "lighonboard",
+        "app": "LighOnboard",
+        "flow_shape": "multi_step_wizard",
+        "goal_id": "HomeReady",
+        "reached": true,
+        "ok": true,
+        "steps": 4,
+        "wall_ms": 15200,
+        "pilot_ms": 15146,
+        "llm_tokens": 0,
+        "spec_inputs": {
+          "goal_id": "HomeReady",
+          "params": 1
+        },
+        "stop_code": null,
+        "diagnosis": null,
+        "trace": [
+          {
+            "boot_epoch": 1787611003945636,
+            "event": "operation_started",
+            "expected_bundle_id": "dev.ligh.Onboard",
+            "launch_epoch": 1,
+            "run_deadline_ms": 222000,
+            "session_id": "session-000659d29ee302a4"
+          },
+          {
+            "act": {
+              "id": "OnboardContinue",
+              "intent": "tap",
+              "kind": "primary_button",
+              "label": "Continue",
+              "motor_strategy": null,
+              "reason": "best-first candidate rank 1 (PrimaryButton)",
+              "slot": null,
+              "stop_code": null,
+              "text": null
+            },
+            "action_spec": {
+              "action_id": "action-1-1",
+              "epoch": {
+                "boot_epoch": 1787611003945636,
+                "launch_epoch": 1,
+                "screen_epoch": 4,
+                "session_id": "session-000659d29ee302a4"
+              },
+              "operation": {
+                "intent": "tap",
+                "motor_strategy": null,
+                "slot": null,
+                "text": null
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "OnboardContinue",
+                "label": "Continue",
+                "role": "PrimaryButton",
+                "stable_key": "fp_ab0895f8ab1dcb92|tap|PrimaryButton|OnboardContinue"
+              }
+            },
+            "changed": true,
+            "epoch": {
+              "boot_epoch": 1787611003945636,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659d29ee302a4"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_ab0895f8ab1dcb92",
+            "fp_after": "fp_6773b114c7c21f15",
+            "goal_progress": false,
+            "ms": 1956,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_6773b114c7c21f15",
+            "pre_snapshot_hash": "fp_ab0895f8ab1dcb92",
+            "step": 1
+          },
+          {
+            "act": {
+              "id": "OnboardNameField",
+              "intent": "type",
+              "kind": "text_field",
+              "label": null,
+              "motor_strategy": "focus_hid",
+              "reason": "fill TextField (param 1 of class) via focus_hid",
+              "slot": null,
+              "stop_code": null,
+              "text": "pilot"
+            },
+            "action_spec": {
+              "action_id": "action-1-2",
+              "epoch": {
+                "boot_epoch": 1787611003945636,
+                "launch_epoch": 1,
+                "screen_epoch": 5,
+                "session_id": "session-000659d29ee302a4"
+              },
+              "operation": {
+                "intent": "type",
+                "motor_strategy": "focus_hid",
+                "slot": null,
+                "text": "pilot"
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "OnboardNameField",
+                "role": "TextField",
+                "stable_key": "field|OnboardNameField|focus_hid"
+              }
+            },
+            "changed": false,
+            "epoch": {
+              "boot_epoch": 1787611003945636,
+              "launch_epoch": 1,
+              "screen_epoch": 5,
+              "session_id": "session-000659d29ee302a4"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_6773b114c7c21f15",
+            "fp_after": "fp_6773b114c7c21f15",
+            "goal_progress": false,
+            "ms": 1407,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_6773b114c7c21f15",
+            "pre_snapshot_hash": "fp_6773b114c7c21f15",
+            "step": 2
+          },
+          {
+            "act": {
+              "id": "OnboardNext",
+              "intent": "tap",
+              "kind": "primary_button",
+              "label": "Next",
+              "motor_strategy": null,
+              "reason": "best-first candidate rank 2 (PrimaryButton)",
+              "slot": null,
+              "stop_code": null,
+              "text": null
+            },
+            "action_spec": {
+              "action_id": "action-1-3",
+              "epoch": {
+                "boot_epoch": 1787611003945636,
+                "launch_epoch": 1,
+                "screen_epoch": 5,
+                "session_id": "session-000659d29ee302a4"
+              },
+              "operation": {
+                "intent": "tap",
+                "motor_strategy": null,
+                "slot": null,
+                "text": null
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "OnboardNext",
+                "label": "Next",
+                "role": "PrimaryButton",
+                "stable_key": "fp_6773b114c7c21f15|tap|PrimaryButton|OnboardNext"
+              }
+            },
+            "changed": true,
+            "epoch": {
+              "boot_epoch": 1787611003945636,
+              "launch_epoch": 1,
+              "screen_epoch": 5,
+              "session_id": "session-000659d29ee302a4"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_6773b114c7c21f15",
+            "fp_after": "fp_4cf50893082415a3",
+            "goal_progress": false,
+            "ms": 1872,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_4cf50893082415a3",
+            "pre_snapshot_hash": "fp_6773b114c7c21f15",
+            "step": 3
+          },
+          {
+            "act": {
+              "id": "OnboardFinish",
+              "intent": "tap",
+              "kind": "primary_button",
+              "label": "Finish",
+              "motor_strategy": null,
+              "reason": "best-first candidate rank 1 (PrimaryButton)",
+              "slot": null,
+              "stop_code": null,
+              "text": null
+            },
+            "action_spec": {
+              "action_id": "action-1-4",
+              "epoch": {
+                "boot_epoch": 1787611003945636,
+                "launch_epoch": 1,
+                "screen_epoch": 6,
+                "session_id": "session-000659d29ee302a4"
+              },
+              "operation": {
+                "intent": "tap",
+                "motor_strategy": null,
+                "slot": null,
+                "text": null
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "OnboardFinish",
+                "label": "Finish",
+                "role": "PrimaryButton",
+                "stable_key": "fp_4cf50893082415a3|tap|PrimaryButton|OnboardFinish"
+              }
+            },
+            "changed": true,
+            "epoch": {
+              "boot_epoch": 1787611003945636,
+              "launch_epoch": 1,
+              "screen_epoch": 6,
+              "session_id": "session-000659d29ee302a4"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_4cf50893082415a3",
+            "fp_after": "fp_2b03c8b62402be70",
+            "goal_progress": true,
+            "ms": 426,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_2b03c8b62402be70",
+            "pre_snapshot_hash": "fp_4cf50893082415a3",
+            "step": 4
+          }
+        ]
+      },
+      {
+        "app_id": "lighmodal",
+        "app": "LighModal",
+        "flow_shape": "sheet_overlay",
+        "goal_id": "ModalConfirmed",
+        "reached": true,
+        "ok": true,
+        "steps": 2,
+        "wall_ms": 9466,
+        "pilot_ms": 9413,
+        "llm_tokens": 0,
+        "spec_inputs": {
+          "goal_id": "ModalConfirmed",
+          "params": 0
+        },
+        "stop_code": null,
+        "diagnosis": null,
+        "trace": [
+          {
+            "boot_epoch": 1787611085083849,
+            "event": "operation_started",
+            "expected_bundle_id": "dev.ligh.Modal",
+            "launch_epoch": 1,
+            "run_deadline_ms": 222000,
+            "session_id": "session-000659d2a3b914c9"
+          },
+          {
+            "act": {
+              "id": "OpenSheet",
+              "intent": "tap",
+              "kind": "button",
+              "label": "OpenSheet",
+              "motor_strategy": null,
+              "reason": "best-first candidate rank 1 (Button)",
+              "slot": null,
+              "stop_code": null,
+              "text": null
+            },
+            "action_spec": {
+              "action_id": "action-1-1",
+              "epoch": {
+                "boot_epoch": 1787611085083849,
+                "launch_epoch": 1,
+                "screen_epoch": 4,
+                "session_id": "session-000659d2a3b914c9"
+              },
+              "operation": {
+                "intent": "tap",
+                "motor_strategy": null,
+                "slot": null,
+                "text": null
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "OpenSheet",
+                "label": "OpenSheet",
+                "role": "Button",
+                "stable_key": "fp_f09fd088f763b6c0|tap|Button|OpenSheet"
+              }
+            },
+            "changed": true,
+            "epoch": {
+              "boot_epoch": 1787611085083849,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659d2a3b914c9"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_f09fd088f763b6c0",
+            "fp_after": "fp_ba2d47f0d2002f52",
+            "goal_progress": false,
+            "ms": 402,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_ba2d47f0d2002f52",
+            "pre_snapshot_hash": "fp_f09fd088f763b6c0",
+            "step": 1
+          },
+          {
+            "act": {
+              "id": "ConfirmAction",
+              "intent": "tap",
+              "kind": "primary_button",
+              "label": "ConfirmAction",
+              "motor_strategy": null,
+              "reason": "best-first candidate rank 1 (PrimaryButton)",
+              "slot": null,
+              "stop_code": null,
+              "text": null
+            },
+            "action_spec": {
+              "action_id": "action-1-2",
+              "epoch": {
+                "boot_epoch": 1787611085083849,
+                "launch_epoch": 1,
+                "screen_epoch": 5,
+                "session_id": "session-000659d2a3b914c9"
+              },
+              "operation": {
+                "intent": "tap",
+                "motor_strategy": null,
+                "slot": null,
+                "text": null
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "ConfirmAction",
+                "label": "ConfirmAction",
+                "role": "PrimaryButton",
+                "stable_key": "fp_ba2d47f0d2002f52|tap|PrimaryButton|ConfirmAction"
+              }
+            },
+            "changed": true,
+            "epoch": {
+              "boot_epoch": 1787611085083849,
+              "launch_epoch": 1,
+              "screen_epoch": 5,
+              "session_id": "session-000659d2a3b914c9"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_ba2d47f0d2002f52",
+            "fp_after": "fp_f81deb774bb59cc5",
+            "goal_progress": true,
+            "ms": 1211,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_f81deb774bb59cc5",
+            "pre_snapshot_hash": "fp_ba2d47f0d2002f52",
+            "step": 2
+          }
+        ]
+      },
+      {
+        "app_id": "lighfeed",
+        "app": "LighFeed",
+        "flow_shape": "list_drill_down",
+        "goal_id": "PostDetail",
+        "reached": true,
+        "ok": true,
+        "steps": 1,
+        "wall_ms": 8226,
+        "pilot_ms": 8177,
+        "llm_tokens": 0,
+        "spec_inputs": {
+          "goal_id": "PostDetail",
+          "params": 0
+        },
+        "stop_code": null,
+        "diagnosis": null,
+        "trace": [
+          {
+            "boot_epoch": 1787611161080291,
+            "event": "operation_started",
+            "expected_bundle_id": "dev.ligh.Feed",
+            "launch_epoch": 1,
+            "run_deadline_ms": 222000,
+            "session_id": "session-000659d2a840b1e3"
+          },
+          {
+            "act": {
+              "id": "post-1",
+              "intent": "tap",
+              "kind": "button",
+              "label": "Post 1",
+              "motor_strategy": null,
+              "reason": "best-first candidate rank 1 (Button)",
+              "slot": null,
+              "stop_code": null,
+              "text": null
+            },
+            "action_spec": {
+              "action_id": "action-1-1",
+              "epoch": {
+                "boot_epoch": 1787611161080291,
+                "launch_epoch": 1,
+                "screen_epoch": 4,
+                "session_id": "session-000659d2a840b1e3"
+              },
+              "operation": {
+                "intent": "tap",
+                "motor_strategy": null,
+                "slot": null,
+                "text": null
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "post-1",
+                "label": "Post 1",
+                "role": "Button",
+                "stable_key": "fp_7587f6aae345346f|tap|Button|post-1"
+              }
+            },
+            "changed": true,
+            "epoch": {
+              "boot_epoch": 1787611161080291,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659d2a840b1e3"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_7587f6aae345346f",
+            "fp_after": "fp_3878c6cafe950b2d",
+            "goal_progress": true,
+            "ms": 639,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_3878c6cafe950b2d",
+            "pre_snapshot_hash": "fp_7587f6aae345346f",
+            "step": 1
+          }
+        ]
+      },
+      {
+        "app_id": "xcuitestdemo",
+        "app": "XCUITestDemo",
+        "flow_shape": "login_credentials",
+        "goal_id": "homeTitle",
+        "reached": true,
+        "ok": true,
+        "steps": 3,
+        "wall_ms": 11845,
+        "pilot_ms": 11774,
+        "llm_tokens": 0,
+        "spec_inputs": {
+          "goal_id": "homeTitle",
+          "params": 2
+        },
+        "stop_code": null,
+        "diagnosis": null,
+        "trace": [
+          {
+            "boot_epoch": 1787611233682611,
+            "event": "operation_started",
+            "expected_bundle_id": "com.himali.XCUITestDemo",
+            "launch_epoch": 1,
+            "run_deadline_ms": 222000,
+            "session_id": "session-000659d2ac9484b3"
+          },
+          {
+            "act": {
+              "id": "usernameTextField",
+              "intent": "type",
+              "kind": "text_field",
+              "label": null,
+              "motor_strategy": "focus_hid",
+              "reason": "fill TextField (param 1 of class) via focus_hid",
+              "slot": null,
+              "stop_code": null,
+              "text": "alice"
+            },
+            "action_spec": {
+              "action_id": "action-1-1",
+              "epoch": {
+                "boot_epoch": 1787611233682611,
+                "launch_epoch": 1,
+                "screen_epoch": 4,
+                "session_id": "session-000659d2ac9484b3"
+              },
+              "operation": {
+                "intent": "type",
+                "motor_strategy": "focus_hid",
+                "slot": null,
+                "text": "alice"
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "usernameTextField",
+                "role": "TextField",
+                "stable_key": "field|usernameTextField|focus_hid"
+              }
+            },
+            "changed": false,
+            "epoch": {
+              "boot_epoch": 1787611233682611,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659d2ac9484b3"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_67f84fe6fa9605dc",
+            "fp_after": "fp_67f84fe6fa9605dc",
+            "goal_progress": false,
+            "ms": 1497,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_67f84fe6fa9605dc",
+            "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
+            "step": 1
+          },
+          {
+            "act": {
+              "id": "passwordSecureField",
+              "intent": "type",
+              "kind": "secure_field",
+              "label": null,
+              "motor_strategy": "focus_hid",
+              "reason": "fill SecureField (param 1 of class) via focus_hid",
+              "slot": null,
+              "stop_code": null,
+              "text": "***"
+            },
+            "action_spec": {
+              "action_id": "action-1-2",
+              "epoch": {
+                "boot_epoch": 1787611233682611,
+                "launch_epoch": 1,
+                "screen_epoch": 4,
+                "session_id": "session-000659d2ac9484b3"
+              },
+              "operation": {
+                "intent": "type",
+                "motor_strategy": "focus_hid",
+                "slot": null,
+                "text": "***"
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "passwordSecureField",
+                "role": "SecureField",
+                "stable_key": "field|passwordSecureField|focus_hid"
+              }
+            },
+            "changed": false,
+            "epoch": {
+              "boot_epoch": 1787611233682611,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659d2ac9484b3"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_67f84fe6fa9605dc",
+            "fp_after": "fp_67f84fe6fa9605dc",
+            "goal_progress": false,
+            "ms": 686,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_67f84fe6fa9605dc",
+            "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
+            "step": 2
+          },
+          {
+            "act": {
+              "id": "loginButton",
+              "intent": "tap",
+              "kind": "primary_button",
+              "label": "Login",
+              "motor_strategy": null,
+              "reason": "best-first candidate rank 2 (PrimaryButton)",
+              "slot": null,
+              "stop_code": null,
+              "text": null
+            },
+            "action_spec": {
+              "action_id": "action-1-3",
+              "epoch": {
+                "boot_epoch": 1787611233682611,
+                "launch_epoch": 1,
+                "screen_epoch": 4,
+                "session_id": "session-000659d2ac9484b3"
+              },
+              "operation": {
+                "intent": "tap",
+                "motor_strategy": null,
+                "slot": null,
+                "text": null
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "loginButton",
+                "label": "Login",
+                "role": "PrimaryButton",
+                "stable_key": "fp_67f84fe6fa9605dc|tap|PrimaryButton|loginButton"
+              }
+            },
+            "changed": true,
+            "epoch": {
+              "boot_epoch": 1787611233682611,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659d2ac9484b3"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_67f84fe6fa9605dc",
+            "fp_after": "fp_19f1529abee7518a",
+            "goal_progress": true,
+            "ms": 831,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_19f1529abee7518a",
+            "pre_snapshot_hash": "fp_67f84fe6fa9605dc",
+            "step": 3
+          }
+        ]
+      },
+      {
+        "app_id": "kix",
+        "app": "Kix",
+        "flow_shape": "catalog_auth_tabs",
+        "goal_id": "tab_home",
+        "reached": true,
+        "ok": true,
+        "steps": 3,
+        "wall_ms": 11476,
+        "pilot_ms": 11416,
+        "llm_tokens": 0,
+        "spec_inputs": {
+          "goal_id": "tab_home",
+          "params": 2
+        },
+        "stop_code": null,
+        "diagnosis": null,
+        "trace": [
+          {
+            "boot_epoch": 1787611309464288,
+            "event": "operation_started",
+            "expected_bundle_id": "mybyKosta.Kix",
+            "launch_epoch": 1,
+            "run_deadline_ms": 222000,
+            "session_id": "session-000659d2b118dae0"
+          },
+          {
+            "act": {
+              "id": "login_email_field",
+              "intent": "type",
+              "kind": "text_field",
+              "label": null,
+              "motor_strategy": "focus_hid",
+              "reason": "fill TextField (param 1 of class) via focus_hid",
+              "slot": null,
+              "stop_code": null,
+              "text": "test@kixapp.com"
+            },
+            "action_spec": {
+              "action_id": "action-1-1",
+              "epoch": {
+                "boot_epoch": 1787611309464288,
+                "launch_epoch": 1,
+                "screen_epoch": 4,
+                "session_id": "session-000659d2b118dae0"
+              },
+              "operation": {
+                "intent": "type",
+                "motor_strategy": "focus_hid",
+                "slot": null,
+                "text": "test@kixapp.com"
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "login_email_field",
+                "role": "TextField",
+                "stable_key": "field|login_email_field|focus_hid"
+              }
+            },
+            "changed": false,
+            "epoch": {
+              "boot_epoch": 1787611309464288,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659d2b118dae0"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_d27ec961d7c1781f",
+            "fp_after": "fp_d27ec961d7c1781f",
+            "goal_progress": false,
+            "ms": 1607,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_d27ec961d7c1781f",
+            "pre_snapshot_hash": "fp_d27ec961d7c1781f",
+            "step": 1
+          },
+          {
+            "act": {
+              "id": "login_password_field",
+              "intent": "type",
+              "kind": "secure_field",
+              "label": null,
+              "motor_strategy": "focus_hid",
+              "reason": "fill SecureField (param 1 of class) via focus_hid",
+              "slot": null,
+              "stop_code": null,
+              "text": "***"
+            },
+            "action_spec": {
+              "action_id": "action-1-2",
+              "epoch": {
+                "boot_epoch": 1787611309464288,
+                "launch_epoch": 1,
+                "screen_epoch": 4,
+                "session_id": "session-000659d2b118dae0"
+              },
+              "operation": {
+                "intent": "type",
+                "motor_strategy": "focus_hid",
+                "slot": null,
+                "text": "***"
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "login_password_field",
+                "role": "SecureField",
+                "stable_key": "field|login_password_field|focus_hid"
+              }
+            },
+            "changed": false,
+            "epoch": {
+              "boot_epoch": 1787611309464288,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659d2b118dae0"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_d27ec961d7c1781f",
+            "fp_after": "fp_d27ec961d7c1781f",
+            "goal_progress": false,
+            "ms": 799,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_d27ec961d7c1781f",
+            "pre_snapshot_hash": "fp_d27ec961d7c1781f",
+            "step": 2
+          },
+          {
+            "act": {
+              "id": "login_button",
+              "intent": "tap",
+              "kind": "primary_button",
+              "label": "SIGN IN",
+              "motor_strategy": null,
+              "reason": "best-first candidate rank 2 (PrimaryButton)",
+              "slot": null,
+              "stop_code": null,
+              "text": null
+            },
+            "action_spec": {
+              "action_id": "action-1-3",
+              "epoch": {
+                "boot_epoch": 1787611309464288,
+                "launch_epoch": 1,
+                "screen_epoch": 4,
+                "session_id": "session-000659d2b118dae0"
+              },
+              "operation": {
+                "intent": "tap",
+                "motor_strategy": null,
+                "slot": null,
+                "text": null
+              },
+              "postconditions": [
+                {
+                  "delivery_and_relevant_effect_verified": true
+                }
+              ],
+              "preconditions": [
+                {
+                  "epoch_matches": true
+                },
+                {
+                  "foreground_owned": true
+                }
+              ],
+              "target": {
+                "identifier": "login_button",
+                "label": "SIGN IN",
+                "role": "PrimaryButton",
+                "stable_key": "fp_d27ec961d7c1781f|tap|PrimaryButton|login_button"
+              }
+            },
+            "changed": true,
+            "epoch": {
+              "boot_epoch": 1787611309464288,
+              "launch_epoch": 1,
+              "screen_epoch": 4,
+              "session_id": "session-000659d2b118dae0"
+            },
+            "fault": "ok",
+            "fired": true,
+            "fp": "fp_d27ec961d7c1781f",
+            "fp_after": "fp_d8d22f4331848488",
+            "goal_progress": true,
+            "ms": 943,
+            "outcome": "delivered_and_verified",
+            "post_snapshot_hash": "fp_d8d22f4331848488",
+            "pre_snapshot_hash": "fp_d27ec961d7c1781f",
+            "step": 3
+          }
+        ]
+      }
+    ],
+    "verdict": {
+      "all_reached": true,
+      "distinct_flow_shapes": 6,
+      "zero_llm": true,
+      "median_wall_ms": 11500
+    },
+    "claim_pass": true
+  },
+  "sim_micro": {
+    "comparison": {
+      "ligh_mono": {
+        "skipped": true
+      },
+      "ligh_warm": "see workload",
+      "mcp_carp": {
+        "note": "Micro cold \u2014 prefer full cold MCP workload for thesis proof.",
+        "observe_ax": {
+          "n": 4,
+          "p50_ms": 320.16774999999996,
+          "p95_ms": 409.514166
+        },
+        "observe_no_ax": {
+          "n": 4,
+          "p50_ms": 241.66341599999998,
+          "p95_ms": 248.24033300000002
+        },
+        "path": "ligh --direct (new process per op) \u2014 micro only",
+        "tap": {
+          "n": 4,
+          "p50_ms": 176.239709,
+          "p95_ms": 177.131084
+        }
+      },
+      "opt_simctl_photo": {
+        "skipped": true
+      },
+      "probe": {
+        "appium": true,
+        "appium_listening": false,
+        "idb": false,
+        "note": "WDA numbers only appear after a real Appium XCUITest run of the same workflow.",
+        "status": "appium_installed_not_running"
+      },
+      "simctl_mcp_like": {
+        "n_step_workload": {
+          "note": "No honest simctl-only 40-step UI loop without an external driver.",
+          "status": "unavailable"
+        },
+        "observe_structured": {
+          "note": "simctl/MCP path is typically screenshot + vision or separate AX tool \u2014 not a single structured observe().",
+          "status": "unavailable"
+        },
+        "screenshot": {
+          "stats": {
+            "n": 6,
+            "p50_ms": 243.243416,
+            "p95_ms": 334.11704199999997
+          },
+          "status": "ok",
+          "wall_ms": 1518.060709
+        },
+        "tap": {
+          "note": "simctl has no first-class tap; MCP wrappers usually shell out to WDA/idb/cliclick \u2014 not comparable here.",
+          "status": "unavailable"
+        }
+      },
+      "wda_appium": {
+        "skipped": true
+      }
+    },
+    "honest": true,
+    "micro": {
+      "hot_lighd": {
+        "exists": {
+          "n": 8,
+          "p50_ms": 53.512458,
+          "p95_ms": 55.820583
+        },
+        "observe_ax": {
+          "n": 8,
+          "p50_ms": 52.396541,
+          "p95_ms": 56.670125
+        },
+        "observe_frame": {
+          "n": 8,
+          "p50_ms": 0.847333,
+          "p95_ms": 1.281583
+        },
+        "screenshot": {
+          "n": 6,
+          "p50_ms": 34.054292,
+          "p95_ms": 36.63975
+        },
+        "tap": {
+          "n": 8,
+          "p50_ms": 84.010875,
+          "p95_ms": 85.32199999999999
+        }
+      },
+      "note": "Microbench only \u2014 secondary to workload.wall_ms."
+    },
+    "note": "HOLY_SHIT requires \u22655\u00d7 vs WDA (or best fair non-carp). MCP carp alone is TECH_SIGNAL only.",
+    "proof": {
+      "best_fair_baseline": "none",
+      "carp_wall_ms": null,
+      "daemon_vs_mono_ratio": null,
+      "meaning": {
+        "HOLY_SHIT": "\u22655\u00d7 vs WDA on same workflow + 0% warm fail \u2014 product-grade technical win",
+        "HOST_APIS_WIN_DAEMON_IRRELEVANT": "mono \u2248 lighd; win is host APIs not the daemon socket",
+        "REAL_ADVANTAGE_VS_OPT_PHOTO": "beats optimized photo path; still need WDA for HOLY_SHIT",
+        "REAL_ADVANTAGE_VS_WDA": "\u22652\u00d7 vs WDA \u2014 invest / keep falsifying",
+        "TECH_SIGNAL_VS_MCP_CARP": "\u22655\u00d7 vs process-per-poll MCP only \u2014 interesting but may be carp"
+      },
+      "mono_wall_ms": null,
+      "opt_photo_wall_ms": null,
+      "settings_open_hid": 0,
+      "settings_open_simctl_fallback": 0,
+      "simctl_screenshot_p50_ms": 243.243416,
+      "speedup_vs_best_fair": null,
+      "speedup_vs_carp": null,
+      "speedup_vs_mono": null,
+      "speedup_vs_opt_photo": null,
+      "speedup_vs_wda": null,
+      "verdict": "NO_WARM_WORKLOAD",
+      "warm_failure_rate": 1.0,
+      "warm_ok": false,
+      "warm_wall_ms": 0.0,
+      "wda_skipped": true,
+      "wda_wall_ms": null
+    },
+    "thesis": "Try to kill the result: LIGHd vs mono / opt-photo / MCP-carp / WDA on the same semantic workflow. HOLY_SHIT only vs best fair external baseline (WDA), not vs MCP carp alone.",
+    "workload": {
+      "reason": "micro_only",
+      "skipped": true
+    }
+  },
+  "killer_loop_ab_v2_multi": {
+    "tasks": [
+      {
+        "task": "login-never-navigates",
+        "speedup_vs_vision": 10.15,
+        "token_ratio_vs_vision": 15.47,
+        "claim_pass": true,
+        "autopilot_passed": 1
+      }
+    ],
+    "n": 1
+  },
+  "physical_micro": null,
+  "protocol_note": "TRAIL holy multi 2026-08-26: login 39s + onboarding 73s holy; Kix verified at 232s (over budget). See docs/TRAIL_HOLY.md",
+  "claims": {
+    "workflow_pass_rate": 0.96,
+    "workflow_pass": 24,
+    "workflow_total": 25,
+    "autopilot_apps_reached": 6,
+    "autopilot_apps_total": 6,
+    "autopilot_generality_pass": true,
+    "flow_shapes_covered": [
+      "catalog_auth_tabs",
+      "form",
+      "list_drill_down",
+      "login_credentials",
+      "multi_step_wizard",
+      "sheet_overlay"
+    ],
+    "sim_speedup_vs_wda": null,
+    "killer_tasks_run": 1,
+    "killer_tasks_pass": 1,
+    "killer_median_speedup": 10.15,
+    "trail_tasks_run": 3,
+    "trail_tasks_verified": 3,
+    "trail_tasks_holy_shit": 2,
+    "trail_holy_shit_generalized": true,
+    "trail_median_wall_ms": 73234
+  },
+  "product_verdict": {
+    "motor_generalizes": true,
+    "autopilot_generalizes": true,
+    "agent_beats_vision": true,
+    "repair_generalizes": true,
+    "holy_shit_generalized": true,
+    "all_repair_tasks_under_120s": false
+  },
+  "trail_holy_multi": {
+    "gate": "trail_holy_multi",
+    "architecture": "trail",
+    "wall_budget_ms": 120000,
+    "tasks_run": 3,
+    "tasks_verified": 3,
+    "tasks_holy_shit": 2,
+    "claim_pass": true,
+    "holy_shit_generalized": true,
+    "tasks": [
+      {
+        "task": "login-never-navigates",
+        "verified": true,
+        "holy_shit": true,
+        "wall_ms": 39005,
+        "infra_ms": 16314,
+        "mode": "state_gate_stuck",
+        "primary_path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+        "llm_tokens": 1460,
+        "within_budget": true,
+        "reason": "verified"
+      },
+      {
+        "task": "kix-notes-tab-missing",
+        "verified": true,
+        "holy_shit": false,
+        "wall_ms": 231922,
+        "infra_ms": 12467,
+        "mode": "tab_chrome_missing",
+        "primary_path": "fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift",
+        "llm_tokens": 3461,
+        "within_budget": false,
+        "reason": "verified"
+      },
+      {
+        "task": "onboarding-home-broken",
+        "verified": true,
+        "holy_shit": true,
+        "wall_ms": 73234,
+        "infra_ms": 7219,
+        "mode": "blocked_overlay",
+        "primary_path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift",
+        "llm_tokens": 3765,
+        "within_budget": true,
+        "reason": "verified"
+      }
+    ]
+  },
+  "trail_holy_compare": {
+    "path": "docs/assets/trail-holy-compare-latest.json",
+    "holy_shit_generalized": true,
+    "median_trail_wall_ms": 73234,
+    "vs_vision_login_speedup": 15.95,
+    "vs_vision_kix_speedup": 1.98,
+    "vs_chat_kix_speedup": 2.78
+  }
+}

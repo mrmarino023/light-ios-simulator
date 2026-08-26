@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::observe::ObserveSnapshot;
 use crate::qa::{infer_affordances, Affordance, AffordanceKind, PerceiveView};
 
-pub const FEEL_SCHEMA_VERSION: u32 = 2;
+pub const FEEL_SCHEMA_VERSION: u32 = 3;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorldElement {
@@ -105,6 +105,9 @@ pub struct FeelIR {
     pub delta: FeelDelta,
     pub feel: FeelMeta,
     pub world: WorldModel,
+    /// Hyper-computational Scene IR digest (regions + ε). Built with Feel.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub scene: Option<crate::scene::SceneDigest>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -329,6 +332,56 @@ fn kind_weight(kind: AffordanceKind, focused: bool) -> f64 {
     }
 }
 
+fn enrich_salience_from_world(salience: &mut Vec<SalienceItem>, world: &WorldModel) {
+    use std::collections::HashSet;
+    let mut seen: HashSet<String> = salience
+        .iter()
+        .filter_map(|s| s.id.clone())
+        .collect();
+    let mut extra = Vec::new();
+    for el in &world.elements {
+        if !el.on_screen || !el.enabled {
+            continue;
+        }
+        if !matches!(
+            el.kind,
+            AffordanceKind::PrimaryButton
+                | AffordanceKind::Button
+                | AffordanceKind::Link
+                | AffordanceKind::Switch
+                | AffordanceKind::Cell
+        ) {
+            continue;
+        }
+        let Some(id) = el.identifier.clone() else {
+            continue;
+        };
+        if seen.contains(&id) {
+            continue;
+        }
+        seen.insert(id.clone());
+        extra.push(SalienceItem {
+            rank: 0,
+            kind: el.kind,
+            label: el.label.clone(),
+            id: Some(id),
+            weight: kind_weight(el.kind, el.focused),
+        });
+    }
+    if extra.is_empty() {
+        return;
+    }
+    salience.extend(extra);
+    salience.sort_by(|a, b| {
+        b.weight
+            .partial_cmp(&a.weight)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    for (i, item) in salience.iter_mut().enumerate() {
+        item.rank = (i as u32) + 1;
+    }
+}
+
 fn phase_of(view: &PerceiveView, snap: &ObserveSnapshot) -> FeelPhase {
     if view.eyes_unusable || !view.ready {
         return FeelPhase::EyesUnusable;
@@ -366,7 +419,7 @@ pub fn build_feel(
         .collect();
     scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
 
-    let salience: Vec<SalienceItem> = scored
+    let mut salience: Vec<SalienceItem> = scored
         .into_iter()
         .enumerate()
         .map(|(i, (w, a))| SalienceItem {
@@ -382,6 +435,7 @@ pub fn build_feel(
     let fingerprint_changed = prev_fp.map(|p| p != fp).unwrap_or(false);
 
     let mut world = world_from_snapshot(snap, &fp);
+    enrich_salience_from_world(&mut salience, &world);
     if fingerprint_changed {
         world.semantic_events.push("navigation_occurred".into());
     }
@@ -397,7 +451,7 @@ pub fn build_feel(
     }
     world.semantic_events.sort();
     world.semantic_events.dedup();
-    FeelIR {
+    let mut feel = FeelIR {
         schema: FEEL_SCHEMA_VERSION,
         place: FeelPlace {
             fingerprint: fp,
@@ -422,7 +476,10 @@ pub fn build_feel(
             ready: view.ready && !view.eyes_unusable,
         },
         world,
-    }
+        scene: None,
+    };
+    feel.scene = Some(crate::scene::build_scene_digest(snap, &feel));
+    feel
 }
 
 /// Host planner: pick next act from FeelIR (primary CTA, else top salience).
@@ -456,19 +513,35 @@ pub fn suggest_act(feel: &FeelIR) -> Option<FeelSuggestedAct> {
     }
 }
 
-/// Agent-facing compact Feel (no full affordance dump).
+/// Agent-facing compact Feel — **Scene IR first**, then thin control meta.
+/// Raw AX never belongs here. Salience ≤5 is fallback, not the map.
 pub fn feel_agent_view(feel: &FeelIR) -> serde_json::Value {
+    let scene = feel
+        .scene
+        .as_ref()
+        .map(crate::scene::scene_agent_view)
+        .unwrap_or(serde_json::json!(null));
     serde_json::json!({
         "schema": feel.schema,
-        "place": feel.place,
-        "salience": feel.salience.iter().take(5).collect::<Vec<_>>(),
+        "perception": "scene_ir",
+        "scene": scene,
+        "place": {
+            "fp": feel.place.fingerprint,
+            "surface": feel.place.surface,
+            "title": feel.place.title,
+            "bundle": feel.place.bundle_id,
+        },
+        "phase": feel.feel.phase,
+        "ready": feel.feel.ready,
+        "keyboard": feel.feel.keyboard,
         "block": feel.block,
         "delta": {
             "fingerprint_changed": feel.delta.fingerprint_changed,
             "events": feel.delta.events,
         },
-        "feel": feel.feel,
+        "salience": feel.salience.iter().take(5).collect::<Vec<_>>(),
         "suggest": suggest_act(feel),
+        "motor": feel.scene.as_ref().map(|s| &s.motor),
     })
 }
 

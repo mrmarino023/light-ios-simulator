@@ -32,9 +32,12 @@ cp -R "$APP" "$OUT/Kix.app"
 /usr/libexec/PlistBuddy -c "Set :MinimumOSVersion 17.0" "$OUT/Kix.app/Info.plist" 2>/dev/null || true
 
 # Clear prior app data so notes/cart state does not leak across killer-loop runs.
-UDID=$(xcrun simctl list devices booted 2>/dev/null | grep -oE '[A-F0-9-]{36}' | head -1 || true)
-if [[ -n "$UDID" ]]; then
-  xcrun simctl uninstall "$UDID" "$BUNDLE_ID" 2>/dev/null || true
+# Hot TRAIL path keeps the install to avoid cold reinstall tax on prove/certify.
+if [[ "${LIGH_TRAIL_FAST:-0}" != "1" ]]; then
+  UDID=$(xcrun simctl list devices booted 2>/dev/null | grep -oE '[A-F0-9-]{36}' | head -1 || true)
+  if [[ -n "$UDID" ]]; then
+    xcrun simctl uninstall "$UDID" "$BUNDLE_ID" 2>/dev/null || true
+  fi
 fi
 
 echo "✓ $OUT/Kix.app"

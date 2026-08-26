@@ -2,7 +2,7 @@
   "action_outcome": "delivered_and_verified",
   "capability": "autopilot",
   "detail": {
-    "elapsed_ms": 9986,
+    "elapsed_ms": 9413,
     "goal": {
       "allow_destructive": false,
       "stability_window_ms": 150,
@@ -14,12 +14,12 @@
     "steps": 2,
     "trace": [
       {
-        "boot_epoch": 1787569468257679,
+        "boot_epoch": 1787611085083849,
         "event": "operation_started",
         "expected_bundle_id": "dev.ligh.Modal",
         "launch_epoch": 1,
         "run_deadline_ms": 222000,
-        "session_id": "session-000659c8f32ab58f"
+        "session_id": "session-000659d2a3b914c9"
       },
       {
         "act": {
@@ -27,6 +27,7 @@
           "intent": "tap",
           "kind": "button",
           "label": "OpenSheet",
+          "motor_strategy": null,
           "reason": "best-first candidate rank 1 (Button)",
           "slot": null,
           "stop_code": null,
@@ -35,13 +36,14 @@
         "action_spec": {
           "action_id": "action-1-1",
           "epoch": {
-            "boot_epoch": 1787569468257679,
+            "boot_epoch": 1787611085083849,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8f32ab58f"
+            "session_id": "session-000659d2a3b914c9"
           },
           "operation": {
             "intent": "tap",
+            "motor_strategy": null,
             "slot": null,
             "text": null
           },
@@ -67,17 +69,17 @@
         },
         "changed": true,
         "epoch": {
-          "boot_epoch": 1787569468257679,
+          "boot_epoch": 1787611085083849,
           "launch_epoch": 1,
           "screen_epoch": 4,
-          "session_id": "session-000659c8f32ab58f"
+          "session_id": "session-000659d2a3b914c9"
         },
         "fault": "ok",
         "fired": true,
         "fp": "fp_f09fd088f763b6c0",
         "fp_after": "fp_ba2d47f0d2002f52",
         "goal_progress": false,
-        "ms": 359,
+        "ms": 402,
         "outcome": "delivered_and_verified",
         "post_snapshot_hash": "fp_ba2d47f0d2002f52",
         "pre_snapshot_hash": "fp_f09fd088f763b6c0",
@@ -87,9 +89,10 @@
         "act": {
           "id": "ConfirmAction",
           "intent": "tap",
-          "kind": "button",
+          "kind": "primary_button",
           "label": "ConfirmAction",
-          "reason": "best-first candidate rank 1 (Button)",
+          "motor_strategy": null,
+          "reason": "best-first candidate rank 1 (PrimaryButton)",
           "slot": null,
           "stop_code": null,
           "text": null
@@ -97,13 +100,14 @@
         "action_spec": {
           "action_id": "action-1-2",
           "epoch": {
-            "boot_epoch": 1787569468257679,
+            "boot_epoch": 1787611085083849,
             "launch_epoch": 1,
             "screen_epoch": 5,
-            "session_id": "session-000659c8f32ab58f"
+            "session_id": "session-000659d2a3b914c9"
           },
           "operation": {
             "intent": "tap",
+            "motor_strategy": null,
             "slot": null,
             "text": null
           },
@@ -123,30 +127,30 @@
           "target": {
             "identifier": "ConfirmAction",
             "label": "ConfirmAction",
-            "role": "Button",
-            "stable_key": "fp_ba2d47f0d2002f52|tap|Button|ConfirmAction"
+            "role": "PrimaryButton",
+            "stable_key": "fp_ba2d47f0d2002f52|tap|PrimaryButton|ConfirmAction"
           }
         },
         "changed": true,
         "epoch": {
-          "boot_epoch": 1787569468257679,
+          "boot_epoch": 1787611085083849,
           "launch_epoch": 1,
           "screen_epoch": 5,
-          "session_id": "session-000659c8f32ab58f"
+          "session_id": "session-000659d2a3b914c9"
         },
         "fault": "ok",
         "fired": true,
         "fp": "fp_ba2d47f0d2002f52",
-        "fp_after": "fp_df7dcce197701e0c",
-        "goal_progress": false,
-        "ms": 839,
+        "fp_after": "fp_f81deb774bb59cc5",
+        "goal_progress": true,
+        "ms": 1211,
         "outcome": "delivered_and_verified",
-        "post_snapshot_hash": "fp_df7dcce197701e0c",
+        "post_snapshot_hash": "fp_f81deb774bb59cc5",
         "pre_snapshot_hash": "fp_ba2d47f0d2002f52",
         "step": 2
       }
     ],
-    "trace_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighModal/.ligh/runs/autopilot-session-000659c8f32ab58f-1787569477697.jsonl"
+    "trace_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighModal/.ligh/runs/autopilot-session-000659d2a3b914c9-1787611093706.jsonl"
   },
   "fault": "ok",
   "fault_owner": "none",
@@ -504,7 +508,7 @@
     ],
     "app_bundle_id": "dev.ligh.Modal",
     "ax_quality": "ready",
-    "boot_epoch": 1787569468257679,
+    "boot_epoch": 1787611085083849,
     "booted": true,
     "events": [
       {
@@ -513,7 +517,7 @@
           "from": null,
           "to": "Modal"
         },
-        "t": 1787569479.33066
+        "t": 1787611095.597444
       },
       {
         "kind": "action_result",
@@ -526,7 +530,7 @@
           },
           "ok": true
         },
-        "t": 1787569478.092945
+        "t": 1787611094.144488
       },
       {
         "kind": "action_result",
@@ -539,20 +543,20 @@
           },
           "ok": true
         },
-        "t": 1787569478.951433
+        "t": 1787611095.021114
       }
     ],
     "expected_bundle_id": "dev.ligh.Modal",
     "eyes_unusable": false,
     "frame": {
-      "fps": 61.61728214025834,
+      "fps": 56.43862016928836,
       "h": 2556,
-      "id": 723,
+      "id": 628,
       "imports_ok": true,
       "w": 1179
     },
     "launch_epoch": 1,
-    "observe_ms": 0.000459,
+    "observe_ms": 0.000791,
     "observed_app_label": "LighModal",
     "overlay": "none",
     "path": "lighd",
@@ -565,10 +569,11 @@
     },
     "schema_version": 2,
     "screen_epoch": 7,
-    "session_id": "session-000659c8f32ab58f",
+    "screen_sig": "fp_f81deb774bb59cc5",
+    "session_id": "session-000659d2a3b914c9",
     "settled": true,
     "simulator_app_running": false,
-    "stability_streak": 5,
+    "stability_streak": 8,
     "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
   },
   "ok": true,

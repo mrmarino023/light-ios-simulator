@@ -112,10 +112,25 @@ fn is_primary_cta_label(label: &str) -> bool {
     let l = label.to_ascii_lowercase();
     [
         "login", "log in", "sign in", "submit", "continue", "next", "done", "go", "ok", "save",
-        "invia", "send", "avanti", "fatto", "accedi", "conferma",
+        "finish", "confirm", "skip", "get started", "invia", "send", "avanti", "fatto", "accedi",
+        "conferma",
     ]
     .iter()
     .any(|k| l == *k || l.contains(k))
+}
+
+/// Cross-app progress control signal from label or accessibilityIdentifier.
+pub fn is_progress_cta(text: &str) -> bool {
+    if text.is_empty() {
+        return false;
+    }
+    if is_primary_cta_label(text) {
+        return true;
+    }
+    let l = text.to_ascii_lowercase();
+    ["action", "finish", "confirm", "skip", "gonext", "gotonext"]
+        .iter()
+        .any(|k| l.contains(k))
 }
 
 /// UIKit/SwiftUI secure fields reach AX as a plain `AXTextField` with no secure
@@ -192,7 +207,9 @@ pub fn infer_affordances(nodes: &[Value], cap: usize) -> Vec<Affordance> {
         } else if is_tab_bar_node(&n) {
             AffordanceKind::Button
         } else if role.contains("button") {
-            if is_primary_cta_label(lab_str) {
+            if is_progress_cta(lab_str)
+                || id.as_deref().map(is_progress_cta).unwrap_or(false)
+            {
                 AffordanceKind::PrimaryButton
             } else {
                 AffordanceKind::Button

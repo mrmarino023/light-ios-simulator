@@ -1,0 +1,48 @@
+{
+  "gate": "trail_holy_multi",
+  "architecture": "trail",
+  "wall_budget_ms": 120000,
+  "tasks_run": 3,
+  "tasks_verified": 3,
+  "tasks_holy_shit": 2,
+  "claim_pass": true,
+  "holy_shit_generalized": true,
+  "tasks": [
+    {
+      "task": "login-never-navigates",
+      "verified": true,
+      "holy_shit": true,
+      "wall_ms": 39005,
+      "infra_ms": 16314,
+      "mode": "state_gate_stuck",
+      "primary_path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+      "llm_tokens": 1460,
+      "within_budget": true,
+      "reason": "verified"
+    },
+    {
+      "task": "kix-notes-tab-missing",
+      "verified": true,
+      "holy_shit": false,
+      "wall_ms": 231922,
+      "infra_ms": 12467,
+      "mode": "tab_chrome_missing",
+      "primary_path": "fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift",
+      "llm_tokens": 3461,
+      "within_budget": false,
+      "reason": "verified"
+    },
+    {
+      "task": "onboarding-home-broken",
+      "verified": true,
+      "holy_shit": true,
+      "wall_ms": 73234,
+      "infra_ms": 7219,
+      "mode": "blocked_overlay",
+      "primary_path": "fixtures/frozen/OnboardingDemo/OnboardingDemo/Views/Onboarding/OnboardingView.swift",
+      "llm_tokens": 3765,
+      "within_budget": true,
+      "reason": "verified"
+    }
+  ]
+}

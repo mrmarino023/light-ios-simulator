@@ -1,0 +1,67 @@
+{
+  "gate": "repair_job",
+  "architecture": "identity_index+golden_diff",
+  "wall_budget_ms": 120000,
+  "infra_ms": 25194,
+  "task": "kix-notes-tab-missing",
+  "llm_tokens": 0,
+  "phase_trace": [
+    {
+      "phase": "index_built",
+      "ms": 240,
+      "size": 48
+    },
+    {
+      "phase": "frozen_fast",
+      "ms": 240,
+      "failed_identity": "tab_notes"
+    },
+    {
+      "phase": "index_lookup",
+      "ms": 240,
+      "hits": 1
+    },
+    {
+      "phase": "golden_diff",
+      "ms": 247,
+      "ok": true
+    },
+    {
+      "phase": "build",
+      "ms": 15188,
+      "ok": true,
+      "build_ms": 14940
+    },
+    {
+      "phase": "harness",
+      "ms": 100221,
+      "verified": false
+    }
+  ],
+  "identity_index_size": 48,
+  "identity_index_root": "/var/folders/lp/n989s3q13691zm55yk6cjz7r0000gn/T/tmp.dQFRy2FGbp",
+  "repair_mode": "frozen_fast",
+  "failed_identity": "tab_notes",
+  "identity_sites": [
+    {
+      "file": "Navigation/MainTabView.swift",
+      "line": 28,
+      "snippet": ".accessibilityIdentifier(\"tab_notes\")",
+      "repo_path": "fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift"
+    }
+  ],
+  "verified": false,
+  "patch_source": "golden_diff",
+  "primary_site": {
+    "file": "Navigation/MainTabView.swift",
+    "line": 28,
+    "snippet": ".accessibilityIdentifier(\"tab_notes\")",
+    "repo_path": "fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift"
+  },
+  "build_ms": 14940,
+  "repair_wall_ms": 100222,
+  "wall_ms": 100222,
+  "within_budget": true,
+  "verification_reason": "exercise_failed",
+  "holy_shit": false
+}

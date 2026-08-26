@@ -2,7 +2,7 @@
   "action_outcome": "delivered_and_verified",
   "capability": "autopilot",
   "detail": {
-    "elapsed_ms": 9334,
+    "elapsed_ms": 8177,
     "goal": {
       "allow_destructive": false,
       "stability_window_ms": 150,
@@ -14,12 +14,12 @@
     "steps": 1,
     "trace": [
       {
-        "boot_epoch": 1787569542422398,
+        "boot_epoch": 1787611161080291,
         "event": "operation_started",
         "expected_bundle_id": "dev.ligh.Feed",
         "launch_epoch": 1,
         "run_deadline_ms": 222000,
-        "session_id": "session-000659c8f7965f7e"
+        "session_id": "session-000659d2a840b1e3"
       },
       {
         "act": {
@@ -27,6 +27,7 @@
           "intent": "tap",
           "kind": "button",
           "label": "Post 1",
+          "motor_strategy": null,
           "reason": "best-first candidate rank 1 (Button)",
           "slot": null,
           "stop_code": null,
@@ -35,13 +36,14 @@
         "action_spec": {
           "action_id": "action-1-1",
           "epoch": {
-            "boot_epoch": 1787569542422398,
+            "boot_epoch": 1787611161080291,
             "launch_epoch": 1,
             "screen_epoch": 4,
-            "session_id": "session-000659c8f7965f7e"
+            "session_id": "session-000659d2a840b1e3"
           },
           "operation": {
             "intent": "tap",
+            "motor_strategy": null,
             "slot": null,
             "text": null
           },
@@ -67,24 +69,24 @@
         },
         "changed": true,
         "epoch": {
-          "boot_epoch": 1787569542422398,
+          "boot_epoch": 1787611161080291,
           "launch_epoch": 1,
           "screen_epoch": 4,
-          "session_id": "session-000659c8f7965f7e"
+          "session_id": "session-000659d2a840b1e3"
         },
         "fault": "ok",
         "fired": true,
         "fp": "fp_7587f6aae345346f",
         "fp_after": "fp_3878c6cafe950b2d",
         "goal_progress": true,
-        "ms": 595,
+        "ms": 639,
         "outcome": "delivered_and_verified",
         "post_snapshot_hash": "fp_3878c6cafe950b2d",
         "pre_snapshot_hash": "fp_7587f6aae345346f",
         "step": 1
       }
     ],
-    "trace_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighFeed/.ligh/runs/autopilot-session-000659c8f7965f7e-1787569552143.jsonl"
+    "trace_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/LighFeed/.ligh/runs/autopilot-session-000659d2a840b1e3-1787611169495.jsonl"
   },
   "fault": "ok",
   "fault_owner": "none",
@@ -442,7 +444,7 @@
     ],
     "app_bundle_id": "dev.ligh.Feed",
     "ax_quality": "ready",
-    "boot_epoch": 1787569542422398,
+    "boot_epoch": 1787611161080291,
     "booted": true,
     "events": [
       {
@@ -451,7 +453,7 @@
           "from": null,
           "to": "Detail"
         },
-        "t": 1787569553.016948
+        "t": 1787611170.449073
       },
       {
         "kind": "action_result",
@@ -464,20 +466,20 @@
           },
           "ok": true
         },
-        "t": 1787569552.828501
+        "t": 1787611170.244513
       }
     ],
     "expected_bundle_id": "dev.ligh.Feed",
     "eyes_unusable": false,
     "frame": {
-      "fps": 53.737425660340534,
+      "fps": 49.68887198294446,
       "h": 2556,
-      "id": 601,
+      "id": 499,
       "imports_ok": true,
       "w": 1179
     },
     "launch_epoch": 1,
-    "observe_ms": 0.000375,
+    "observe_ms": 0.000292,
     "observed_app_label": "LighFeed",
     "overlay": "none",
     "path": "lighd",
@@ -490,7 +492,8 @@
     },
     "schema_version": 2,
     "screen_epoch": 5,
-    "session_id": "session-000659c8f7965f7e",
+    "screen_sig": "fp_3878c6cafe950b2d",
+    "session_id": "session-000659d2a840b1e3",
     "settled": true,
     "simulator_app_running": false,
     "stability_streak": 6,

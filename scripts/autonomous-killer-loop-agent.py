@@ -26,9 +26,18 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
 from killer_loop_task import load_task, list_swift_sources, safe_source_path  # noqa: E402
-from killer_loop_verify import establish_initial_state, run_steps, strict_verify  # noqa: E402
+from killer_loop_verify import (  # noqa: E402
+    establish_initial_state,
+    run_steps,
+    strict_verify,
+    bootstrap_app as harness_bootstrap_app,
+    ownership_markers_for_task,
+)
 from goal_spec import compile_task_goal  # noqa: E402
 from ligh_mcp import call_tool, ligh_result_path  # noqa: E402
+from repair_contract import contract_nudge, path_allowed, scope_violation  # noqa: E402
+
+REPAIR_FARM = os.environ.get("LIGH_REPAIR_FARM", "1") == "1"
 
 ARM = os.environ.get("LIGH_KILLER_ARM", "ligh").lower()
 HONEST = os.environ.get("LIGH_KILLER_HONEST", "0") == "1"
@@ -58,12 +67,12 @@ def current_git_sha() -> str:
 
 
 def strip_scored_coaching(value: Any) -> Any:
-    """Remove host coaching from scored tool output before either arm sees it."""
+    """Scored arm strips generic coaching only — RepairContract is architectural evidence."""
     if isinstance(value, dict):
         return {
             key: strip_scored_coaching(item)
             for key, item in value.items()
-            if key not in {"source_hint", "coaching", "suggestion"}
+            if key not in {"coaching", "suggestion"}
         }
     if isinstance(value, list):
         return [strip_scored_coaching(item) for item in value]
@@ -75,9 +84,13 @@ def system_prompt() -> str:
     if ARM == "autopilot":
         compiled_goal = json.dumps(compile_task_goal(TASK), separators=(",", ":"))
         failure_contract = (
-            "run_goal returns reached plus a modality-neutral diagnosis."
-            if SCORED
-            else "run_goal returns reached plus, on failure, a diagnosis and source_hint pointing at the code."
+            "run_goal returns reached plus repair_contract (scoped edit domain + world evidence)."
+            if ARM == "autopilot"
+            else (
+                "run_goal returns reached plus a modality-neutral diagnosis."
+                if SCORED
+                else "run_goal returns reached plus repair_contract and source_hint."
+            )
         )
         ui = f"""UI control: you do NOT drive the UI. The host does.
 Action: run_goal — the host installs, launches, discovers the path and verifies the goal.
@@ -106,26 +119,21 @@ Prefer feel.salience / feel.suggest over raw affordance dumps. No screenshots fo
 After bootstrap_app: call exercise_app (host-owned taps) then verify — do not hand-drive every tap."""
 
     if ARM == "autopilot":
-        code_actions = "read_file, write_file, build_app, run_goal, verify, done"
+        farm = ", verify_farm" if REPAIR_FARM else ""
+        code_actions = f"read_file, write_file, build_app, run_goal, verify{farm}, done"
     elif HONEST:
         code_actions = "read_file, write_file, build_app, bootstrap_app, verify, done"
     else:
         code_actions = "read_file, write_file, build_app, bootstrap_app, exercise_app, verify, done"
 
     if ARM == "autopilot":
-        scored_failure_rule = (
-            "  diagnosis is modality-neutral; infer any source change from repository evidence."
-            if SCORED
-            else "  source_hint: they tell you which state failed to change and where to look. Fix the cause,"
-        )
         rules = f"""Rules:
-- Your job is the Swift bug, nothing else. Read the source, make a minimal fix, rebuild.
-- After build_app succeeds call run_goal. If it reports reached=false, read diagnosis and
-{scored_failure_rule}
-  do not retry the same edit.
-- run_goal automatically invokes the strict harness when it reaches the target. A passing
-  harness ends the session immediately; no extra confirmation or second patch is needed.
-- If run_goal fails, fix the evidence-backed cause before calling it again.
+- Your job is the Swift bug, nothing else. RepairContract defines edit scope — stay inside edit_globs.
+- After build_app succeeds call run_goal. If reached=false, read repair_contract.evidence (same IR as motor).
+  Apply scope.primary_path first. Writes outside scope are rejected.
+- Prefer verify_farm with up to 3 scoped patch candidates in one turn when run_goal fails.
+- run_goal automatically invokes the strict harness when it reaches the target. A passing harness ends
+  the session immediately; no extra confirmation or second patch is needed.
 - Do not invent success — only verify/done after the harness would pass.
 Never ask the user questions."""
     elif HONEST:
@@ -230,16 +238,127 @@ def affordance_keys(perceive: dict[str, Any]) -> set[str]:
     return keys
 
 
-def failure_suggestion() -> str:
-    """Nudge on failure. Under the honest protocol it must be modality-neutral and
-    identical across arms, or the prompt — not the architecture — is what we measure.
-    """
+def failure_suggestion(result: dict[str, Any] | None = None) -> str:
+    if isinstance(result, dict) and result.get("repair_contract"):
+        nudge = contract_nudge(result)
+        if nudge:
+            return nudge
     if HONEST or ARM == "autopilot":
-        return "The harness still fails. Re-read the evidence, fix the cause in Swift, rebuild, verify."
+        return (
+            "The harness still fails. Read repair_contract.evidence and exercise_trace. "
+            "Edit only inside scope.edit_globs; use verify_farm for parallel candidates."
+        )
     return (
         "Minimal edit only. Find finish/dismiss handler, restore overlay hide, "
         "build_app, bootstrap_app, then verify. Do not rewrite enums/pages."
     )
+
+
+def run_goal_host() -> dict[str, Any]:
+    goal_spec = compile_task_goal(TASK)
+    r = call_tool(
+        "ligh_cap_autopilot",
+        {
+            "app": APP,
+            "bundle_id": BUNDLE_ID,
+            "goal_spec": goal_spec,
+            "max_steps": 24,
+            "settle_ms": 1500,
+            "timeout_ms": 8000,
+        },
+    )
+    r["goal_source"] = "task_goal_spec_v2"
+    return r
+
+
+def verify_farm_action(
+    act: dict[str, Any], *, last_repair_contract: dict[str, Any] | None
+) -> dict[str, Any]:
+    candidates = act.get("candidates")
+    if not isinstance(candidates, list) or not candidates:
+        return {"ok": False, "error": "candidates required (list of {path, content})"}
+    max_n = min(3, int((last_repair_contract or {}).get("max_patch_candidates") or 3))
+    snapshots: dict[str, str] = {}
+    tried: list[dict[str, Any]] = []
+    won = False
+
+    def snapshot_paths() -> None:
+        for cand in candidates[:max_n]:
+            rel = str(cand.get("path") or "")
+            if not rel:
+                continue
+            p = safe_source_path(TASK, rel)
+            if p not in snapshots:
+                snapshots[p] = open(p, encoding="utf-8").read()
+
+    def restore_paths() -> None:
+        for p, text in snapshots.items():
+            with open(p, "w", encoding="utf-8") as f:
+                f.write(text)
+
+    snapshot_paths()
+    try:
+        for idx, cand in enumerate(candidates[:max_n]):
+            rel = str(cand.get("path") or "")
+            content = cand.get("content")
+            if not rel or not isinstance(content, str):
+                tried.append({"candidate": idx, "ok": False, "error": "invalid candidate"})
+                continue
+            viol = scope_violation(rel, last_repair_contract)
+            if viol:
+                tried.append({"candidate": idx, "path": rel, "ok": False, "protocol_violation": viol})
+                continue
+            p = safe_source_path(TASK, rel)
+            with open(p, "w", encoding="utf-8") as f:
+                f.write(content)
+            build = subprocess.run([BUILD_SCRIPT], cwd=ROOT, capture_output=True, text=True, timeout=360)
+            if build.returncode != 0:
+                tried.append(
+                    {
+                        "candidate": idx,
+                        "path": rel,
+                        "ok": False,
+                        "phase": "build",
+                        "tail": (build.stdout or build.stderr or "")[-800:],
+                    }
+                )
+                restore_paths()
+                continue
+            rg = run_goal_host()
+            reached = bool(rg.get("reached"))
+            row: dict[str, Any] = {
+                "candidate": idx,
+                "path": rel,
+                "ok": reached,
+                "reached": reached,
+                "run_goal": {k: v for k, v in rg.items() if k != "_b64"},
+            }
+            tried.append(row)
+            if reached:
+                verify = harness_verify()
+                row["strict_verified"] = bool(verify.get("verified"))
+                if verify.get("verified"):
+                    won = True
+                    return {
+                        "ok": True,
+                        "reached": True,
+                        "verified": True,
+                        "accepted_candidate": idx,
+                        "farm_trace": tried,
+                        "host_owned": True,
+                    }
+            restore_paths()
+    finally:
+        if not won:
+            restore_paths()
+
+    return {
+        "ok": False,
+        "reached": False,
+        "farm_trace": tried,
+        "repair_contract": last_repair_contract,
+        "suggestion": failure_suggestion({"repair_contract": last_repair_contract}),
+    }
 
 
 def harness_verify() -> dict[str, Any]:
@@ -247,37 +366,14 @@ def harness_verify() -> dict[str, Any]:
 
 
 def bootstrap_app() -> dict[str, Any]:
-    call_tool("ligh_ready", {"settle_ms": 2500, "recover_homes": 4})
-    wait_label = TASK.get("bootstrap_wait_label")
-    payload: dict[str, Any] = {
-        "app": APP,
-        "bundle_id": BUNDLE_ID,
-        "settle_ms": 3500,
-        "timeout_ms": 15000,
-    }
-    if wait_label:
-        payload["wait_label"] = wait_label
-    boot = call_tool("ligh_cap_run_app", payload)
-    app_label = os.path.basename(APP).replace(".app", "")
-    ready_markers = set((TASK.get("verification") or {}).get("preconditions", {}).get("must_see_labels") or [])
-    ready_markers |= {"Show Onboarding", "Get Started", "Hello, world!", "Welcome", "Login", "homeTitle"}
-    for attempt in range(1, 6):
-        p = call_tool("ligh_perceive", {"settle_ms": 2500})
-        perceive = p.get("perceive") or {}
-        keys = affordance_keys(perceive)
-        if keys & ready_markers:
-            return {**boot, "foreground_ok": True, "attempt": attempt}
-        if any(
-            a.get("identifier") == app_label or a.get("label") == app_label
-            for a in (perceive.get("affordances") or [])
-            if isinstance(a, dict)
-        ):
-            call_tool("ligh_launch", {"bundle_id": BUNDLE_ID})
-            time.sleep(1.0)
-            call_tool("ligh_attempt", {"intent": "tap", "label": app_label, "settle_ms": 2000, "timeout_ms": 8000})
-            time.sleep(1.0)
-            continue
-    return {**boot, "foreground_ok": False}
+    """Delegate to harness quarantine — never soft-ok on ¬SpringBoard."""
+    return harness_bootstrap_app(
+        APP,
+        BUNDLE_ID,
+        wait_label=TASK.get("bootstrap_wait_label"),
+        app_markers=ownership_markers_for_task(TASK),
+        task=TASK,
+    )
 
 
 def screenshot_b64(path: str | None = None) -> str:
@@ -297,10 +393,15 @@ def _attach_vision_b64(result: dict[str, Any]) -> None:
             result["image_b64_len"] = len(result["_b64"])
 
 
-AUTOPILOT_ALLOWED = {"read_file", "write_file", "build_app", "run_goal", "verify", "done"}
+AUTOPILOT_ALLOWED = {"read_file", "write_file", "build_app", "run_goal", "verify", "verify_farm", "done"}
 
 
-def run_action(act: dict[str, Any]) -> dict[str, Any]:
+def run_action(
+    act: dict[str, Any],
+    *,
+    last_diagnosis: dict[str, Any] | None = None,
+    last_repair_contract: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     action = (act.get("action") or "").lower()
     if SCORED and action == "exercise_app":
         return {
@@ -330,14 +431,25 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
             content = act.get("content")
             if not isinstance(content, str):
                 return {"ok": False, "error": "content required"}
+            rel = os.path.relpath(p, ROOT)
+            if last_repair_contract and not path_allowed(rel, last_repair_contract):
+                viol = scope_violation(rel, last_repair_contract)
+                return {
+                    "ok": False,
+                    "path": rel,
+                    "error": viol or "repair_scope_violation",
+                    "protocol_violation": viol or "repair_scope_violation",
+                    "repair_contract": last_repair_contract,
+                }
             with open(p, "w", encoding="utf-8") as f:
                 f.write(content)
-            return {
+            out: dict[str, Any] = {
                 "ok": True,
-                "path": os.path.relpath(p, ROOT),
+                "path": rel,
                 "bytes": len(content.encode()),
                 "preview": content[:400],
             }
+            return out
 
         if action == "build_app":
             t0 = time.time()
@@ -359,20 +471,12 @@ def run_action(act: dict[str, Any]) -> dict[str, Any]:
         if action == "run_goal":
             if ARM != "autopilot":
                 return {"ok": False, "error": "run_goal is only available in the autopilot arm"}
-            goal_spec = compile_task_goal(TASK)
-            r = call_tool(
-                "ligh_cap_autopilot",
-                {
-                    "app": APP,
-                    "bundle_id": BUNDLE_ID,
-                    "goal_spec": goal_spec,
-                    "max_steps": 24,
-                    "settle_ms": 1500,
-                    "timeout_ms": 8000,
-                },
-            )
-            r["goal_source"] = "task_goal_spec_v2"
-            return r
+            return run_goal_host()
+
+        if action == "verify_farm":
+            if ARM != "autopilot" or not REPAIR_FARM:
+                return {"ok": False, "error": "verify_farm is only available in the autopilot arm"}
+            return verify_farm_action(act, last_repair_contract=last_repair_contract)
 
         if action == "exercise_app":
             # Host-owned exercise (product path): task verification steps, zero LLM taps.
@@ -488,8 +592,12 @@ def patch_economics(trace: list[dict[str, Any]]) -> dict[str, Any]:
             if path and path not in pending["paths"]:
                 pending["paths"].append(path)
             pending["writes"] += 1
-        elif name in ("verify", "run_goal", "exercise_app") and pending is not None:
-            passed = bool(res.get("verified") if name == "verify" else res.get("reached"))
+        elif name in ("verify", "run_goal", "verify_farm", "exercise_app") and pending is not None:
+            passed = bool(
+                res.get("verified")
+                if name in ("verify", "verify_farm")
+                else res.get("reached")
+            )
             pending["outcome"] = "passed" if passed else "rejected"
             attempts.append(pending)
             pending = None
@@ -613,6 +721,8 @@ def main() -> int:
     verified = False
     verify: dict[str, Any] = {}
     last_b64: str | None = None
+    last_diagnosis: dict[str, Any] | None = None
+    last_repair_contract: dict[str, Any] | None = None
 
     for step in range(1, MAX_STEPS + 1):
         use_vision = ARM == "baseline" or (ARM == "hybrid" and last_b64)
@@ -621,9 +731,30 @@ def main() -> int:
         act = chat["act"]
         tokens_in += chat["usage"]["prompt_tokens"]
         tokens_out += chat["usage"]["completion_tokens"]
-        result = run_action(act)
+        result = run_action(
+            act,
+            last_diagnosis=last_diagnosis,
+            last_repair_contract=last_repair_contract,
+        )
         if SCORED:
             result = strip_scored_coaching(result)
+        if act.get("action") == "run_goal" and not result.get("reached"):
+            d = result.get("diagnosis")
+            if isinstance(d, dict) and d.get("code"):
+                last_diagnosis = d
+            rc = result.get("repair_contract")
+            if isinstance(rc, dict) and rc.get("mode"):
+                last_repair_contract = rc
+        if act.get("action") == "verify_farm" and result.get("verified"):
+            verified = True
+            verify = {
+                "verified": True,
+                "reason": "verify_farm",
+                "false_success": False,
+                "evidence": result.get("farm_trace"),
+            }
+            trace.append({"step": step, "phase": "verify_farm_accept", "strict_verify": verify})
+            break
         if result.get("_b64"):
             last_b64 = result.pop("_b64")
         trace.append({"step": step, "action": act, "result": {k: v for k, v in result.items() if k != "_b64"}})
@@ -651,7 +782,7 @@ def main() -> int:
                                 "strict_verified": False,
                                 "strict_reason": verify.get("reason"),
                                 "strict_evidence": verify.get("evidence"),
-                                "suggestion": failure_suggestion(),
+                                "suggestion": failure_suggestion(result),
                             },
                             "step": step,
                         }
@@ -696,7 +827,9 @@ def main() -> int:
         fault = result.get("fault") or ""
         hint = {}
         if fault or result.get("error") or (act.get("action") == "verify" and not result.get("verified")):
-            hint = {"suggestion": failure_suggestion()}
+            hint = {"suggestion": failure_suggestion(result if act.get("action") == "run_goal" else None)}
+        elif act.get("action") == "run_goal" and not result.get("reached"):
+            hint = {"suggestion": failure_suggestion(result)}
 
         messages.append({"role": "assistant", "content": json.dumps(act)})
         messages.append({"role": "user", "content": json.dumps({"tool_result": {**result, **hint}, "step": step})})

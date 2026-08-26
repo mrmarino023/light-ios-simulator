@@ -1,0 +1,166 @@
+{
+  "gate": "trail",
+  "architecture": "trace_repair_autopilot_identity_localization",
+  "wall_budget_ms": 120000,
+  "prove_budget_ms": 45000,
+  "infra_ms": 15311,
+  "task": "kix-notes-tab-missing",
+  "llm_tokens": 0,
+  "phase_trace": [
+    {
+      "phase": "index_built",
+      "ms": 212,
+      "size": 48
+    },
+    {
+      "phase": "trace_exercise",
+      "ms": 84140,
+      "ok": false,
+      "prove_phase": "exercise"
+    },
+    {
+      "phase": "hybrid_localize",
+      "ms": 84140,
+      "primary": "Navigation/MainTabView.swift",
+      "ascent": "none"
+    },
+    {
+      "phase": "repair_bundle",
+      "ms": 84141,
+      "mode": "tab_chrome_missing"
+    }
+  ],
+  "verified": false,
+  "holy_shit": false,
+  "identity_index_size": 48,
+  "repair_bundle": {
+    "schema": 1,
+    "architecture": "trail",
+    "mode": "tab_chrome_missing",
+    "trace_failure": {
+      "step": 4,
+      "action": "tap",
+      "expected_identity": "tab_notes",
+      "observed_identities": [
+        "$165",
+        "Bondi 8",
+        "Cart",
+        "Curated Performance Shoes",
+        "Favorites",
+        "HOKA",
+        "Home",
+        "Love",
+        "Maximum cushioning.",
+        "Menu",
+        "More",
+        "THE KIX LIST",
+        "Tab Bar",
+        "cart",
+        "heart",
+        "home_product_card_DA67B6E5-41E9-45F6-94DF-51DBF26DC1C7",
+        "home_product_card_ED50616F-9FAC-434E-BB72-913405DB0DDA",
+        "house.fill",
+        "line.3.horizontal",
+        "n382da7bf",
+        "n5d5c75b4",
+        "ne658a3c7"
+      ],
+      "fault": "motor_failed",
+      "scene_before": null,
+      "scene_after": null,
+      "label": "Notes"
+    },
+    "oracle_trace": "step 4 tap expected 'tab_notes'",
+    "fix_plan": "Restore the missing tab/navigation item for 'tab_notes' in the TabView composition file (not Auth/Login). Preserve existing tabs and identifiers.",
+    "scope": {
+      "edit_globs": [
+        "**/Navigation/**",
+        "**/*TabView*.swift"
+      ],
+      "forbidden_globs": [
+        "**/Auth/**"
+      ],
+      "primary_path": "fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift",
+      "edit_intent": "Restore the missing tab/navigation item for 'tab_notes' in the TabView composition file (not Auth/Login). Preserve existing tabs and identifiers."
+    },
+    "localization": {
+      "identity": "tab_notes",
+      "sites": [
+        {
+          "file": "Navigation/MainTabView.swift",
+          "line": 28,
+          "snippet": ".accessibilityIdentifier(\"tab_notes\")"
+        }
+      ],
+      "composition": {
+        "file": "Navigation/MainTabView.swift",
+        "line": 28,
+        "snippet": ".accessibilityIdentifier(\"tab_notes\")",
+        "role": "composition",
+        "ascent": "none"
+      },
+      "primary_path": "Navigation/MainTabView.swift"
+    },
+    "max_patch_candidates": 2,
+    "next_phase": "constrained_fixer_shot_1",
+    "fixer_input": {
+      "target_file": "fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift",
+      "target_line": 28,
+      "snippet": {
+        "ok": true,
+        "path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift",
+        "start_line": 1,
+        "end_line": 60,
+        "anchor_line": 28,
+        "content": "1|import SwiftUI\n2|import Combine\n3|\n4|class TabSelection: ObservableObject {\n5|    @Published var selectedTab: Int = 0\n6|}\n7|\n8|struct MainTabView: View {\n9|    @EnvironmentObject var appState: AppState\n10|    @StateObject private var tabSelection = TabSelection()\n11|    \n12|    var body: some View {\n13|        TabView(selection: $tabSelection.selectedTab) {\n14|            HomeView()\n15|                .environmentObject(appState.favoritesManager)\n16|                .tabItem {\n17|                    Label(\"Home\", systemImage: tabSelection.selectedTab == 0 ? \"house.fill\" : \"house\")\n18|                }\n19|                .tag(0)\n20|                .accessibilityIdentifier(\"tab_home\")\n21|            \n22|            // BUG: Notes tab omitted \u2014 users cannot reach Notes\n23|            FavoritesView()\n24|                .environmentObject(appState.favoritesManager)\n25|                .tabItem {\n26|                    Label(\"Favorites\", systemImage: tabSelection.selectedTab == 2 ? \"heart.fill\" : \"heart\")\n27|                }\n28|                .tag(2)\n29|                .accessibilityIdentifier(\"tab_favorites\")\n30|            \n31|            MenuView()\n32|                .tabItem {\n33|                    Label(\"Menu\", systemImage: tabSelection.selectedTab == 3 ? \"line.3.horizontal\" : \"line.3.horizontal\")\n34|                }\n35|                .tag(3)\n36|                .accessibilityIdentifier(\"tab_menu\")\n37|            \n38|            CartView()\n39|                .tabItem {\n40|                    Label(\"Cart\", systemImage: tabSelection.selectedTab == 4 ? \"cart.fill\" : \"cart\")\n41|                }\n42|                .tag(4)\n43|                .accessibilityIdentifier(\"tab_cart\")\n44|        }\n45|        .accentColor(.purple)\n46|        .onAppear {\n47|            let appearance = UITabBarAppearance()\n48|            appearance.configureWithOpaqueBackground()\n49|            appearance.backgroundColor = UIColor.systemBackground\n50|            appearance.shadowColor = UIColor.black.withAlphaComponent(0.1)\n51|            \n52|            UITabBar.appearance().standardAppearance = appearance\n53|            UITabBar.appearance().scrollEdgeAppearance = appearance\n54|        }\n55|    }\n56|}\n57|\n58|#Preview {\n59|    MainTabView()\n60|}\n"
+      },
+      "prompt": "You are the constrained TRAIL fixer.\nMode: tab_chrome_missing\nFix plan: Restore the missing tab/navigation item for 'tab_notes' in the TabView composition file (not Auth/Login). Preserve existing tabs and identifiers.\nOracle trace: step 4 tap expected 'tab_notes'\nExpected identity: tab_notes\nObserved identities after failure: $165, Bondi 8, Cart, Curated Performance Shoes, Favorites, HOKA, Home, Love, Maximum cushioning., Menu, More, THE KIX LIST, Tab Bar, cart, heart, home_product_card_DA67B6E5-41E9-45F6-94DF-51DBF26DC1C7, home_product_card_ED50616F-9FAC-434E-BB72-913405DB0DDA, house.fill, line.3.horizontal, n382da7bf, n5d5c75b4, ne658a3c7\nTarget file only: fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift\nAllowed globs: ['**/Navigation/**', '**/*TabView*.swift']\nForbidden globs: ['**/Auth/**']\nLocalization ascent: none\nRequirements:\n- Edit only the target file.\n- Do not touch Auth/Login for tab_chrome_missing.\n- Preserve existing tabs and identifiers.\n- Return the full updated file contents only.\n- If the file already satisfies the plan, return the original file unchanged.\n\nTarget slice `/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/Kix/Kix/Navigation/MainTabView.swift:1-60`:\n1|import SwiftUI\n2|import Combine\n3|\n4|class TabSelection: ObservableObject {\n5|    @Published var selectedTab: Int = 0\n6|}\n7|\n8|struct MainTabView: View {\n9|    @EnvironmentObject var appState: AppState\n10|    @StateObject private var tabSelection = TabSelection()\n11|    \n12|    var body: some View {\n13|        TabView(selection: $tabSelection.selectedTab) {\n14|            HomeView()\n15|                .environmentObject(appState.favoritesManager)\n16|                .tabItem {\n17|                    Label(\"Home\", systemImage: tabSelection.selectedTab == 0 ? \"house.fill\" : \"house\")\n18|                }\n19|                .tag(0)\n20|                .accessibilityIdentifier(\"tab_home\")\n21|            \n22|            // BUG: Notes tab omitted \u2014 users cannot reach Notes\n23|            FavoritesView()\n24|                .environmentObject(appState.favoritesManager)\n25|                .tabItem {\n26|                    Label(\"Favorites\", systemImage: tabSelection.selectedTab == 2 ? \"heart.fill\" : \"heart\")\n27|                }\n28|                .tag(2)\n29|                .accessibilityIdentifier(\"tab_favorites\")\n30|            \n31|            MenuView()\n32|                .tabItem {\n33|                    Label(\"Menu\", systemImage: tabSelection.selectedTab == 3 ? \"line.3.horizontal\" : \"line.3.horizontal\")\n34|                }\n35|                .tag(3)\n36|                .accessibilityIdentifier(\"tab_menu\")\n37|            \n38|            CartView()\n39|                .tabItem {\n40|                    Label(\"Cart\", systemImage: tabSelection.selectedTab == 4 ? \"cart.fill\" : \"cart\")\n41|                }\n42|                .tag(4)\n43|                .accessibilityIdentifier(\"tab_cart\")\n44|        }\n45|        .accentColor(.purple)\n46|        .onAppear {\n47|            let appearance = UITabBarAppearance()\n48|            appearance.configureWithOpaqueBackground()\n49|            appearance.backgroundColor = UIColor.systemBackground\n50|            appearance.shadowColor = UIColor.black.withAlphaComponent(0.1)\n51|            \n52|            UITabBar.appearance().standardAppearance = appearance\n53|            UITabBar.appearance().scrollEdgeAppearance = appearance\n54|        }\n55|    }\n56|}\n57|\n58|#Preview {\n59|    MainTabView()\n60|}\n"
+    }
+  },
+  "trace_failure": {
+    "step": 4,
+    "action": "tap",
+    "expected_identity": "tab_notes",
+    "observed_identities": [
+      "$165",
+      "Bondi 8",
+      "Cart",
+      "Curated Performance Shoes",
+      "Favorites",
+      "HOKA",
+      "Home",
+      "Love",
+      "Maximum cushioning.",
+      "Menu",
+      "More",
+      "THE KIX LIST",
+      "Tab Bar",
+      "cart",
+      "heart",
+      "home_product_card_DA67B6E5-41E9-45F6-94DF-51DBF26DC1C7",
+      "home_product_card_ED50616F-9FAC-434E-BB72-913405DB0DDA",
+      "house.fill",
+      "line.3.horizontal",
+      "n382da7bf",
+      "n5d5c75b4",
+      "ne658a3c7"
+    ],
+    "fault": "motor_failed",
+    "scene_before": null,
+    "scene_after": null,
+    "label": "Notes"
+  },
+  "failed_identity": "tab_notes",
+  "primary_site": {
+    "file": "Navigation/MainTabView.swift",
+    "line": 28,
+    "snippet": ".accessibilityIdentifier(\"tab_notes\")",
+    "role": "composition",
+    "ascent": "none"
+  },
+  "trail_wall_ms": 84141,
+  "within_prove_budget": false,
+  "within_budget": true,
+  "localization_ok": true,
+  "reason": "awaiting_fixer_and_certify"
+}

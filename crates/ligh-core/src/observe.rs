@@ -419,6 +419,27 @@ pub fn node_matches_identifier(n: &serde_json::Value, needle: &str) -> bool {
     )
 }
 
+/// Acceptance needle: match against the full AX identity surface.
+///
+/// Goals must not guess whether a frozen-task token is an accessibilityIdentifier
+/// or a visible label. One host resolver: identifier ∪ tree id ∪ label ∪ text ∪ tab alias.
+pub fn node_matches_identity_needle(n: &serde_json::Value, needle: &str) -> bool {
+    if needle.is_empty() {
+        return false;
+    }
+    if node_matches_identifier(n, needle) {
+        return true;
+    }
+    for key in ["label", "text"] {
+        if let Some(s) = n.get(key).and_then(|v| v.as_str()) {
+            if s == needle || s.contains(needle) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
 /// Mid-navigation AX: only status chrome or almost nothing.
 pub fn is_transition_sparse(nodes: &[serde_json::Value]) -> bool {
     if nodes.is_empty() {

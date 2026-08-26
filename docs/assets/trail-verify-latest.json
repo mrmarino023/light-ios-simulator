@@ -1,0 +1,1181 @@
+{
+  "verified": true,
+  "reason": "verified",
+  "phase": "postcondition",
+  "evidence": {
+    "homeTitle": true,
+    "onboardingOverlay": false,
+    "post": {
+      "ok": true,
+      "all": {
+        "identity:notes_title": true,
+        "identity:Notes": true
+      },
+      "none": {
+        "identity:login_button": true
+      },
+      "stable_observations": 2
+    },
+    "goal_spec": {
+      "all": [
+        {
+          "identity": "notes_title"
+        },
+        {
+          "identity": "Notes"
+        }
+      ],
+      "none": [
+        {
+          "identity": "login_button"
+        }
+      ],
+      "starting": [
+        {
+          "identity": "Welcome Back"
+        },
+        {
+          "identity": "SIGN IN"
+        }
+      ],
+      "expected_bundle_id": "mybyKosta.Kix",
+      "stable_observations": 2,
+      "stability_window_ms": 250,
+      "slots": [
+        {
+          "name": "slot_1",
+          "value": "test@kixapp.com",
+          "secure": false,
+          "constraints": []
+        },
+        {
+          "name": "slot_2",
+          "value": "password",
+          "secure": true,
+          "constraints": []
+        }
+      ],
+      "allow_destructive": false
+    },
+    "legacy_weak_pass": true
+  },
+  "bootstrap": {
+    "ok": true,
+    "data": {
+      "action_outcome": "not_delivered",
+      "capability": "run_app",
+      "detail": {
+        "detail": {
+          "actionable_topk": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.47417840375586856
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 61.5,
+                "width": 324.5,
+                "x": 34.25,
+                "y": 373.25
+              },
+              "hittable": true,
+              "id": "nf0320dcb",
+              "identifier": "login_email_field",
+              "parent_id": "n7afd0102",
+              "placeholder": "Email",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Email",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.45165394402035625,
+                "y": 0.5655320813771518
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 21,
+                "width": 245,
+                "x": 55,
+                "y": 471.33333333333326
+              },
+              "hittable": true,
+              "id": "nd492f576",
+              "identifier": "login_password_field",
+              "parent_id": "n7afd0102",
+              "placeholder": "Password",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Password",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.8269720101781172,
+                "y": 0.5655320813771517
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 16.333333333333314,
+                "width": 26,
+                "x": 312,
+                "y": 473.66666666666663
+              },
+              "hittable": true,
+              "id": "nc987de60",
+              "identifier": "eye.fill",
+              "label": "Show password",
+              "parent_id": "n7afd0102",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Show password",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6772300469483568
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 60,
+                "width": 323,
+                "x": 35,
+                "y": 547
+              },
+              "hittable": true,
+              "id": "n38b4dadc",
+              "identifier": "login_button",
+              "label": "SIGN IN",
+              "parent_id": "n7afd0102",
+              "role": "AXButton",
+              "selected": false,
+              "text": "SIGN IN",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5004240882103477,
+                "y": 0.7634976525821596
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 17,
+                "width": 181.33333333333331,
+                "x": 106,
+                "y": 642
+              },
+              "hittable": true,
+              "id": "nb69f972c",
+              "identifier": "register_nav_button",
+              "label": "New here?, Create Account",
+              "parent_id": "n7afd0102",
+              "role": "AXButton",
+              "selected": false,
+              "text": "New here?, Create Account",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.22932968179447055
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 119.66666666666666,
+                "width": 174.66666666666663,
+                "x": 109.16666666666669,
+                "y": 135.5555555555556
+              },
+              "hittable": true,
+              "id": "n0df73678",
+              "label": "KIX",
+              "parent_id": "n7afd0102",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "KIX",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.23285080855503393
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 119.66666666666666,
+                "width": 174.66666666666663,
+                "x": 109.16666666666669,
+                "y": 138.55555555555557
+              },
+              "hittable": true,
+              "id": "n0df73678",
+              "label": "KIX",
+              "parent_id": "n7afd0102",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "KIX",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.2954486176317162
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 17,
+                "width": 220,
+                "x": 86.5,
+                "y": 243.22222222222223
+              },
+              "hittable": true,
+              "id": "n988865a2",
+              "label": "SNEAKER STORE",
+              "parent_id": "n7afd0102",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "SNEAKER STORE",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.38973656755346897
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 33.666666666666686,
+                "width": 192.3333333333333,
+                "x": 100.33333333333334,
+                "y": 315.22222222222223
+              },
+              "hittable": true,
+              "id": "nc95db6ea",
+              "label": "Welcome Back",
+              "parent_id": "n7afd0102",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "Welcome Back",
+              "visible": true
+            }
+          ],
+          "attempt": "3",
+          "bundle_id": "mybyKosta.Kix",
+          "candidates": [
+            {
+              "focused": false,
+              "hittable": true,
+              "id": "nc95db6ea",
+              "label": "Welcome Back",
+              "role": "AXStaticText",
+              "score": 0.949999988079071
+            }
+          ],
+          "error": "timeout waiting for clear path",
+          "id": "",
+          "install": true,
+          "label": "Welcome Back",
+          "overlay": "none",
+          "scene": {
+            "bundle_id": "mybyKosta.Kix",
+            "keyboard_visible": false,
+            "surface": "app"
+          },
+          "wanted": {
+            "id": null,
+            "label": "Welcome Back"
+          }
+        },
+        "install": true,
+        "step": "wait_chrome",
+        "wait_id": null,
+        "wait_label": "Welcome Back"
+      },
+      "fault": "target_missing",
+      "fault_owner": "planning",
+      "observe": {
+        "accessibility_tree": {
+          "element_count": 10,
+          "nodes": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 852,
+                "width": 393,
+                "x": 0,
+                "y": 0
+              },
+              "hittable": true,
+              "id": "n7afd0102",
+              "label": "Kix",
+              "path_id": "ndae4f1a2",
+              "role": "AXApplication",
+              "selected": false,
+              "text": "Kix",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.22932968179447055
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 119.66666666666666,
+                "width": 174.66666666666663,
+                "x": 109.16666666666669,
+                "y": 135.5555555555556
+              },
+              "hittable": true,
+              "id": "n0df73678",
+              "label": "KIX",
+              "parent_id": "n7afd0102",
+              "path_id": "n096f2e47",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "KIX",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.23285080855503393
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 119.66666666666666,
+                "width": 174.66666666666663,
+                "x": 109.16666666666669,
+                "y": 138.55555555555557
+              },
+              "hittable": true,
+              "id": "n0df73678",
+              "label": "KIX",
+              "parent_id": "n7afd0102",
+              "path_id": "n096f2e48",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "KIX",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.2954486176317162
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 17,
+                "width": 220,
+                "x": 86.5,
+                "y": 243.22222222222223
+              },
+              "hittable": true,
+              "id": "n988865a2",
+              "label": "SNEAKER STORE",
+              "parent_id": "n7afd0102",
+              "path_id": "n6d7fb7b3",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "SNEAKER STORE",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.38973656755346897
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 33.666666666666686,
+                "width": 192.3333333333333,
+                "x": 100.33333333333334,
+                "y": 315.22222222222223
+              },
+              "hittable": true,
+              "id": "nc95db6ea",
+              "label": "Welcome Back",
+              "parent_id": "n7afd0102",
+              "path_id": "n1980275b",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "Welcome Back",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.47417840375586856
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 61.5,
+                "width": 324.5,
+                "x": 34.25,
+                "y": 373.25
+              },
+              "hittable": true,
+              "id": "nf0320dcb",
+              "identifier": "login_email_field",
+              "parent_id": "n7afd0102",
+              "path_id": "n645b3ade",
+              "placeholder": "Email",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Email",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.45165394402035625,
+                "y": 0.5655320813771518
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 21,
+                "width": 245,
+                "x": 55,
+                "y": 471.33333333333326
+              },
+              "hittable": true,
+              "id": "nd492f576",
+              "identifier": "login_password_field",
+              "parent_id": "n7afd0102",
+              "path_id": "n1aff2a6a",
+              "placeholder": "Password",
+              "role": "AXTextField",
+              "selected": false,
+              "traits": "editable",
+              "value": "Password",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.8269720101781172,
+                "y": 0.5655320813771517
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 16.333333333333314,
+                "width": 26,
+                "x": 312,
+                "y": 473.66666666666663
+              },
+              "hittable": true,
+              "id": "nc987de60",
+              "identifier": "eye.fill",
+              "label": "Show password",
+              "parent_id": "n7afd0102",
+              "path_id": "nfef745fc",
+              "role": "AXButton",
+              "selected": false,
+              "text": "Show password",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.6772300469483568
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 60,
+                "width": 323,
+                "x": 35,
+                "y": 547
+              },
+              "hittable": true,
+              "id": "n38b4dadc",
+              "identifier": "login_button",
+              "label": "SIGN IN",
+              "parent_id": "n7afd0102",
+              "path_id": "n83ef420d",
+              "role": "AXButton",
+              "selected": false,
+              "text": "SIGN IN",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5004240882103477,
+                "y": 0.7634976525821596
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 17,
+                "width": 181.33333333333331,
+                "x": 106,
+                "y": 642
+              },
+              "hittable": true,
+              "id": "nb69f972c",
+              "identifier": "register_nav_button",
+              "label": "New here?, Create Account",
+              "parent_id": "n7afd0102",
+              "path_id": "nfb24e310",
+              "role": "AXButton",
+              "selected": false,
+              "text": "New here?, Create Account",
+              "traits": "button",
+              "visible": true
+            }
+          ],
+          "point_size": [
+            393.0,
+            852.0
+          ],
+          "root": {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.5
+            },
+            "children": [
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.22932968179447055
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 119.66666666666666,
+                  "width": 174.66666666666663,
+                  "x": 109.16666666666669,
+                  "y": 135.5555555555556
+                },
+                "hittable": true,
+                "id": "n0df73678",
+                "label": "KIX",
+                "parent_id": "n7afd0102",
+                "path_id": "n096f2e47",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "KIX",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.23285080855503393
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 119.66666666666666,
+                  "width": 174.66666666666663,
+                  "x": 109.16666666666669,
+                  "y": 138.55555555555557
+                },
+                "hittable": true,
+                "id": "n0df73678",
+                "label": "KIX",
+                "parent_id": "n7afd0102",
+                "path_id": "n096f2e48",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "KIX",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.2954486176317162
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 17,
+                  "width": 220,
+                  "x": 86.5,
+                  "y": 243.22222222222223
+                },
+                "hittable": true,
+                "id": "n988865a2",
+                "label": "SNEAKER STORE",
+                "parent_id": "n7afd0102",
+                "path_id": "n6d7fb7b3",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "SNEAKER STORE",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.38973656755346897
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 33.666666666666686,
+                  "width": 192.3333333333333,
+                  "x": 100.33333333333334,
+                  "y": 315.22222222222223
+                },
+                "hittable": true,
+                "id": "nc95db6ea",
+                "label": "Welcome Back",
+                "parent_id": "n7afd0102",
+                "path_id": "n1980275b",
+                "role": "AXStaticText",
+                "selected": false,
+                "text": "Welcome Back",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.47417840375586856
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 61.5,
+                  "width": 324.5,
+                  "x": 34.25,
+                  "y": 373.25
+                },
+                "hittable": true,
+                "id": "nf0320dcb",
+                "identifier": "login_email_field",
+                "parent_id": "n7afd0102",
+                "path_id": "n645b3ade",
+                "placeholder": "Email",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Email",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.45165394402035625,
+                  "y": 0.5655320813771518
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 21,
+                  "width": 245,
+                  "x": 55,
+                  "y": 471.33333333333326
+                },
+                "hittable": true,
+                "id": "nd492f576",
+                "identifier": "login_password_field",
+                "parent_id": "n7afd0102",
+                "path_id": "n1aff2a6a",
+                "placeholder": "Password",
+                "role": "AXTextField",
+                "selected": false,
+                "traits": "editable",
+                "value": "Password",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.8269720101781172,
+                  "y": 0.5655320813771517
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 16.333333333333314,
+                  "width": 26,
+                  "x": 312,
+                  "y": 473.66666666666663
+                },
+                "hittable": true,
+                "id": "nc987de60",
+                "identifier": "eye.fill",
+                "label": "Show password",
+                "parent_id": "n7afd0102",
+                "path_id": "nfef745fc",
+                "role": "AXButton",
+                "selected": false,
+                "text": "Show password",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5,
+                  "y": 0.6772300469483568
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 60,
+                  "width": 323,
+                  "x": 35,
+                  "y": 547
+                },
+                "hittable": true,
+                "id": "n38b4dadc",
+                "identifier": "login_button",
+                "label": "SIGN IN",
+                "parent_id": "n7afd0102",
+                "path_id": "n83ef420d",
+                "role": "AXButton",
+                "selected": false,
+                "text": "SIGN IN",
+                "traits": "button",
+                "visible": true
+              },
+              {
+                "center_norm": {
+                  "x": 0.5004240882103477,
+                  "y": 0.7634976525821596
+                },
+                "enabled": true,
+                "focused": false,
+                "frame": {
+                  "height": 17,
+                  "width": 181.33333333333331,
+                  "x": 106,
+                  "y": 642
+                },
+                "hittable": true,
+                "id": "nb69f972c",
+                "identifier": "register_nav_button",
+                "label": "New here?, Create Account",
+                "parent_id": "n7afd0102",
+                "path_id": "nfb24e310",
+                "role": "AXButton",
+                "selected": false,
+                "text": "New here?, Create Account",
+                "traits": "button",
+                "visible": true
+              }
+            ],
+            "children_ids": [
+              "n0df73678",
+              "n0df73678",
+              "n988865a2",
+              "nc95db6ea",
+              "nf0320dcb",
+              "nd492f576",
+              "nc987de60",
+              "n38b4dadc",
+              "nb69f972c"
+            ],
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 852,
+              "width": 393,
+              "x": 0,
+              "y": 0
+            },
+            "hittable": true,
+            "id": "n7afd0102",
+            "label": "Kix",
+            "path_id": "ndae4f1a2",
+            "role": "AXApplication",
+            "selected": false,
+            "text": "Kix",
+            "visible": true
+          },
+          "status": "available"
+        },
+        "actionable_topk": [
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.47417840375586856
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 61.5,
+              "width": 324.5,
+              "x": 34.25,
+              "y": 373.25
+            },
+            "hittable": true,
+            "id": "nf0320dcb",
+            "identifier": "login_email_field",
+            "parent_id": "n7afd0102",
+            "placeholder": "Email",
+            "role": "AXTextField",
+            "selected": false,
+            "traits": "editable",
+            "value": "Email",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.45165394402035625,
+              "y": 0.5655320813771518
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 21,
+              "width": 245,
+              "x": 55,
+              "y": 471.33333333333326
+            },
+            "hittable": true,
+            "id": "nd492f576",
+            "identifier": "login_password_field",
+            "parent_id": "n7afd0102",
+            "placeholder": "Password",
+            "role": "AXTextField",
+            "selected": false,
+            "traits": "editable",
+            "value": "Password",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.8269720101781172,
+              "y": 0.5655320813771517
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 16.333333333333314,
+              "width": 26,
+              "x": 312,
+              "y": 473.66666666666663
+            },
+            "hittable": true,
+            "id": "nc987de60",
+            "identifier": "eye.fill",
+            "label": "Show password",
+            "parent_id": "n7afd0102",
+            "role": "AXButton",
+            "selected": false,
+            "text": "Show password",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.6772300469483568
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 60,
+              "width": 323,
+              "x": 35,
+              "y": 547
+            },
+            "hittable": true,
+            "id": "n38b4dadc",
+            "identifier": "login_button",
+            "label": "SIGN IN",
+            "parent_id": "n7afd0102",
+            "role": "AXButton",
+            "selected": false,
+            "text": "SIGN IN",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5004240882103477,
+              "y": 0.7634976525821596
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 17,
+              "width": 181.33333333333331,
+              "x": 106,
+              "y": 642
+            },
+            "hittable": true,
+            "id": "nb69f972c",
+            "identifier": "register_nav_button",
+            "label": "New here?, Create Account",
+            "parent_id": "n7afd0102",
+            "role": "AXButton",
+            "selected": false,
+            "text": "New here?, Create Account",
+            "traits": "button",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.22932968179447055
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 119.66666666666666,
+              "width": 174.66666666666663,
+              "x": 109.16666666666669,
+              "y": 135.5555555555556
+            },
+            "hittable": true,
+            "id": "n0df73678",
+            "label": "KIX",
+            "parent_id": "n7afd0102",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "KIX",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.23285080855503393
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 119.66666666666666,
+              "width": 174.66666666666663,
+              "x": 109.16666666666669,
+              "y": 138.55555555555557
+            },
+            "hittable": true,
+            "id": "n0df73678",
+            "label": "KIX",
+            "parent_id": "n7afd0102",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "KIX",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.2954486176317162
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 17,
+              "width": 220,
+              "x": 86.5,
+              "y": 243.22222222222223
+            },
+            "hittable": true,
+            "id": "n988865a2",
+            "label": "SNEAKER STORE",
+            "parent_id": "n7afd0102",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "SNEAKER STORE",
+            "visible": true
+          },
+          {
+            "center_norm": {
+              "x": 0.5,
+              "y": 0.38973656755346897
+            },
+            "enabled": true,
+            "focused": false,
+            "frame": {
+              "height": 33.666666666666686,
+              "width": 192.3333333333333,
+              "x": 100.33333333333334,
+              "y": 315.22222222222223
+            },
+            "hittable": true,
+            "id": "nc95db6ea",
+            "label": "Welcome Back",
+            "parent_id": "n7afd0102",
+            "role": "AXStaticText",
+            "selected": false,
+            "text": "Welcome Back",
+            "visible": true
+          }
+        ],
+        "app_bundle_id": "mybyKosta.Kix",
+        "ax_quality": "ready",
+        "boot_epoch": 1787735731813794,
+        "booted": true,
+        "events": [
+          {
+            "kind": "value_changed",
+            "payload": {
+              "from": "",
+              "id": "nf0320dcb",
+              "label": "",
+              "to": "Email"
+            },
+            "t": 1787735937.873701
+          },
+          {
+            "kind": "value_changed",
+            "payload": {
+              "from": "",
+              "id": "nd492f576",
+              "label": "",
+              "to": "Password"
+            },
+            "t": 1787735937.873701
+          }
+        ],
+        "expected_bundle_id": "mybyKosta.Kix",
+        "eyes_unusable": false,
+        "frame": {
+          "fps": 50.28897239856864,
+          "h": 2556,
+          "id": 10490,
+          "imports_ok": true,
+          "w": 1179
+        },
+        "launch_epoch": 2,
+        "observe_ms": 0.000417,
+        "observed_app_label": "Kix",
+        "overlay": "none",
+        "path": "lighd",
+        "phase": "ready",
+        "scene": {
+          "bundle_id": "mybyKosta.Kix",
+          "keyboard_visible": false,
+          "surface": "app"
+        },
+        "schema_version": 2,
+        "screen_epoch": 18,
+        "screen_sig": "fp_d27ec961d7c1781f",
+        "session_id": "session-000659efa93f3da2",
+        "settled": true,
+        "simulator_app_running": false,
+        "stability_streak": 194,
+        "udid": "2FD2456F-F00A-4C3D-8C9C-3F87E5303ECC"
+      },
+      "ok": false,
+      "overlay": "none",
+      "phase": "ready",
+      "surface": "app"
+    },
+    "foreground_ok": true,
+    "attempt": 1,
+    "ownership": "task_markers",
+    "keys": [
+      "KIX",
+      "New here?, Create Account",
+      "SIGN IN",
+      "SNEAKER STORE",
+      "Show password",
+      "Welcome Back",
+      "eye.fill",
+      "login_button",
+      "login_email_field",
+      "login_password_field",
+      "n0df73678",
+      "n988865a2",
+      "nc95db6ea",
+      "register_nav_button"
+    ],
+    "quarantine_terminated": [
+      "mybyKosta.Kix",
+      "com.mae.app",
+      "com.mae.Mae",
+      "io.mae.app",
+      "app.mae"
+    ]
+  },
+  "setup_trace": [],
+  "exercise_trace": [
+    {
+      "phase": "exercise",
+      "step": 1,
+      "action": "type",
+      "id": "login_email_field",
+      "label": null,
+      "text_len": 15,
+      "ok": true,
+      "fault": "ok"
+    },
+    {
+      "phase": "exercise",
+      "step": 2,
+      "action": "type",
+      "id": "login_password_field",
+      "label": null,
+      "text_len": 8,
+      "ok": true,
+      "fault": "ok"
+    },
+    {
+      "phase": "exercise",
+      "step": 3,
+      "action": "tap",
+      "label": "SIGN IN",
+      "id": "login_button",
+      "ok": true,
+      "fault": "ok"
+    },
+    {
+      "phase": "exercise",
+      "step": 4,
+      "action": "tap",
+      "label": "Notes",
+      "id": "tab_notes",
+      "ok": true,
+      "fault": "ok"
+    }
+  ],
+  "preconditions": {
+    "ok": true,
+    "must_see": {
+      "Welcome Back": true,
+      "SIGN IN": true
+    },
+    "must_not_see": {
+      "notes_title": true
+    },
+    "keys_sample": [
+      "KIX",
+      "New here?, Create Account",
+      "SIGN IN",
+      "SNEAKER STORE",
+      "Show password",
+      "Welcome Back",
+      "eye.fill",
+      "login_button",
+      "login_email_field",
+      "login_password_field",
+      "n0df73678",
+      "n988865a2",
+      "nc95db6ea",
+      "register_nav_button"
+    ]
+  },
+  "legacy_weak_pass": true,
+  "false_success": false
+}

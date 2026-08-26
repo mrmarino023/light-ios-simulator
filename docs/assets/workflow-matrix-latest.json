@@ -1,19 +1,19 @@
 {
   "gate": "workflow_matrix",
-  "claim": "5 apps \u00d7 5 workflows \u2014 generalization (scroll, onboarding, modal, login, nav). Not login-only bug matrix.",
+  "claim": "Motor regression only (Ligh* fixtures + one OSS app). NOT a generalization claim \u2014 see gate-external-apps.sh.",
   "apps": 5,
   "workflows_per_app": 5,
   "workflows_total": 25,
-  "workflows_pass": 25,
-  "workflows_fail": 0,
-  "pass_rate": 1.0,
+  "workflows_pass": 24,
+  "workflows_fail": 1,
+  "pass_rate": 0.96,
   "by_app": {
     "xcuitestdemo": {
       "pass": 5,
       "total": 5
     },
     "lighfixture": {
-      "pass": 5,
+      "pass": 4,
       "total": 5
     },
     "lighfeed": {
@@ -36,7 +36,7 @@
       "skill": "form + assert",
       "ok": true,
       "fault": "ok",
-      "ms": 5239,
+      "ms": 5033,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -52,7 +52,7 @@
       "skill": "field focus order",
       "ok": true,
       "fault": "ok",
-      "ms": 3128,
+      "ms": 4214,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -68,7 +68,7 @@
       "skill": "fast path",
       "ok": true,
       "fault": "ok",
-      "ms": 3482,
+      "ms": 3990,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -84,7 +84,7 @@
       "skill": "reverse field order",
       "ok": true,
       "fault": "ok",
-      "ms": 2755,
+      "ms": 3951,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -100,7 +100,7 @@
       "skill": "postcondition only",
       "ok": true,
       "fault": "ok",
-      "ms": 2489,
+      "ms": 3403,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -116,7 +116,7 @@
       "skill": "navigation push",
       "ok": true,
       "fault": "ok",
-      "ms": 1693,
+      "ms": 2563,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -132,7 +132,7 @@
       "skill": "keyboard + nav",
       "ok": true,
       "fault": "ok",
-      "ms": 2177,
+      "ms": 2945,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -148,7 +148,7 @@
       "skill": "back navigation",
       "ok": true,
       "fault": "ok",
-      "ms": 1553,
+      "ms": 2708,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -164,7 +164,7 @@
       "skill": "default state",
       "ok": true,
       "fault": "ok",
-      "ms": 1284,
+      "ms": 535,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -178,16 +178,113 @@
       "app": "lighfixture",
       "workflow": "name_then_back",
       "skill": "round trip",
-      "ok": true,
-      "fault": "ok",
-      "ms": 1540,
+      "ok": false,
+      "fault": "motor_rejected",
+      "ms": 1291,
       "detail": {
         "detail": {
-          "motor": "ensure_path",
-          "target": "LighHome"
+          "actionable_topk": [
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.5715962441314554
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34,
+                "width": 361,
+                "x": 16,
+                "y": 470
+              },
+              "hittable": true,
+              "id": "n4304014d",
+              "identifier": "NameField",
+              "label": "NameField",
+              "parent_id": "n70d32821",
+              "placeholder": "Name",
+              "role": "AXTextField",
+              "selected": false,
+              "text": "NameField",
+              "traits": "editable",
+              "value": "Name",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5004240882103477,
+                "y": 0.6351721439749609
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 34.33333333333337,
+                "width": 81.33333333333331,
+                "x": 156,
+                "y": 524
+              },
+              "hittable": true,
+              "id": "n8108c5bd",
+              "identifier": "GoNext",
+              "label": "GoNext",
+              "parent_id": "n70d32821",
+              "role": "AXButton",
+              "selected": false,
+              "text": "GoNext",
+              "traits": "button",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.16072943172179815,
+                "y": 0.1428012519561815
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 40.66666666666667,
+                "width": 94.33333333333334,
+                "x": 16.000000000000007,
+                "y": 101.33333333333331
+              },
+              "hittable": true,
+              "id": "n5bc86e33",
+              "label": "Home",
+              "parent_id": "n70d32821",
+              "role": "AXHeading",
+              "selected": false,
+              "text": "Home",
+              "traits": "heading",
+              "visible": true
+            },
+            {
+              "center_norm": {
+                "x": 0.5,
+                "y": 0.504303599374022
+              },
+              "enabled": true,
+              "focused": false,
+              "frame": {
+                "height": 40.666666666666686,
+                "width": 151.66666666666663,
+                "x": 120.66666666666669,
+                "y": 409.33333333333337
+              },
+              "hittable": true,
+              "id": "nf029cd15",
+              "identifier": "LighHome",
+              "label": "LighHome",
+              "parent_id": "n70d32821",
+              "role": "AXStaticText",
+              "selected": false,
+              "text": "LighHome",
+              "visible": true
+            }
+          ],
+          "error": "no focused editable field \u2014 tap target before type"
         },
-        "motor": "ensure_path",
-        "steps": 6
+        "op": "type",
+        "step": 1
       }
     },
     {
@@ -196,7 +293,7 @@
       "skill": "scroll_until + tap (deep list)",
       "ok": true,
       "fault": "ok",
-      "ms": 2746,
+      "ms": 6026,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -212,7 +309,7 @@
       "skill": "scroll list",
       "ok": true,
       "fault": "ok",
-      "ms": 1743,
+      "ms": 6011,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -228,7 +325,7 @@
       "skill": "no scroll",
       "ok": true,
       "fault": "ok",
-      "ms": 1545,
+      "ms": 5626,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -244,7 +341,7 @@
       "skill": "deep scroll round-trip",
       "ok": true,
       "fault": "ok",
-      "ms": 2144,
+      "ms": 7562,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -260,7 +357,7 @@
       "skill": "scroll + back",
       "ok": true,
       "fault": "ok",
-      "ms": 2139,
+      "ms": 2459,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -276,7 +373,7 @@
       "skill": "skip path",
       "ok": true,
       "fault": "ok",
-      "ms": 1645,
+      "ms": 3911,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -292,7 +389,7 @@
       "skill": "multi-step wizard",
       "ok": true,
       "fault": "ok",
-      "ms": 2825,
+      "ms": 5112,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -308,7 +405,7 @@
       "skill": "partial flow",
       "ok": true,
       "fault": "ok",
-      "ms": 1292,
+      "ms": 3918,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -324,7 +421,7 @@
       "skill": "form on step 2",
       "ok": true,
       "fault": "ok",
-      "ms": 1726,
+      "ms": 3824,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -340,7 +437,7 @@
       "skill": "late step entry",
       "ok": true,
       "fault": "ok",
-      "ms": 1731,
+      "ms": 5312,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -356,7 +453,7 @@
       "skill": "modal confirm",
       "ok": true,
       "fault": "ok",
-      "ms": 1884,
+      "ms": 3492,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -372,7 +469,7 @@
       "skill": "modal dismiss",
       "ok": true,
       "fault": "ok",
-      "ms": 1502,
+      "ms": 1615,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -388,7 +485,7 @@
       "skill": "present sheet",
       "ok": true,
       "fault": "ok",
-      "ms": 1278,
+      "ms": 567,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -404,7 +501,7 @@
       "skill": "cancel then confirm",
       "ok": true,
       "fault": "ok",
-      "ms": 1958,
+      "ms": 4762,
       "detail": {
         "detail": {
           "motor": "ensure_path",
@@ -420,7 +517,7 @@
       "skill": "no modal",
       "ok": true,
       "fault": "ok",
-      "ms": 1057,
+      "ms": 289,
       "detail": {
         "detail": {
           "motor": "ensure_path",

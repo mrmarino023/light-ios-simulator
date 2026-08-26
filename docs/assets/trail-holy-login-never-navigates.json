@@ -1,0 +1,167 @@
+{
+  "gate": "trail_holy",
+  "architecture": "trail",
+  "task": "login-never-navigates",
+  "wall_budget_ms": 120000,
+  "infra_ms": 16314,
+  "phase_trace": [
+    {
+      "phase": "index",
+      "ms": 152,
+      "size": 7
+    },
+    {
+      "phase": "prove",
+      "ms": 14383,
+      "ok": false,
+      "prove_phase": "exercise"
+    },
+    {
+      "phase": "localize",
+      "ms": 14385,
+      "primary": "LoginViewModel.swift",
+      "mode": "state_gate_stuck"
+    },
+    {
+      "phase": "bundle",
+      "ms": 14386,
+      "mode": "state_gate_stuck"
+    },
+    {
+      "phase": "build",
+      "ms": 31254,
+      "ok": true,
+      "build_ms": 10396,
+      "attempt": 1
+    },
+    {
+      "phase": "fix",
+      "ms": 31254,
+      "changed": true,
+      "tokens": 1460
+    },
+    {
+      "phase": "certify",
+      "ms": 39005,
+      "verified": true,
+      "reason": "verified"
+    }
+  ],
+  "llm_tokens": 1460,
+  "verified": true,
+  "holy_shit": true,
+  "repair_bundle": {
+    "schema": 1,
+    "architecture": "trail",
+    "mode": "state_gate_stuck",
+    "trace_failure": {
+      "step": 3,
+      "action": "tap",
+      "expected_identity": "loginButton",
+      "observed_identities": [
+        "Login",
+        "Welcome",
+        "loginButton",
+        "n157d4fda",
+        "passwordSecureField",
+        "usernameTextField"
+      ],
+      "fault": "control_fired_no_transition",
+      "label": "Login"
+    },
+    "oracle_trace": "step 3 tap expected 'loginButton'",
+    "fix_plan": "Fix the state gate so 'loginButton' transitions to the next screen \u2014 align handler state with router/navigation.",
+    "scope": {
+      "edit_globs": [
+        "**/Auth/**",
+        "**/*ViewModel*.swift",
+        "**/*Login*.swift"
+      ],
+      "forbidden_globs": [],
+      "primary_path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+      "edit_intent": "Fix the state gate so 'loginButton' transitions to the next screen \u2014 align handler state with router/navigation."
+    },
+    "localization": {
+      "identity": "loginButton",
+      "sites": [
+        {
+          "file": "LoginViewModel.swift",
+          "line": 28,
+          "snippet": "isLoggedIn = true",
+          "score": 45,
+          "role": "fallback"
+        },
+        {
+          "file": "ContentView.swift",
+          "line": 19,
+          "snippet": "isLoggedIn",
+          "score": 10,
+          "role": "fallback"
+        },
+        {
+          "file": "XCUITestDemoApp.swift",
+          "line": 14,
+          "snippet": "LoginViewModel",
+          "score": 0,
+          "role": "fallback"
+        }
+      ],
+      "composition": {
+        "file": "LoginViewModel.swift",
+        "line": 28,
+        "snippet": "isLoggedIn = true",
+        "score": 45,
+        "role": "fallback"
+      },
+      "primary_path": "LoginViewModel.swift"
+    },
+    "max_patch_candidates": 2,
+    "next_phase": "constrained_fixer_shot_1",
+    "fixer_input": {
+      "target_file": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+      "target_line": 28,
+      "snippet": {
+        "ok": true,
+        "path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+        "start_line": 1,
+        "end_line": 31,
+        "anchor_line": 28,
+        "content": "1|import Combine\n2|import Foundation\n3|\n4|@MainActor\n5|final class LoginViewModel: ObservableObject {\n6|    @Published var username: String = \"\"\n7|    @Published var password: String = \"\"\n8|    @Published var isLoading: Bool = false\n9|    @Published var loginError: String?\n10|    @Published var isLoggedIn: Bool = false\n11|\n12|    func login() async {\n13|        guard !username.isEmpty, !password.isEmpty else {\n14|            loginError = \"Please enter both username and password\"\n15|            return\n16|        }\n17|\n18|        isLoading = true\n19|        defer { isLoading = false }\n20|\n21|        let failure = ProcessInfo.processInfo.arguments.contains(\"--ui_test_login_failure\")\n22|        try? await Task.sleep(nanoseconds: 300_000_000)\n23|\n24|        if failure {\n25|            loginError = \"Invalid credentials\"\n26|        } else {\n27|            loginError = nil\n28|            isLoggedIn = false\n29|        }\n30|    }\n31|}\n"
+      },
+      "prompt": "You are the constrained TRAIL fixer.\nMode: state_gate_stuck\nFix plan: Fix the state gate so 'loginButton' transitions to the next screen \u2014 align handler state with router/navigation.\nOracle trace: step 3 tap expected 'loginButton'\nExpected identity: loginButton\nObserved identities after failure: Login, Welcome, loginButton, n157d4fda, passwordSecureField, usernameTextField\nTarget file only: fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift\nAllowed globs: ['**/*.swift']\nForbidden globs: []\nLocalization ascent: none\nRequirements:\n- Edit only the target file.\n- Do not touch Auth/Login for tab_chrome_missing.\n- Preserve existing tabs and identifiers.\n- Return the full updated file contents only.\n- If the file already satisfies the plan, return the original file unchanged.\n\nTarget slice `/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift:1-31`:\n1|import Combine\n2|import Foundation\n3|\n4|@MainActor\n5|final class LoginViewModel: ObservableObject {\n6|    @Published var username: String = \"\"\n7|    @Published var password: String = \"\"\n8|    @Published var isLoading: Bool = false\n9|    @Published var loginError: String?\n10|    @Published var isLoggedIn: Bool = false\n11|\n12|    func login() async {\n13|        guard !username.isEmpty, !password.isEmpty else {\n14|            loginError = \"Please enter both username and password\"\n15|            return\n16|        }\n17|\n18|        isLoading = true\n19|        defer { isLoading = false }\n20|\n21|        let failure = ProcessInfo.processInfo.arguments.contains(\"--ui_test_login_failure\")\n22|        try? await Task.sleep(nanoseconds: 300_000_000)\n23|\n24|        if failure {\n25|            loginError = \"Invalid credentials\"\n26|        } else {\n27|            loginError = nil\n28|            isLoggedIn = false\n29|        }\n30|    }\n31|}\n"
+    }
+  },
+  "trace_failure": {
+    "step": 3,
+    "action": "tap",
+    "expected_identity": "loginButton",
+    "observed_identities": [
+      "Login",
+      "Welcome",
+      "loginButton",
+      "n157d4fda",
+      "passwordSecureField",
+      "usernameTextField"
+    ],
+    "fault": "motor_failed",
+    "label": "Login"
+  },
+  "fix_attempts": [
+    {
+      "attempt": 1,
+      "changed": true,
+      "usage": {
+        "prompt_tokens": 689,
+        "completion_tokens": 771,
+        "total_tokens": 1460
+      }
+    }
+  ],
+  "verification_reason": "verified",
+  "build_ms": 10396,
+  "wall_ms": 39005,
+  "within_budget": true,
+  "reason": "verified",
+  "primary_path": "fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift",
+  "mode": "state_gate_stuck"
+}

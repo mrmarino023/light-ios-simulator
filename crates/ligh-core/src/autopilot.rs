@@ -18,12 +18,22 @@ use crate::uxgraph::is_destructive_label;
 
 pub const AUTOPILOT_SCHEMA_VERSION: u32 = 2;
 
+/// One acceptance atom. Unknown JSON keys are **rejected** (fail-closed): a
+/// binary that does not know `identity` must not silently turn `{identity:…}`
+/// into `{}` and thrash the motor forever.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct GoalPredicate {
+    /// Exact accessibility identifier (or tab alias).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+    /// Visible label / accessibility label only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub label: Option<String>,
+    /// Identity needle: resolved against identifier ∪ label ∪ text ∪ tab alias.
+    /// Use this for acceptance tokens when the task does not distinguish id vs label.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub identity: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub value_contains: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -397,6 +407,9 @@ pub struct PilotMemory {
     pub screen_actions: HashMap<String, u32>,
     #[serde(default)]
     pub recoveries: u32,
+    /// At most one outstanding speculation (C9).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub speculation: Option<crate::speculate::SpecTicket>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -465,6 +478,17 @@ impl PilotMemory {
             }
             PilotIntent::Wait | PilotIntent::Stop => {}
         }
+    }
+
+    pub fn clear_speculation(&mut self) {
+        self.speculation = None;
+    }
+
+    pub fn speculation_outstanding(&self) -> bool {
+        self.speculation
+            .as_ref()
+            .map(|t| t.is_open())
+            .unwrap_or(false)
     }
 }
 
@@ -601,39 +625,175 @@ fn stop(code: &str, reason: impl Into<String>) -> PilotAct {
     a
 }
 
+fn world_element_matches_identity(el: &crate::feel::WorldElement, needle: &str) -> bool {
+    if needle.is_empty() {
+        return false;
+    }
+    if el.identifier.as_deref() == Some(needle) {
+        return true;
+    }
+    if crate::observe::tab_chrome_alias_matches(needle, el.label.as_deref(), el.tab_chrome) {
+        return true;
+    }
+    if let Some(lab) = el.label.as_deref() {
+        if lab == needle || lab.contains(needle) {
+            return true;
+        }
+    }
+    false
+}
+
+fn salience_matches_identity(item: &SalienceItem, needle: &str) -> bool {
+    item.id.as_deref() == Some(needle)
+        || item
+            .label
+            .as_deref()
+            .map(|l| l == needle || l.contains(needle))
+            .unwrap_or(false)
+}
+
+fn predicate_holds_on_feel(predicate: &GoalPredicate, feel: &FeelIR) -> bool {
+    if predicate.id.is_none()
+        && predicate.label.is_none()
+        && predicate.identity.is_none()
+        && predicate.value_contains.is_none()
+        && predicate.enabled.is_none()
+        && predicate.focused.is_none()
+    {
+        return false;
+    }
+    // On-screen WorldModel only — same contract as daemon acceptance_nodes.
+    feel.world.elements.iter().filter(|el| el.on_screen).any(|el| {
+        let id_ok = predicate.id.as_deref().map_or(true, |id| {
+            el.identifier.as_deref() == Some(id)
+                || crate::observe::tab_chrome_alias_matches(id, el.label.as_deref(), el.tab_chrome)
+        });
+        let label_ok = predicate.label.as_deref().map_or(true, |lab| {
+            el.label
+                .as_deref()
+                .map(|l| l == lab || l.contains(lab))
+                .unwrap_or(false)
+        });
+        let identity_ok = predicate
+            .identity
+            .as_deref()
+            .map_or(true, |needle| world_element_matches_identity(el, needle));
+        id_ok && label_ok && identity_ok
+    }) || feel.salience.iter().any(|s| {
+        let id_ok = predicate
+            .id
+            .as_deref()
+            .map_or(true, |id| s.id.as_deref() == Some(id));
+        let label_ok = predicate.label.as_deref().map_or(true, |lab| {
+            s.label
+                .as_deref()
+                .map(|l| l == lab || l.contains(lab))
+                .unwrap_or(false)
+        });
+        let identity_ok = predicate
+            .identity
+            .as_deref()
+            .map_or(true, |needle| salience_matches_identity(s, needle));
+        id_ok && label_ok && identity_ok
+    })
+}
+
+fn goal_identity_needles(goal: &PilotGoal) -> Vec<String> {
+    let mut out = Vec::new();
+    for p in goal.required_predicates() {
+        if let Some(id) = p.id.clone() {
+            out.push(id);
+        }
+        if let Some(lab) = p.label.clone() {
+            out.push(lab);
+        }
+        if let Some(ident) = p.identity.clone() {
+            out.push(ident);
+        }
+    }
+    out.sort();
+    out.dedup();
+    out
+}
+
+/// When the goal names a tab destination and the tab bar is on-screen without that
+/// item, Auth/login is the wrong place to patch — Navigation/tab composition is.
+fn missing_goal_tab(goal: &PilotGoal, feel: &FeelIR) -> Option<String> {
+    if !feel.world.has_tab_bar {
+        return None;
+    }
+    let tabs: Vec<&crate::feel::WorldElement> = feel
+        .world
+        .elements
+        .iter()
+        .filter(|el| is_tab_item(el))
+        .collect();
+    if tabs.is_empty() {
+        return None;
+    }
+    for needle in goal_identity_needles(goal) {
+        let known = ["Notes", "Home", "Favorites", "Menu", "Cart", "Settings", "Profile"];
+        let wants_tab = needle.starts_with("tab_")
+            || known
+                .iter()
+                .any(|lab| crate::observe::identity_suggests_tab_label(&needle, lab))
+            || tabs.iter().any(|t| {
+                t.label
+                    .as_deref()
+                    .is_some_and(|lab| crate::observe::identity_suggests_tab_label(&needle, lab))
+            });
+        if !wants_tab {
+            continue;
+        }
+        let present = tabs.iter().any(|t| {
+            t.identifier.as_deref() == Some(needle.as_str())
+                || t.label.as_deref() == Some(needle.as_str())
+                || t.label
+                    .as_deref()
+                    .is_some_and(|lab| crate::observe::identity_suggests_tab_label(&needle, lab))
+                || crate::observe::tab_chrome_alias_matches(
+                    &needle,
+                    t.label.as_deref(),
+                    true,
+                )
+        });
+        if !present {
+            // Prefer a human tab name when identity is notes_title-like.
+            let hint = needle
+                .strip_prefix("tab_")
+                .map(|s| {
+                    let mut c = s.chars();
+                    match c.next() {
+                        None => needle.clone(),
+                        Some(f) => format!("{}{}", f.to_uppercase(), c.as_str()),
+                    }
+                })
+                .unwrap_or_else(|| {
+                    needle
+                        .strip_suffix("_title")
+                        .map(|s| {
+                            let mut c = s.chars();
+                            match c.next() {
+                                None => needle.clone(),
+                                Some(f) => format!("{}{}", f.to_uppercase(), c.as_str()),
+                            }
+                        })
+                        .unwrap_or(needle.clone())
+                });
+            return Some(hint);
+        }
+    }
+    None
+}
+
 fn goal_identity_present(goal: &PilotGoal, feel: &FeelIR) -> bool {
     let predicates = goal.required_predicates();
     if predicates.is_empty() {
         return false;
     }
-    predicates.iter().all(|predicate| {
-        feel.world.elements.iter().any(|el| {
-            let id_ok = predicate.id.as_deref().map_or(true, |id| {
-                el.identifier.as_deref() == Some(id)
-                    || crate::observe::tab_chrome_alias_matches(
-                        id,
-                        el.label.as_deref(),
-                        el.tab_chrome,
-                    )
-            });
-            let label_ok = predicate.label.as_deref().map_or(true, |lab| {
-                el.label
-                    .as_deref()
-                    .map(|l| l == lab || l.contains(lab))
-                    .unwrap_or(false)
-            });
-            id_ok && label_ok
-        }) || feel.salience.iter().any(|s| {
-            let id_ok = predicate.id.as_deref().map_or(true, |id| s.id.as_deref() == Some(id));
-            let label_ok = predicate.label.as_deref().map_or(true, |lab| {
-                s.label
-                    .as_deref()
-                    .map(|l| l == lab || l.contains(lab))
-                    .unwrap_or(false)
-            });
-            id_ok && label_ok
-        })
-    })
+    predicates
+        .iter()
+        .all(|predicate| predicate_holds_on_feel(predicate, feel))
 }
 
 fn is_tab_item(el: &crate::feel::WorldElement) -> bool {
@@ -677,9 +837,51 @@ fn untried_tab_chrome(feel: &FeelIR, mem: &PilotMemory) -> bool {
     })
 }
 
+fn is_progress_control(item: &SalienceItem) -> bool {
+    if item.kind == AffordanceKind::PrimaryButton {
+        return true;
+    }
+    if !is_tappable(item.kind) {
+        return false;
+    }
+    let lab = item.label.as_deref().unwrap_or("");
+    let id = item.id.as_deref().unwrap_or("");
+    crate::qa::is_progress_cta(lab) || crate::qa::is_progress_cta(id)
+}
+
+fn untried_tap(feel: &FeelIR, mem: &PilotMemory, item: &SalienceItem) -> bool {
+    if is_destructive_label(item.label.as_deref().unwrap_or("")) {
+        return false;
+    }
+    let fp = feel.place.fingerprint.as_str();
+    let key = tap_key(fp, item);
+    !mem.tried.contains(&key) && mem.failures.get(&key).copied().unwrap_or(0) < 2
+}
+
+fn sheet_overlay_active(feel: &FeelIR) -> bool {
+    feel.block
+        .as_ref()
+        .map(|b| b.kind == "sheet")
+        .unwrap_or(false)
+}
+
+/// Untried controls that can still advance a multi-step flow (wizard, sheet, login).
+fn untried_progress_controls(feel: &FeelIR, mem: &PilotMemory) -> bool {
+    let sheet = sheet_overlay_active(feel);
+    feel.salience.iter().any(|s| {
+        if !untried_tap(feel, mem, s) {
+            return false;
+        }
+        if sheet && is_tappable(s.kind) && (s.id.is_some() || s.label.is_some()) {
+            return true;
+        }
+        is_progress_control(s)
+    })
+}
+
 /// After a verified navigation, do not tap catalog noise hoping a missing
-/// acceptance identity will materialize. Fields, an untried primary CTA, and
-/// untried tab chrome can still be the path; random cells cannot.
+/// acceptance identity will materialize. Progress CTAs, sheet controls, fields,
+/// and tab chrome can still be the path; random cells cannot.
 fn should_stop_acceptance_absent(goal: &PilotGoal, feel: &FeelIR, mem: &PilotMemory) -> bool {
     if goal_identity_present(goal, feel) {
         return false;
@@ -690,13 +892,7 @@ fn should_stop_acceptance_absent(goal: &PilotGoal, feel: &FeelIR, mem: &PilotMem
     if untried_tab_chrome(feel, mem) {
         return false;
     }
-    let fp = feel.place.fingerprint.as_str();
-    let untried_primary = feel.salience.iter().any(|s| {
-        s.kind == AffordanceKind::PrimaryButton
-            && !mem.tried.contains(&tap_key(fp, s))
-            && mem.failures.get(&tap_key(fp, s)).copied().unwrap_or(0) < 2
-    });
-    if untried_primary {
+    if untried_progress_controls(feel, mem) {
         return false;
     }
     mem.transitions.iter().any(|t| {
@@ -947,6 +1143,43 @@ impl SearchPolicy {
     }
 }
 
+/// True when a preplanned act still targets something live on this Feel.
+/// Used after speculative certify — never fire a stale preplan.
+pub fn act_valid_on_feel(act: &PilotAct, feel: &FeelIR) -> bool {
+    if act.is_terminal() {
+        return false;
+    }
+    if matches!(feel.feel.phase, FeelPhase::EyesUnusable | FeelPhase::Blocked) {
+        return false;
+    }
+    match act.intent {
+        PilotIntent::Scroll | PilotIntent::Wait | PilotIntent::Dismiss | PilotIntent::Back => true,
+        PilotIntent::Type | PilotIntent::Tap | PilotIntent::Stop => {
+            let id = act.id.as_deref();
+            let label = act.label.as_deref();
+            if id.is_none() && label.is_none() {
+                return matches!(act.intent, PilotIntent::Scroll | PilotIntent::Wait);
+            }
+            feel.world.elements.iter().any(|e| {
+                if !e.on_screen || !e.enabled {
+                    return false;
+                }
+                let id_ok = id.map_or(true, |want| e.identifier.as_deref() == Some(want));
+                let lab_ok = label.map_or(true, |want| e.label.as_deref() == Some(want));
+                // Prefer id match when present.
+                if id.is_some() {
+                    id_ok
+                } else {
+                    lab_ok
+                }
+            }) || feel.salience.iter().any(|s| {
+                id.map_or(false, |want| s.id.as_deref() == Some(want))
+                    || label.map_or(false, |want| s.label.as_deref() == Some(want))
+            })
+        }
+    }
+}
+
 /// Choose the next host act. `goal_visible` comes from the host's own AX probe,
 /// so the policy never has to guess whether the acceptance target is on screen.
 pub fn next_act(
@@ -1064,6 +1297,22 @@ pub struct PilotDiagnosis {
 
 /// Turn the executed trace into one actionable verdict.
 pub fn diagnose(goal: &PilotGoal, history: &[PilotStepRecord], feel: &FeelIR) -> PilotDiagnosis {
+    // Prefer tab-chrome absence over inert login CTA — otherwise agents thrash Auth
+    // while the real bug is Navigation/tab composition (Kix Notes killer).
+    if let Some(tab) = missing_goal_tab(goal, feel) {
+        return PilotDiagnosis {
+            code: "tab_chrome_missing".into(),
+            message: format!(
+                "tab bar is visible but '{tab}' is not among its items, and acceptance '{}' is \
+                 absent. The destination is not composed into the tab view — inspect Navigation / \
+                 MainTabView (or equivalent tab composition), not the login/auth path.",
+                goal.target_name()
+            ),
+            fingerprint: Some(feel.place.fingerprint.clone()),
+            control: Some(tab),
+        };
+    }
+
     let inert_primary = history
         .iter()
         .rev()
@@ -1217,6 +1466,7 @@ mod tests {
                 ready: true,
             },
             world: Default::default(),
+            scene: None,
         }
     }
 
@@ -1715,6 +1965,82 @@ mod tests {
     }
 
     #[test]
+    fn wizard_finish_is_progress_after_name_step() {
+        let feel = feel_with(
+            vec![item(
+                1,
+                AffordanceKind::PrimaryButton,
+                "Finish",
+                Some("OnboardFinish"),
+            )],
+            false,
+            None,
+        );
+        let goal = PilotGoal {
+            target_id: Some("HomeReady".into()),
+            params: vec![PilotParam {
+                value: "pilot".into(),
+                secure: false,
+            }],
+            ..Default::default()
+        };
+        let mut mem = PilotMemory::new();
+        mem.transitions.push(PilotTransition {
+            state: "fp_name".into(),
+            action_key: "tap|next".into(),
+            outcome: ActionOutcome::DeliveredAndVerified,
+            next_state: "fp_almost".into(),
+        });
+        let a = next_act(&goal, &feel, &mem, false, PilotLimits::default());
+        assert_eq!(a.intent, PilotIntent::Tap);
+        assert_eq!(a.id.as_deref(), Some("OnboardFinish"));
+    }
+
+    #[test]
+    fn sheet_confirm_is_progress_on_overlay() {
+        let feel = feel_with(
+            vec![item(
+                1,
+                AffordanceKind::Button,
+                "ConfirmAction",
+                Some("ConfirmAction"),
+            )],
+            false,
+            Some("sheet"),
+        );
+        let goal = PilotGoal {
+            target_id: Some("ModalConfirmed".into()),
+            ..Default::default()
+        };
+        let mut mem = PilotMemory::new();
+        mem.transitions.push(PilotTransition {
+            state: "fp_home".into(),
+            action_key: "tap|open".into(),
+            outcome: ActionOutcome::DeliveredAndVerified,
+            next_state: "fp_sheet".into(),
+        });
+        let a = next_act(&goal, &feel, &mem, false, PilotLimits::default());
+        assert!(!a.is_terminal());
+        assert_eq!(a.id.as_deref(), Some("ConfirmAction"));
+    }
+
+    #[test]
+    fn identity_predicate_roundtrips_and_rejects_unknown_keys() {
+        let g: GoalSpec = serde_json::from_str(
+            r#"{"all":[{"identity":"homeTitle"},{"identity":"Home"}],"none":[{"identity":"loginButton"}]}"#,
+        )
+        .expect("identity GoalSpec must deserialize");
+        assert_eq!(g.all[0].identity.as_deref(), Some("homeTitle"));
+        assert_eq!(g.all[1].identity.as_deref(), Some("Home"));
+        assert_eq!(g.none[0].identity.as_deref(), Some("loginButton"));
+        let round = serde_json::to_value(&g).unwrap();
+        assert_eq!(round["all"][0]["identity"], "homeTitle");
+        // Fail-closed: typo / future field must not become empty `{}`.
+        let err = serde_json::from_str::<GoalPredicate>(r#"{"identty":"homeTitle"}"#);
+        assert!(err.is_err(), "unknown key must reject, got {err:?}");
+    }
+
+    #[test]
     fn does_not_stop_when_acceptance_identity_is_in_world() {
         let mut feel = feel_with(
             vec![item(1, AffordanceKind::Button, "Love", Some("card_1"))],
@@ -1835,6 +2161,109 @@ mod tests {
         assert_eq!(a.intent, PilotIntent::Tap);
         assert_eq!(a.id.as_deref(), Some("note.text"));
         assert_eq!(a.label.as_deref(), Some("Notes"));
+    }
+
+    #[test]
+    fn act_valid_requires_onscreen_target() {
+        let feel = login_screen(false);
+        let ok = PilotAct {
+            intent: PilotIntent::Tap,
+            label: Some("Login".into()),
+            id: Some("loginButton".into()),
+            kind: Some(AffordanceKind::PrimaryButton),
+            text: None,
+            secure: false,
+            slot_name: None,
+            key: "tap|loginButton".into(),
+            reason: "t".into(),
+            stop_code: None,
+            motor_strategy: None,
+        };
+        assert!(act_valid_on_feel(&ok, &feel));
+        let stale = PilotAct {
+            id: Some("missing_id".into()),
+            label: Some("Nope".into()),
+            key: "tap|missing".into(),
+            ..ok.clone()
+        };
+        assert!(!act_valid_on_feel(&stale, &feel));
+    }
+
+    #[test]
+    fn diagnoses_missing_tab_chrome_before_inert_login() {
+        let history = vec![PilotStepRecord {
+            step: 1,
+            action_id: "a1".into(),
+            epoch: Default::default(),
+            intent: PilotIntent::Tap,
+            label: Some("SIGN IN".into()),
+            id: Some("login_button".into()),
+            kind: Some(AffordanceKind::PrimaryButton),
+            fp_before: "fp_login".into(),
+            fp_after: "fp_home".into(),
+            fired: true,
+            changed: true,
+            outcome: Some(ActionOutcome::DeliveredAndVerified),
+            goal_progress: false,
+            candidate_keys: vec![],
+            events: vec![],
+            ms: 250,
+        }];
+        let mut feel = feel_with(vec![], false, None);
+        feel.place.fingerprint = "fp_home".into();
+        feel.world.has_tab_bar = true;
+        feel.world.elements = vec![
+            WorldElement {
+                stable_key: "id:tab_home".into(),
+                ax_path: "tab_home".into(),
+                kind: AffordanceKind::Button,
+                identifier: Some("tab_home".into()),
+                label: Some("Home".into()),
+                role: Some("button".into()),
+                frame_bucket: None,
+                value_hash: None,
+                enabled: true,
+                focused: false,
+                editable: false,
+                on_screen: true,
+                overlay_scope: None,
+                tab_chrome: true,
+            },
+            WorldElement {
+                stable_key: "id:tab_cart".into(),
+                ax_path: "tab_cart".into(),
+                kind: AffordanceKind::Button,
+                identifier: Some("tab_cart".into()),
+                label: Some("Cart".into()),
+                role: Some("button".into()),
+                frame_bucket: None,
+                value_hash: None,
+                enabled: true,
+                focused: false,
+                editable: false,
+                on_screen: true,
+                overlay_scope: None,
+                tab_chrome: true,
+            },
+        ];
+        let mut goal = GoalSpec::default();
+        goal.all = vec![
+            GoalPredicate {
+                identity: Some("notes_title".into()),
+                ..Default::default()
+            },
+            GoalPredicate {
+                identity: Some("Notes".into()),
+                ..Default::default()
+            },
+        ];
+        let d = diagnose(&goal, &history, &feel);
+        assert_eq!(d.code, "tab_chrome_missing");
+        assert!(
+            d.message.contains("MainTabView") || d.message.contains("Navigation"),
+            "message={}",
+            d.message
+        );
     }
 
     #[test]

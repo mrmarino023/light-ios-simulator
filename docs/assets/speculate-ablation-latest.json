@@ -1,0 +1,70 @@
+{
+  "gate": "speculate_ablation",
+  "protocol": "H0=LIGH_SPECULATE=0 vs H1=on; same task/goal/app; quarantine LIGH_UI=sim",
+  "task": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/login-never-navigates/task.json",
+  "n_per_arm": 1,
+  "off": {
+    "n": 1,
+    "reached": 0,
+    "reach_rate": 0.0,
+    "median_elapsed_ms": null,
+    "median_steps": null,
+    "speculate_begins": 0,
+    "speculate_certified": 0,
+    "speculate_rejected": 0,
+    "fire_preplanned": 0,
+    "certify_rate": null,
+    "cells": [
+      {
+        "mode": "off",
+        "i": 1,
+        "ok": false,
+        "reached": false,
+        "elapsed_ms": null,
+        "steps": null,
+        "speculate_enabled": null,
+        "speculate_stats": {},
+        "fault": "target_missing"
+      }
+    ]
+  },
+  "on": {
+    "n": 1,
+    "reached": 1,
+    "reach_rate": 1.0,
+    "median_elapsed_ms": 4682,
+    "median_steps": 3,
+    "speculate_begins": 3,
+    "speculate_certified": 3,
+    "speculate_rejected": 0,
+    "fire_preplanned": 2,
+    "certify_rate": 1.0,
+    "cells": [
+      {
+        "mode": "on",
+        "i": 1,
+        "ok": true,
+        "reached": true,
+        "elapsed_ms": 4682,
+        "steps": 3,
+        "speculate_enabled": true,
+        "speculate_stats": {
+          "begins": 3,
+          "certified": 3,
+          "fire_preplanned": 2,
+          "forbidden": 0,
+          "preplan": 2,
+          "preplan_stale": 0,
+          "rejected": 0
+        },
+        "fault": "ok"
+      }
+    ]
+  },
+  "speedup_on_vs_off": null,
+  "verdict": {
+    "speculate_helps": true,
+    "null_not_rejected": false,
+    "note": "Do not claim product holy-shit from this gate alone \u2014 only whether optimism earns latency/overlap on an already-reachable goal."
+  }
+}

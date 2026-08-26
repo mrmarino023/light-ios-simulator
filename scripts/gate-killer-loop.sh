@@ -69,10 +69,29 @@ export LIGH_KILLER_TASK="$TASK"
 export LIGH_KILLER_ARM="$ARM"
 export LIGH_KILLER_OUT="$OUT"
 export LIGH_KILLER_HONEST="${LIGH_KILLER_HONEST:-0}"
+# Killer / holy-shit are simulator product proofs. Never let a live DevDriver
+# (e.g. Mae on LAN) steal AX dump under LIGH_UI=auto.
+export LIGH_UI="${LIGH_UI:-sim}"
 export LIGH_APP_PATH="$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['app_path']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")"
 export LIGH_APP_BUNDLE_ID="$(python3 -c "import json; print(json.load(open('$TASK'))['bundle_id'])")"
+# ~/.ligh/wda.env often points at a phone (Mae). Strip WDA identity in sim mode
+# so a restarted daemon cannot warm physical arms mid-killer.
+if [[ "$LIGH_UI" == "sim" || "$LIGH_UI" == "simulator" ]]; then
+  unset LIGH_WDA_UDID LIGH_WDA_BUNDLE LIGH_WDA_URL LIGH_WDA_SESSION || true
+fi
 
-echo "  ▶ protocol $([ "${LIGH_KILLER_HONEST}" = 1 ] && echo honest || echo product) v2: verify deterministic initial state (preconditions)"
+# Daemon must inherit LIGH_UI=sim — restart if a physical session could be live.
+if [[ "${LIGH_KILLER_RESTART_DAEMON:-1}" == "1" ]]; then
+  "$LIGH" daemon stop --json >/dev/null 2>&1 || true
+  pkill -x lighd 2>/dev/null || true
+  sleep 1
+  nohup env -u LIGH_WDA_UDID -u LIGH_WDA_BUNDLE -u LIGH_WDA_URL -u LIGH_WDA_SESSION \
+    LIGH_UI=sim "$ROOT/target/release/lighd" >>/tmp/lighd-killer.log 2>&1 &
+  sleep 2
+  "$LIGH" up --device iphone-15-pro >/dev/null 2>&1 || "$LIGH" up --device iphone-15-pro
+fi
+
+echo "  ▶ protocol $([ "${LIGH_KILLER_HONEST}" = 1 ] && echo honest || echo product) v2: verify deterministic initial state (preconditions) [LIGH_UI=$LIGH_UI]"
 python3 "$ROOT/scripts/killer_loop_verify.py" --task "$TASK" --phase setup \
   >/tmp/killer-loop-initial-state.log 2>&1 || fail "initial state setup failed — see /tmp/killer-loop-initial-state.log"
 

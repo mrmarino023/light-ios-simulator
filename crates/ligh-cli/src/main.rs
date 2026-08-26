@@ -1601,15 +1601,16 @@ fn main() -> anyhow::Result<()> {
                             None => serde_json::json!({ "value": p, "secure": false }),
                         })
                         .collect();
-                    let goal = if let Some(spec) = goal_spec {
+                    let goal: ligh_core::PilotGoal = if let Some(spec) = goal_spec {
                         serde_json::from_str(&spec)
                             .map_err(|e| anyhow::anyhow!("--goal-spec JSON: {e}"))?
                     } else {
-                        serde_json::json!({
+                        serde_json::from_value(serde_json::json!({
                             "target_id": goal_id,
                             "target_label": goal_label,
                             "params": parsed,
-                        })
+                        }))
+                        .map_err(|e| anyhow::anyhow!("goal: {e}"))?
                     };
                     DaemonRequest::Autopilot {
                         app,

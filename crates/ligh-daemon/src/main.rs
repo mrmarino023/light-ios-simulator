@@ -95,14 +95,18 @@ impl DaemonState {
 
 fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> ObserveSnapshot {
     HostSession::poll_stream();
-    if let Some(ui) = ligh_host::physical_ui() {
-        if ui.active() {
-            if let Some((w, h)) = ui.screen_points() {
-                let mut st = state.lock().unwrap();
-                st.sim_width = w.max(1.0);
-                st.sim_height = h.max(1.0);
-                if let Some(bid) = ui.bundle_id() {
-                    st.expected_bundle_id = Some(bid);
+    // LIGH_UI=sim: never let a live DevDriver rewrite session identity / frame.
+    // Quarantine is useless if Mae's bundle_id poisons observe while AX is sim.
+    if ligh_host::physical_ui_active() {
+        if let Some(ui) = ligh_host::physical_ui() {
+            if ui.active() {
+                if let Some((w, h)) = ui.screen_points() {
+                    let mut st = state.lock().unwrap();
+                    st.sim_width = w.max(1.0);
+                    st.sim_height = h.max(1.0);
+                    if let Some(bid) = ui.bundle_id() {
+                        st.expected_bundle_id = Some(bid);
+                    }
                 }
             }
         }
@@ -117,21 +121,26 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
     let persisted = LighConfig::load()
         .ok()
         .and_then(|c| SessionState::load(&c.state_dir).ok().flatten());
-    let app_bundle_id = ligh_host::physical_ui()
-        .and_then(|u| u.bundle_id())
-        .or_else(|| persisted.as_ref().and_then(|s| s.app_bundle_id.clone()));
-    let (session_id, boot_epoch, launch_epoch, screen_epoch, expected_bundle_id) = {
+    // Sim: identity from daemon expected (set by run_app) or session — never LAN phone.
+    let (app_bundle_id, session_id, boot_epoch, launch_epoch, screen_epoch, expected_bundle_id) = {
         let st = state.lock().unwrap();
+        let expected = if ligh_host::physical_ui_active() {
+            ligh_host::physical_ui()
+                .and_then(|u| u.bundle_id())
+                .or(st.expected_bundle_id.clone())
+                .or_else(|| persisted.as_ref().and_then(|s| s.app_bundle_id.clone()))
+        } else {
+            st.expected_bundle_id
+                .clone()
+                .or_else(|| persisted.as_ref().and_then(|s| s.app_bundle_id.clone()))
+        };
         (
+            expected.clone(),
             Some(st.session_id.clone()).filter(|s| !s.is_empty()),
             st.boot_epoch,
             st.launch_epoch,
             st.screen_epoch,
-            if ligh_host::physical_ui_active() {
-                app_bundle_id.clone().or(st.expected_bundle_id.clone())
-            } else {
-                st.expected_bundle_id.clone().or_else(|| app_bundle_id.clone())
-            },
+            expected,
         )
     };
     let frame = if gpu.imports_ok > 0 {
@@ -142,14 +151,18 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
             fps: gpu.fps,
             imports_ok: true,
         })
-    } else if let Some((w, h)) = ligh_host::physical_ui().and_then(|u| u.screen_points()) {
-        Some(FrameMeta {
-            width: w as u32,
-            height: h as u32,
-            id: 1,
-            fps: 0.0,
-            imports_ok: true,
-        })
+    } else if ligh_host::physical_ui_active() {
+        if let Some((w, h)) = ligh_host::physical_ui().and_then(|u| u.screen_points()) {
+            Some(FrameMeta {
+                width: w as u32,
+                height: h as u32,
+                id: 1,
+                fps: 0.0,
+                imports_ok: true,
+            })
+        } else {
+            None
+        }
     } else {
         None
     };
@@ -297,19 +310,24 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 .unwrap_or(false);
             let st = state.lock().unwrap();
             let gpu = st.compositor.stats();
-            let physical = ligh_host::physical_ui().and_then(|ui| {
-                ui.active().then(|| {
-                    serde_json::json!({
-                        "connected": true,
-                        "bundle_id": ui.bundle_id(),
-                        "transport": ui.transport(),
-                        "session_id": ui.session_id(),
-                        "screen": ui.screen_points().map(|(w, h)| serde_json::json!({"width": w, "height": h})),
-                        "driver_version": ui.driver_version(),
-                        "capabilities": ui.capabilities(),
+            // Status must not advertise Mae as the live target when LIGH_UI=sim.
+            let physical = if ligh_host::physical_ui_active() {
+                ligh_host::physical_ui().and_then(|ui| {
+                    ui.active().then(|| {
+                        serde_json::json!({
+                            "connected": true,
+                            "bundle_id": ui.bundle_id(),
+                            "transport": ui.transport(),
+                            "session_id": ui.session_id(),
+                            "screen": ui.screen_points().map(|(w, h)| serde_json::json!({"width": w, "height": h})),
+                            "driver_version": ui.driver_version(),
+                            "capabilities": ui.capabilities(),
+                        })
                     })
                 })
-            });
+            } else {
+                None
+            };
             DaemonResponse::ok(serde_json::json!({
                 "udid": session.as_ref().map(|s| &s.udid),
                 "booted": booted,
@@ -1399,10 +1417,6 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
             install,
             launch_args,
         } => {
-            let parsed: ligh_core::PilotGoal = match serde_json::from_value(goal) {
-                Ok(g) => g,
-                Err(e) => return DaemonResponse::err(format!("goal: {e}")),
-            };
             let settle = settle_ms.unwrap_or(1500);
             let now_ms = std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
@@ -1429,7 +1443,7 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                 state,
                 app.as_deref(),
                 bundle_id.as_deref(),
-                &parsed,
+                &goal,
                 steps,
                 settle,
                 action_timeout.min(run_timeout),
@@ -1657,33 +1671,42 @@ fn main() -> anyhow::Result<()> {
         std::thread::sleep(Duration::from_millis(16));
     });
 
-    // Physical: DevDriver eyes + cascade hands (in-app activate → WDA fallback).
-    let hybrid = hybrid_physical::HybridPhysical::new(hub, arms.clone());
-    ligh_host::set_physical_ui(Some(hybrid));
-    // Warm WDA in background when UDID is configured.
-    std::thread::spawn(move || {
-        wda::load_wda_dotenv();
-        let udid = std::env::var("LIGH_WDA_UDID").unwrap_or_default();
-        if udid.is_empty() {
-            info!("LIGH_WDA_UDID unset — WDA used only as cascade fallback");
-            return;
+    // Physical path is opt-in via LIGH_UI. Sim mode must hard-isolate: a live
+    // Mae DevDriver on LAN + ~/.ligh/wda.env must not own observe identity.
+    match ligh_host::ui_mode() {
+        ligh_host::UiMode::Sim => {
+            ligh_host::set_physical_ui(None);
+            info!("LIGH_UI=sim — DevDriver/WDA disabled; CoreSimulator AX + HID only");
         }
-        let bundle = std::env::var("LIGH_WDA_BUNDLE").ok();
-        for attempt in 1..=30 {
-            match arms.ensure(&udid, bundle.as_deref()) {
-                Ok(()) => {
-                    info!(attempt, "WDA arms ready (cascade fallback)");
+        ligh_host::UiMode::Auto | ligh_host::UiMode::Device => {
+            let hybrid = hybrid_physical::HybridPhysical::new(hub, arms.clone());
+            ligh_host::set_physical_ui(Some(hybrid));
+            // Warm WDA in background when UDID is configured.
+            std::thread::spawn(move || {
+                wda::load_wda_dotenv();
+                let udid = std::env::var("LIGH_WDA_UDID").unwrap_or_default();
+                if udid.is_empty() {
+                    info!("LIGH_WDA_UDID unset — WDA used only as cascade fallback");
                     return;
                 }
-                Err(e) => {
-                    if attempt == 1 || attempt % 5 == 0 {
-                        warn!(attempt, error=%e, "waiting for Appium/WDA");
+                let bundle = std::env::var("LIGH_WDA_BUNDLE").ok();
+                for attempt in 1..=30 {
+                    match arms.ensure(&udid, bundle.as_deref()) {
+                        Ok(()) => {
+                            info!(attempt, "WDA arms ready (cascade fallback)");
+                            return;
+                        }
+                        Err(e) => {
+                            if attempt == 1 || attempt % 5 == 0 {
+                                warn!(attempt, error=%e, "waiting for Appium/WDA");
+                            }
+                            std::thread::sleep(Duration::from_secs(2));
+                        }
                     }
-                    std::thread::sleep(Duration::from_secs(2));
                 }
-            }
+            });
         }
-    });
+    }
 
     // Unix socket server
     let sock = sock_path();
