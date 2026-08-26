@@ -43,7 +43,25 @@ Requires Mac + Xcode Simulator. Works best when the app exposes stable `accessib
 
 Published gate artifacts under [`docs/assets/`](docs/assets/). Writeup: [`docs/TRAIL_RESULTS.md`](docs/TRAIL_RESULTS.md).
 
-### TRAIL repair
+### TRAIL vs vision vs autopilot+chat
+
+Same frozen repair tasks. Vision = screenshot/LLM drives taps + patches. Autopilot+chat = host UI + LLM still explores/fixes in chat. TRAIL = classify → localize → ≤2 scoped patches → certify.
+
+| Task | Vision chat | Autopilot + chat | **TRAIL** |
+|------|-------------|------------------|-----------|
+| Login never navigates | 622s · 212k · ✗ | 61s · 14k · ✓ | **40s · 1.8k · ✓** |
+| Notes tab missing (Kix) | 460s · 128k · ✓ | 644s · 148k · ✓ | **126s · 7.8k · ✓** |
+| Onboarding stuck | — (no A/B published) | — | **64s · 3.8k · ✓** |
+
+| Speedup (wall) | vs Vision | vs Autopilot+chat |
+|----------------|-----------|-------------------|
+| Login | **~16×** (vision failed) | **~1.5×** |
+| Kix Notes | **~3.7×** | **~5.1×** |
+| Tokens (login) | **~118× fewer** than vision | **~8× fewer** than autopilot+chat |
+
+Full compare artifact: [`trail-holy-compare-latest.json`](docs/assets/trail-holy-compare-latest.json)
+
+### TRAIL repair (absolute)
 
 Trace → classify → localize → ≤2 LLM fixes → build → certify. No golden reverse.
 
@@ -53,21 +71,7 @@ Trace → classify → localize → ≤2 LLM fixes → build → certify. No gol
 | Onboarding stuck | OnboardingDemo (frozen) | **64s** | 3.8k | verified · `OnboardingView` |
 | Notes tab missing after login | [Kix](https://github.com/byKosta/Kix-app) | **126s** | 7.8k | verified · `MainTabView` |
 
-**3/3 verified** (gate ≥2/3 ≤120s) → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)
-
-| Baseline (login) | Wall | Tokens |
-|------------------|------|--------|
-| Vision chat | 622s | 212k |
-| Autopilot + chat loop | 61s | 14k |
-| **TRAIL** | **40s** | **1.8k** |
-
-| Baseline (Kix Notes tab) | Wall | Tokens |
-|--------------------------|------|--------|
-| Vision chat | 460s | 128k |
-| Autopilot + chat loop | 644s | 148k |
-| **TRAIL** | **126s** | **7.8k** |
-
-Full compare: [`trail-holy-compare-latest.json`](docs/assets/trail-holy-compare-latest.json)
+**3/3 verified** (gate ≥2/3 ≤120s) → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)  
 Architecture: [`docs/TRAIL_BULLETPROOF.md`](docs/TRAIL_BULLETPROOF.md)
 
 ### Autopilot (zero UI tokens)
