@@ -2,54 +2,65 @@
 
 Last updated: 2026-08-26
 
-## Verdict
+## Job under test
 
-**3/3 verified** on the frozen killer suite. Gate claim (≥2/3 with wall ≤120s) **PASS**.
+Inject a bug into a real iOS app. The agent must **fix the Swift** and **prove the fix in Simulator**.
 
-Artifact: [`assets/trail-holy-multi-latest.json`](assets/trail-holy-multi-latest.json)  
-Compare: [`assets/trail-holy-compare-latest.json`](assets/trail-holy-compare-latest.json)  
-Gate: `./scripts/gate-trail-holy-multi.sh`  
-Architecture: [`TRAIL_BULLETPROOF.md`](TRAIL_BULLETPROOF.md)
+| Metric | Meaning |
+|--------|---------|
+| Wall | seconds until verified fix |
+| Tokens | LLM tokens burned |
+| ✓ / ✗ | postconditions passed |
+
+## What each stack is
+
+| Stack | Plain English |
+|-------|----------------|
+| **Vision LLM agent** | Screenshots → LLM decides taps → LLM edits code in chat. Typical “vision coding agent” baseline. |
+| **Chat agent + LIGH taps** | Unconstrained chat still owns repair; LIGH Autopilot only drives UI. Proves better taps ≠ repair. |
+| **LIGH (TRAIL)** | Host proves failure → localizes file → ≤2 scoped patches → rebuild → certify. |
 
 ## Head-to-head
 
-| Task | Vision chat | Autopilot + chat | **TRAIL** |
-|------|-------------|------------------|-----------|
-| login-never-navigates | 622s · 212k · ✗ | 61s · 14k · ✓ | **40s · 1.8k · ✓** |
-| kix-notes-tab-missing | 460s · 128k · ✓ | 644s · 148k · ✓ | **126s · 7.8k · ✓** |
-| onboarding-home-broken | — | — | **64s · 3.8k · ✓** |
+| Bug | Vision LLM agent | Chat agent + LIGH taps | **LIGH (TRAIL)** |
+|-----|------------------|------------------------|------------------|
+| Login never navigates | 622s · 212k · ✗ | 61s · 14k · ✓ | **40s · 1.8k · ✓** |
+| Notes tab missing (Kix) | 460s · 128k · ✓ | 644s · 148k · ✓ | **126s · 7.8k · ✓** |
+| Onboarding stuck | — | — | **64s · 3.8k · ✓** |
 
-Vision / autopilot+chat numbers from killer-loop A/B assets (`killer-loop-ab-v2-*.json`). Onboarding has no published vision A/B yet.
+Baselines: `docs/assets/killer-loop-ab-v2-*.json`. Onboarding has no vision A/B published yet.
 
-| | vs Vision (wall) | vs Autopilot+chat (wall) | vs Vision (tokens) |
-|--|------------------|--------------------------|--------------------|
-| Login | ~16× (vision failed) | ~1.5× | ~118× fewer |
-| Kix | ~3.7× | ~5.1× | ~16× fewer |
+| | LIGH vs Vision | LIGH vs Chat+taps |
+|--|----------------|-------------------|
+| Login wall | ~16× (vision failed) | ~1.5× |
+| Kix wall | ~3.7× | ~5× |
+| Login tokens | ~118× fewer | ~8× fewer |
 
-## TRAIL absolute
+## LIGH absolute
 
-| Task | Mode | File | Wall | Tokens |
-|------|------|------|------|--------|
+| Bug | Mode | File | Wall | Tokens |
+|-----|------|------|------|--------|
 | login-never-navigates | `state_gate_stuck` | `LoginViewModel.swift` | **40s** | 1.8k |
 | onboarding-home-broken | `blocked_overlay` | `OnboardingView.swift` | **64s** | 3.8k |
 | kix-notes-tab-missing | `tab_chrome_missing` | `MainTabView.swift` | **126s** | 7.8k |
 
-## Protocol
+**3/3 verified** · gate ≥2/3 ≤120s **PASS**  
+[`assets/trail-holy-multi-latest.json`](assets/trail-holy-multi-latest.json) · [`assets/trail-holy-compare-latest.json`](assets/trail-holy-compare-latest.json)
+
+## Protocol (LIGH)
 
 ```text
-TraceFailure v2 → Effect Classifier → Causal localize → ≤2 LLM fixes → build → certify
+TraceFailure → Effect Classifier → Causal localize → ≤2 LLM fixes → build → certify
 ```
 
 - CLI: `ligh cap repair-job …`
 - MCP: `ligh_cap_repair_job`
+- Architecture: [`TRAIL_BULLETPROOF.md`](TRAIL_BULLETPROOF.md)
 
 ## Reproduce
 
 ```bash
 ./scripts/gate-trail-holy-multi.sh
-
-LIGH_TRAIL_TASK=fixtures/frozen/tasks/login-never-navigates/task.json \
-  ./scripts/gate-trail-holy.sh
 ```
 
 Requires `OPENAI_API_KEY`, release `ligh` / `lighd`, and Simulator.

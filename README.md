@@ -41,42 +41,49 @@ Requires Mac + Xcode Simulator. Works best when the app exposes stable `accessib
 
 ## Results
 
-Published gate artifacts under [`docs/assets/`](docs/assets/). Writeup: [`docs/TRAIL_RESULTS.md`](docs/TRAIL_RESULTS.md).
+Same job for every column: **a bug is injected into a real iOS app → the agent must fix the Swift and prove the fix in Simulator.**  
+Wall = time to verified fix. Tokens = LLM tokens burned. ✓/✗ = postconditions passed.
 
-### TRAIL vs vision vs autopilot+chat
+### What we compare
 
-Same frozen repair tasks. Vision = screenshot/LLM drives taps + patches. Autopilot+chat = host UI + LLM still explores/fixes in chat. TRAIL = classify → localize → ≤2 scoped patches → certify.
+| Stack | Plain English |
+|-------|----------------|
+| **Vision LLM agent** | What people do today: screenshots → LLM decides taps → LLM edits code in a long chat. No structured host repair. |
+| **Chat agent + LIGH taps** | Coding agent still repairs in unconstrained chat, but uses LIGH Autopilot for UI instead of screenshots. Shows that **better taps alone are not enough**. |
+| **LIGH (TRAIL)** | Full LIGH repair path: host proves the failure → finds the file → ≤2 scoped LLM patches → rebuild → certify on the same flow. |
 
-| Task | Vision chat | Autopilot + chat | **TRAIL** |
-|------|-------------|------------------|-----------|
-| Login never navigates | 622s · 212k · ✗ | 61s · 14k · ✓ | **40s · 1.8k · ✓** |
-| Notes tab missing (Kix) | 460s · 128k · ✓ | 644s · 148k · ✓ | **126s · 7.8k · ✓** |
-| Onboarding stuck | — (no A/B published) | — | **64s · 3.8k · ✓** |
+Artifact: [`docs/TRAIL_RESULTS.md`](docs/TRAIL_RESULTS.md) · [`trail-holy-compare-latest.json`](docs/assets/trail-holy-compare-latest.json)
 
-| Speedup (wall) | vs Vision | vs Autopilot+chat |
-|----------------|-----------|-------------------|
-| Login | **~16×** (vision failed) | **~1.5×** |
-| Kix Notes | **~3.7×** | **~5.1×** |
-| Tokens (login) | **~118× fewer** than vision | **~8× fewer** than autopilot+chat |
+### Head-to-head (repair)
 
-Full compare artifact: [`trail-holy-compare-latest.json`](docs/assets/trail-holy-compare-latest.json)
+| Bug | Vision LLM agent | Chat agent + LIGH taps | **LIGH (TRAIL)** |
+|-----|------------------|------------------------|------------------|
+| Login never navigates (XCUITestDemo) | 622s · 212k tokens · ✗ failed | 61s · 14k · ✓ | **40s · 1.8k · ✓** |
+| Notes tab missing ([Kix](https://github.com/byKosta/Kix-app)) | 460s · 128k · ✓ | 644s · 148k · ✓ | **126s · 7.8k · ✓** |
+| Onboarding stuck (OnboardingDemo) | *(no vision A/B yet)* | *(no A/B yet)* | **64s · 3.8k · ✓** |
 
-### TRAIL repair (absolute)
+**Read the Kix row:** vision eventually fixed it but burned **~8 minutes / 128k tokens**. Chat+taps was **slower and hungrier** (wrong-file thrash). **LIGH** verified in **~2 minutes / 8k tokens**.
 
-Trace → classify → localize → ≤2 LLM fixes → build → certify. No golden reverse.
+| | LIGH vs Vision LLM | LIGH vs Chat+taps |
+|--|--------------------|-------------------|
+| Login wall | **~16× faster** (vision never verified) | **~1.5× faster** |
+| Kix wall | **~3.7× faster** | **~5× faster** |
+| Login tokens | **~118× fewer** | **~8× fewer** |
 
-| Task | App | Wall | Tokens | Outcome |
-|------|-----|------|--------|---------|
-| Login never navigates | XCUITestDemo (vendored) | **40s** | 1.8k | verified · `LoginViewModel` |
-| Onboarding stuck | OnboardingDemo (frozen) | **64s** | 3.8k | verified · `OnboardingView` |
-| Notes tab missing after login | [Kix](https://github.com/byKosta/Kix-app) | **126s** | 7.8k | verified · `MainTabView` |
+### LIGH repair runs (absolute)
 
-**3/3 verified** (gate ≥2/3 ≤120s) → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)  
-Architecture: [`docs/TRAIL_BULLETPROOF.md`](docs/TRAIL_BULLETPROOF.md)
+| Bug | App | Wall | Tokens | File localized |
+|-----|-----|------|--------|----------------|
+| Login never navigates | XCUITestDemo | **40s** | 1.8k | `LoginViewModel.swift` |
+| Onboarding stuck | OnboardingDemo | **64s** | 3.8k | `OnboardingView.swift` |
+| Notes tab missing | Kix | **126s** | 7.8k | `MainTabView.swift` |
 
-### Autopilot (zero UI tokens)
+**3/3 verified** → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)  
+How it works: [`docs/TRAIL_BULLETPROOF.md`](docs/TRAIL_BULLETPROOF.md)
 
-One generic Feel-IR policy. **6/6 apps**, six flow shapes. Median ~11.5s. No LLM for taps.
+### LIGH Autopilot only (UI goals — not repair)
+
+Separate claim: reach a UI goal with **0 LLM tokens for taps** (host policy on accessibility). This is *not* the repair table above.
 
 | App | Flow | Wall | Steps | LLM UI tokens |
 |-----|------|------|-------|---------------|
@@ -92,8 +99,8 @@ One generic Feel-IR policy. **6/6 apps**, six flow shapes. Median ~11.5s. No LLM
 Reproduce:
 
 ```bash
-./scripts/gate-trail-holy-multi.sh          # TRAIL multi-task claim
-./scripts/gate-autopilot-generality.sh      # 6-app motor claim (if present)
+./scripts/gate-trail-holy-multi.sh          # LIGH repair vs baselines
+./scripts/gate-autopilot-generality.sh      # UI-goal motor claim
 ```
 
 ---
