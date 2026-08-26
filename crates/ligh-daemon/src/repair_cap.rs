@@ -9,7 +9,7 @@ use std::time::Instant;
 
 use ligh_core::{
     build_feel, contract_with_trace, emit_repair_contract, fix_plan_for_mode, repair_agent_view,
-    repair_mode_from_trace, CapabilityResult, EditPlan, FaultClass, ObserveSnapshot, PilotDiagnosis,
+    CapabilityResult, EditPlan, FaultClass, ObserveSnapshot, PilotDiagnosis,
     PilotGoal, RepairJobPhase, RepairMode, TraceFailure, REPAIR_JOB_WALL_MS,
 };
 use serde_json::{json, Value};
@@ -223,6 +223,10 @@ pub(crate) fn cap_repair_job(
         control_still_visible: Some(still),
         sig_changed: Some(!still),
         acceptance_pending: vec![],
+        ax_appeared: vec![],
+        ax_disappeared: vec![],
+        screen_sig_before: None,
+        screen_sig_after: None,
     };
     let mode = ligh_core::classify_trace_effect(
         &tf.fault,
