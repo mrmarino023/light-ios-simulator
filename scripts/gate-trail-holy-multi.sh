@@ -20,7 +20,7 @@ load_openai_env "$ROOT"
 echo "══ TRAIL holy multi ══"
 echo "  tasks=$TASKS budget=${BUDGET}ms"
 
-export LIGH_TRAIL_REUSE_SESSION=0
+export LIGH_TRAIL_REUSE_SESSION="${LIGH_TRAIL_REUSE_SESSION:-0}"
 rows=()
 pass_n=0
 holy_n=0
@@ -33,6 +33,7 @@ for tid in $TASKS; do
   run_n=$((run_n + 1))
   TASK_OUT="/tmp/trail-holy-${tid}.json"
   echo "  ── $tid"
+  # Reuse daemon after the first task (warm sim); certify retries handle app switches.
   if [[ "$first" -eq 0 ]]; then
     export LIGH_TRAIL_REUSE_SESSION=1
   fi

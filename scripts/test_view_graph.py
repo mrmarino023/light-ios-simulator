@@ -11,6 +11,7 @@ from view_graph import (
     hybrid_localize,
     localize_control_gate,
     localize_missing_tab,
+    try_restore_missing_tab,
 )
 
 
@@ -114,6 +115,48 @@ class ViewGraphTest(unittest.TestCase):
             self.assertIsNotNone(loc)
             assert loc is not None
             self.assertEqual(loc["primary_path"], "FlowHost.swift")
+
+    def test_structural_restore_inserts_missing_tab(self) -> None:
+        with tempfile.TemporaryDirectory() as td:
+            with open(os.path.join(td, "NotesView.swift"), "w", encoding="utf-8") as f:
+                f.write(
+                    "import SwiftUI\n"
+                    "struct NotesView: View {\n"
+                    "  @EnvironmentObject var tabSelection: TabSelection\n"
+                    "  var body: some View { Text(\"n\") }\n"
+                    "}\n"
+                )
+            host = (
+                "import SwiftUI\n"
+                "class TabSelection: ObservableObject { @Published var selectedTab = 0 }\n"
+                "struct RootTabs: View {\n"
+                "  @StateObject private var tabSelection = TabSelection()\n"
+                "  var body: some View {\n"
+                "    TabView(selection: $tabSelection.selectedTab) {\n"
+                "      HomeView()\n"
+                '        .tabItem { Label("Home", systemImage: "house") }\n'
+                "        .tag(0)\n"
+                '        .accessibilityIdentifier("tab_home")\n'
+                "      FavView()\n"
+                '        .tabItem { Label("Fav", systemImage: "heart") }\n'
+                "        .tag(2)\n"
+                '        .accessibilityIdentifier("tab_favorites")\n'
+                "    }\n"
+                "  }\n"
+                "}\n"
+            )
+            with open(os.path.join(td, "RootTabs.swift"), "w", encoding="utf-8") as f:
+                f.write(host)
+            out = try_restore_missing_tab(td, "RootTabs.swift", "tab_notes")
+            self.assertIsNotNone(out)
+            assert out is not None
+            text = out["text"]
+            self.assertIn('accessibilityIdentifier("tab_notes")', text)
+            self.assertIn("NotesView()", text)
+            self.assertIn(".environmentObject(tabSelection)", text)
+            self.assertIn('accessibilityIdentifier("tab_home")', text)
+            self.assertIn('accessibilityIdentifier("tab_favorites")', text)
+            self.assertEqual(out["tag"], 1)
 
 
 if __name__ == "__main__":

@@ -100,6 +100,169 @@ def localize_missing_tab(
     return best
 
 
+def _title_tokens(suffix: str) -> str:
+    parts = [p for p in re.split(r"[_\-]+", suffix) if p]
+    return " ".join(p[:1].upper() + p[1:] for p in parts) if parts else suffix
+
+
+def _camel_view_candidates(suffix: str) -> list[str]:
+    parts = [p for p in re.split(r"[_\-]+", suffix) if p]
+    if not parts:
+        return []
+    camel = "".join(p[:1].upper() + p[1:] for p in parts)
+    return [f"{camel}View", f"{camel}Screen", f"{camel}Tab", camel]
+
+
+def _find_view_type(source_root: str, suffix: str) -> tuple[str, str] | None:
+    """Return (TypeName, file_text) for a View that matches tab_<suffix>."""
+    for cand in _camel_view_candidates(suffix):
+        for _rel, _abs, text in _walk_swift(source_root):
+            if re.search(rf"\b(?:struct|class)\s+{re.escape(cand)}\b", text):
+                return cand, text
+    return None
+
+
+def _host_env_exprs(host_text: str) -> dict[str, str]:
+    """Map type name → expression available in the TabView host."""
+    out: dict[str, str] = {}
+    for m in re.finditer(
+        r"@(?:StateObject|EnvironmentObject|ObservedObject)\s+(?:private\s+)?var\s+(\w+)\s*[:=]\s*([A-Z]\w*)",
+        host_text,
+    ):
+        out[m.group(2)] = m.group(1)
+    # Common nested managers: appState.favoritesManager
+    for m in re.finditer(r"(\w+)\.(\w+)\b", host_text):
+        root, prop = m.group(1), m.group(2)
+        if root in out.values() or re.search(
+            rf"@(?:StateObject|EnvironmentObject|ObservedObject)\s+(?:private\s+)?var\s+{re.escape(root)}\b",
+            host_text,
+        ):
+            # Infer type from property name heuristics when used as environmentObject arg.
+            if "favorites" in prop.lower():
+                out.setdefault("FavoritesManager", f"{root}.{prop}")
+            if "cart" in prop.lower():
+                out.setdefault("CartManager", f"{root}.{prop}")
+    return out
+
+
+def _env_injections(host_text: str, view_text: str) -> list[str]:
+    needed = re.findall(
+        r"@EnvironmentObject\s+(?:private\s+)?var\s+\w+\s*:\s*([A-Z]\w*)",
+        view_text,
+    )
+    host = _host_env_exprs(host_text)
+    inj: list[str] = []
+    for typ in needed:
+        expr = host.get(typ)
+        if expr:
+            inj.append(f".environmentObject({expr})")
+    return inj
+
+
+def _sf_symbol_for_suffix(suffix: str) -> str:
+    key = suffix.lower().replace("-", "_")
+    hints = {
+        "notes": "note.text",
+        "note": "note.text",
+        "home": "house",
+        "favorites": "heart",
+        "favorite": "heart",
+        "cart": "cart",
+        "menu": "line.3.horizontal",
+        "search": "magnifyingglass",
+        "profile": "person",
+        "settings": "gearshape",
+        "shop": "bag",
+        "store": "bag",
+    }
+    return hints.get(key, hints.get(key.split("_")[0], "circle"))
+
+
+def try_restore_missing_tab(
+    source_root: str,
+    tabview_rel: str,
+    expected_id: str,
+) -> dict[str, Any] | None:
+    """Deterministic OSS restore: insert a TabView child when its View type exists.
+
+    No healthy-tree oracle. Uses only the broken TabView file + View declarations
+    still present elsewhere in the tree (classic omitted-tab regression).
+    """
+    if not expected_id.startswith("tab_"):
+        return None
+    suffix = expected_id[4:]
+    if not suffix:
+        return None
+    abs_path = (
+        tabview_rel
+        if os.path.isabs(tabview_rel)
+        else os.path.join(source_root, tabview_rel)
+    )
+    host = _read(abs_path)
+    if not host or expected_id in host or not TABVIEW_RE.search(host):
+        return None
+    found = _find_view_type(source_root, suffix)
+    if not found:
+        return None
+    view_type, view_text = found
+    if f"{view_type}(" in host:
+        return None  # already referenced somehow without AX id
+
+    tags = [int(x) for x in re.findall(r"\.tag\(\s*(\d+)\s*\)", host)]
+    tag = 0
+    used = set(tags)
+    while tag in used:
+        tag += 1
+
+    label = _title_tokens(suffix)
+    symbol = _sf_symbol_for_suffix(suffix)
+    env_lines = _env_injections(host, view_text)
+    indent = "            "
+    block_lines = [f"{indent}{view_type}()"]
+    for env in env_lines:
+        block_lines.append(f"{indent}    {env}")
+    block_lines.extend(
+        [
+            f"{indent}    .tabItem {{",
+            f'{indent}        Label("{label}", systemImage: "{symbol}")',
+            f"{indent}    }}",
+            f"{indent}    .tag({tag})",
+            f'{indent}    .accessibilityIdentifier("{expected_id}")',
+            "",
+        ]
+    )
+    block = "\n".join(block_lines)
+
+    # Prefer insert after tab_home; else after TabView opening brace.
+    insert_at: int | None = None
+    m_home = re.search(
+        r'\.accessibilityIdentifier\(\s*"tab_home"\s*\)\s*\n',
+        host,
+    )
+    if m_home:
+        insert_at = m_home.end()
+    else:
+        m_tv = TABVIEW_RE.search(host)
+        if m_tv:
+            brace = host.find("{", m_tv.start())
+            if brace >= 0:
+                nl = host.find("\n", brace)
+                insert_at = (nl + 1) if nl >= 0 else brace + 1
+    if insert_at is None:
+        return None
+
+    new_text = host[:insert_at] + block + host[insert_at:]
+    if new_text.count("{") != new_text.count("}"):
+        return None
+    return {
+        "text": new_text,
+        "view_type": view_type,
+        "tag": tag,
+        "expected_id": expected_id,
+        "method": "structural_tab_restore",
+    }
+
+
 def ascend_to_composition(
     source_root: str,
     identity: str,

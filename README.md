@@ -58,27 +58,27 @@ Artifact: [`docs/TRAIL_RESULTS.md`](docs/TRAIL_RESULTS.md) · [`trail-holy-compa
 
 | Bug | Vision LLM agent | Chat agent + LIGH taps | **LIGH (TRAIL)** |
 |-----|------------------|------------------------|------------------|
-| Login never navigates (XCUITestDemo) | 622s · 212k tokens · ✗ failed | 61s · 14k · ✓ | **40s · 1.8k · ✓** |
-| Notes tab missing ([Kix](https://github.com/byKosta/Kix-app)) | 460s · 128k · ✓ | 644s · 148k · ✓ | **126s · 7.8k · ✓** |
-| Onboarding stuck (OnboardingDemo) | *(no vision A/B yet)* | *(no A/B yet)* | **64s · 3.8k · ✓** |
+| Login never navigates (XCUITestDemo) | 622s · 212k tokens · ✗ failed | 61s · 14k · ✓ | **33s · 1.3k · ✓** |
+| Notes tab missing ([Kix](https://github.com/byKosta/Kix-app)) | 460s · 128k · ✓ | 644s · 148k · ✓ | **78s · 0 · ✓** |
+| Onboarding stuck (OnboardingDemo) | *(no vision A/B yet)* | *(no A/B yet)* | **64s · 4.4k · ✓** |
 
-**Read the Kix row:** vision eventually fixed it but burned **~8 minutes / 128k tokens**. Chat+taps was **slower and hungrier** (wrong-file thrash). **LIGH** verified in **~2 minutes / 8k tokens**.
+**Read the Kix row:** vision burned **~8 minutes / 128k tokens**. Chat+taps was worse. **LIGH** restored the omitted tab from the broken tree (View type still present) and verified in **~78s / 0 LLM tokens**.
 
 | | LIGH vs Vision LLM | LIGH vs Chat+taps |
 |--|--------------------|-------------------|
-| Login wall | **~16× faster** (vision never verified) | **~1.5× faster** |
-| Kix wall | **~3.7× faster** | **~5× faster** |
-| Login tokens | **~118× fewer** | **~8× fewer** |
+| Login wall | **~19× faster** (vision never verified) | **~1.9× faster** |
+| Kix wall | **~5.9× faster** | **~8× faster** |
+| Login tokens | **~160× fewer** | **~10× fewer** |
 
 ### LIGH repair runs (absolute)
 
 | Bug | App | Wall | Tokens | File localized |
 |-----|-----|------|--------|----------------|
-| Login never navigates | XCUITestDemo | **40s** | 1.8k | `LoginViewModel.swift` |
-| Onboarding stuck | OnboardingDemo | **64s** | 3.8k | `OnboardingView.swift` |
-| Notes tab missing | Kix | **126s** | 7.8k | `MainTabView.swift` |
+| Login never navigates | XCUITestDemo | **33s** | 1.3k | `LoginViewModel.swift` |
+| Onboarding stuck | OnboardingDemo | **64s** | 4.4k | `OnboardingView.swift` |
+| Notes tab missing | Kix | **78s** | 0 | `MainTabView.swift` |
 
-**3/3 verified** → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)  
+**3/3 verified ≤120s** → [`trail-holy-multi-latest.json`](docs/assets/trail-holy-multi-latest.json)  
 How it works: [`docs/TRAIL_BULLETPROOF.md`](docs/TRAIL_BULLETPROOF.md)
 
 ### LIGH Autopilot only (UI goals — not repair)

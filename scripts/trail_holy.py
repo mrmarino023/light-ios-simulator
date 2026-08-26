@@ -20,6 +20,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -45,7 +46,7 @@ from repair_job import (  # noqa: E402
     fix_plan,
 )
 from trail_fixer import apply_candidate, build_messages, openai_full_file  # noqa: E402
-from view_graph import hybrid_localize, localize_control_gate  # noqa: E402
+from view_graph import hybrid_localize, localize_control_gate, try_restore_missing_tab  # noqa: E402
 
 def _exported_type_names(swift: str) -> set[str]:
     import re
@@ -229,6 +230,8 @@ def prove_with_post(task: dict[str, Any], *, install: bool | None = None) -> dic
 def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
     """Same exercise + postconditions — hard fail-closed (no autopilot recovery)."""
     app = os.environ.get("LIGH_APP_PATH", task["app_path"])
+    if not os.path.isabs(app):
+        app = os.path.join(ROOT, app)
     bundle_id = task["bundle_id"]
     ver = task.get("verification") or {}
     wait_label = task.get("bootstrap_wait_label")
@@ -237,30 +240,35 @@ def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
     post_ms = 700 if fast else 2000
 
     prev_no = os.environ.pop("LIGH_TRAIL_NO_INSTALL", None)
+    boot: dict[str, Any] = {}
     try:
-        try:
-            subprocess.run(
-                ["xcrun", "simctl", "install", "booted", app],
-                capture_output=True,
-                text=True,
-                timeout=60,
+        for attempt in range(1, 4):
+            try:
+                subprocess.run(
+                    ["xcrun", "simctl", "terminate", "booted", bundle_id],
+                    capture_output=True,
+                    text=True,
+                    timeout=15,
+                )
+                subprocess.run(
+                    ["xcrun", "simctl", "install", "booted", app],
+                    capture_output=True,
+                    text=True,
+                    timeout=90,
+                )
+            except (OSError, subprocess.SubprocessError):
+                pass
+            boot = bootstrap_app(
+                app,
+                bundle_id,
+                wait_label=wait_label,
+                app_markers=markers,
+                task=task,
+                install=True,
             )
-            subprocess.run(
-                ["xcrun", "simctl", "terminate", "booted", bundle_id],
-                capture_output=True,
-                text=True,
-                timeout=15,
-            )
-        except (OSError, subprocess.SubprocessError):
-            pass
-        boot = bootstrap_app(
-            app,
-            bundle_id,
-            wait_label=wait_label,
-            app_markers=markers,
-            task=task,
-            install=True,
-        )
+            if boot.get("foreground_ok"):
+                break
+            time.sleep(1.0 * attempt)
     finally:
         if prev_no is not None:
             os.environ["LIGH_TRAIL_NO_INSTALL"] = prev_no
@@ -296,7 +304,7 @@ def certify_trace(task: dict[str, Any]) -> dict[str, Any]:
 
 def main() -> int:
     os.environ.setdefault("LIGH_TRAIL_FAST", "1")
-    os.environ.setdefault("LIGH_TRAIL_SETTLE_CAP_MS", "900")
+    os.environ.setdefault("LIGH_TRAIL_SETTLE_CAP_MS", "700")
 
     t0 = _now()
     task_path = os.environ.get(
@@ -427,8 +435,75 @@ def main() -> int:
     candidate_text = original
     build_ms = 0
     expected_id = str(tf.get("expected_identity") or "")
+    prior_tab_ids = set(re.findall(r'\.accessibilityIdentifier\(\s*"(tab_[^"]+)"\s*\)', original))
+
+    def _run_build() -> tuple[bool, int, str]:
+        build_t0 = _now()
+        build = subprocess.run(
+            [
+                task["build_script"]
+                if os.path.isabs(task["build_script"])
+                else os.path.join(ROOT, task["build_script"])
+            ],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+        ms = _now() - build_t0
+        tail = (build.stderr or build.stdout or "")[-1200:]
+        return build.returncode == 0, ms, tail
+
+    # R4 structural path: restore omitted tab without LLM when View type still exists.
+    if mode == "tab_chrome_missing" and expected_id.startswith("tab_"):
+        restored = try_restore_missing_tab(index_root, loc["primary_path"], expected_id)
+        if restored and restored.get("text"):
+            apply_candidate(abs_target, restored["text"], bundle)
+            ok, build_ms, tail = _run_build()
+            mark(
+                "build",
+                ok=ok,
+                build_ms=build_ms,
+                attempt=0,
+                method=restored.get("method"),
+            )
+            attempts.append(
+                {
+                    "attempt": 0,
+                    "changed": True,
+                    "method": restored.get("method"),
+                    "view_type": restored.get("view_type"),
+                    "build_ok": ok,
+                }
+            )
+            if ok:
+                candidate_text = restored["text"]
+                changed = True
+                tokens = 0
+            else:
+                open(abs_target, "w", encoding="utf-8").write(original)
+                feedback = (
+                    f"Structural tab restore build failed:\n{tail}\n"
+                    "Apply a minimal TabView fix in the target file only."
+                )
+
     for attempt in range(1, MAX_FIX_ATTEMPTS + 1):
-        messages = build_messages(bundle, original if attempt == 1 else candidate_text, attempt, feedback)
+        if changed:
+            break
+        messages = build_messages(
+            bundle, original if attempt == 1 else candidate_text, attempt, feedback
+        )
+        # Tighten tab restore prompts: surgical insert, keep sibling tabs.
+        if mode == "tab_chrome_missing" and attempt == 1:
+            messages = list(messages)
+            messages[0] = {
+                **messages[0],
+                "content": (
+                    messages[0]["content"]
+                    + " For missing tabs: insert one TabView child modeled on siblings; "
+                    "do not rewrite or delete existing tabs/identifiers."
+                ),
+            }
         candidate, usage = openai_full_file(messages)
         tokens += int(usage.get("total_tokens") or 0)
         ok_change = candidate != original
@@ -442,6 +517,17 @@ def main() -> int:
                 "Restore that tab item and identifier. Keep the rest of the file unchanged."
             )
             continue
+        if prior_tab_ids:
+            kept = set(
+                re.findall(r'\.accessibilityIdentifier\(\s*"(tab_[^"]+)"\s*\)', candidate)
+            )
+            dropped = sorted(prior_tab_ids - kept)
+            if dropped:
+                feedback = (
+                    f"Do not drop existing tab identifiers {dropped}. "
+                    f"Only add '{expected_id}' (and keep siblings)."
+                )
+                continue
         if candidate.count("{") != candidate.count("}"):
             feedback = "Output looks truncated or unbalanced braces — return the complete Swift file only."
             continue
@@ -456,19 +542,10 @@ def main() -> int:
         candidate_text = candidate
         changed = True
 
-        build_t0 = _now()
-        build = subprocess.run(
-            [task["build_script"] if os.path.isabs(task["build_script"]) else os.path.join(ROOT, task["build_script"])],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            timeout=180,
-        )
-        build_ms = _now() - build_t0
-        mark("build", ok=build.returncode == 0, build_ms=build_ms, attempt=attempt)
-        if build.returncode == 0:
+        ok, build_ms, tail = _run_build()
+        mark("build", ok=ok, build_ms=build_ms, attempt=attempt)
+        if ok:
             break
-        tail = (build.stderr or build.stdout or "")[-1200:]
         feedback = f"Build failed:\n{tail}\nFix compile errors in the same target file only."
         open(abs_target, "w", encoding="utf-8").write(original)
         changed = False

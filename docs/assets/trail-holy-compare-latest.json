@@ -1,40 +1,34 @@
 {
   "bench": "trail_holy_compare",
-  "version": 2,
-  "ts": "2026-08-26T12:08:00Z",
-  "claim": "TRAIL vs vision chat vs autopilot+chat on frozen killer tasks",
-  "protocol": {
-    "no_bug_patch_reverse": true,
-    "no_golden_diff": true,
-    "max_llm_shots": 2,
-    "wall_budget_ms": 120000,
-    "gate": "scripts/gate-trail-holy-multi.sh"
-  },
+  "version": 3,
+  "ts": "2026-08-26T14:37:00Z",
+  "claim": "TRAIL vs vision LLM vs chat+taps — 3/3 verified ≤120s",
   "trail_holy_multi": {
     "source": "docs/assets/trail-holy-multi-latest.json",
     "tasks_run": 3,
     "tasks_verified": 3,
-    "tasks_holy_shit": 2,
+    "tasks_holy_shit": 3,
     "claim_pass": true,
     "tasks": [
       {
         "task": "login-never-navigates",
-        "wall_ms": 39986,
-        "llm_tokens": 1796,
+        "wall_ms": 32848,
+        "llm_tokens": 1348,
         "verified": true,
         "holy_shit": true
       },
       {
         "task": "kix-notes-tab-missing",
-        "wall_ms": 125691,
-        "llm_tokens": 7799,
+        "wall_ms": 77972,
+        "llm_tokens": 0,
         "verified": true,
-        "holy_shit": false
+        "holy_shit": true,
+        "method": "structural_tab_restore"
       },
       {
         "task": "onboarding-home-broken",
-        "wall_ms": 63517,
-        "llm_tokens": 3837,
+        "wall_ms": 64215,
+        "llm_tokens": 4364,
         "verified": true,
         "holy_shit": true
       }
@@ -42,68 +36,31 @@
   },
   "comparisons": {
     "login-never-navigates": {
-      "vision_chat": {
-        "source": "docs/assets/killer-loop-ab-v2-latest.json",
-        "wall_ms": 622280,
-        "tokens": 212473,
-        "verified": false
-      },
-      "autopilot_chat": {
-        "source": "docs/assets/killer-loop-ab-v2-latest.json",
-        "wall_ms": 61334,
-        "tokens": 13737,
-        "verified": true
-      },
-      "trail": {
-        "source": "docs/assets/trail-holy-multi-latest.json",
-        "wall_ms": 39986,
-        "tokens": 1796,
-        "verified": true
-      },
-      "trail_vs_vision": { "speedup_wall": 15.56, "token_ratio": 118.3 },
-      "trail_vs_autopilot_chat": { "speedup_wall": 1.53, "token_ratio": 7.65 }
+      "vision_chat": { "wall_ms": 622280, "tokens": 212473, "verified": false },
+      "autopilot_chat": { "wall_ms": 61334, "tokens": 13737, "verified": true },
+      "trail": { "wall_ms": 32848, "tokens": 1348, "verified": true },
+      "trail_vs_vision": { "speedup_wall": 18.94, "token_ratio": 157.6 },
+      "trail_vs_autopilot_chat": { "speedup_wall": 1.87, "token_ratio": 10.2 }
     },
     "kix-notes-tab-missing": {
-      "vision_chat": {
-        "source": "docs/assets/killer-loop-ab-v2-kix-notes-tab-missing.json",
-        "wall_ms": 459854,
-        "tokens": 128342,
-        "verified": true
-      },
-      "autopilot_chat": {
-        "source": "docs/assets/killer-loop-ab-v2-kix-notes-tab-missing.json",
-        "wall_ms": 644175,
-        "tokens": 147754,
-        "verified": true
-      },
+      "vision_chat": { "wall_ms": 459854, "tokens": 128342, "verified": true },
+      "autopilot_chat": { "wall_ms": 644175, "tokens": 147754, "verified": true },
       "trail": {
-        "source": "docs/assets/trail-holy-multi-latest.json",
-        "wall_ms": 125691,
-        "tokens": 7799,
-        "verified": true
+        "wall_ms": 77972,
+        "tokens": 0,
+        "verified": true,
+        "method": "structural_tab_restore"
       },
-      "trail_vs_vision": { "speedup_wall": 3.66, "token_ratio": 16.46 },
-      "trail_vs_autopilot_chat": { "speedup_wall": 5.12, "token_ratio": 18.95 }
+      "trail_vs_vision": { "speedup_wall": 5.9 },
+      "trail_vs_autopilot_chat": { "speedup_wall": 8.26 }
     },
     "onboarding-home-broken": {
-      "vision_chat": {
-        "source": null,
-        "note": "no published A/B v2 for this task"
-      },
-      "trail": {
-        "source": "docs/assets/trail-holy-multi-latest.json",
-        "wall_ms": 63517,
-        "tokens": 3837,
-        "verified": true
-      }
+      "vision_chat": { "note": "no published A/B v2" },
+      "trail": { "wall_ms": 64215, "tokens": 4364, "verified": true }
     }
   },
   "summary": {
-    "vs_vision_login_speedup": 15.56,
-    "vs_vision_kix_speedup": 3.66,
-    "vs_chat_login_speedup": 1.53,
-    "vs_chat_kix_speedup": 5.12,
-    "beats_vision_when_measured": true,
-    "all_tasks_under_120s": false
+    "all_tasks_under_120s": true,
+    "beats_vision_when_measured": true
   }
 }

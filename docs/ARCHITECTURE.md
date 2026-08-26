@@ -214,9 +214,9 @@ Full writeup: [`TRAIL_BULLETPROOF.md`](TRAIL_BULLETPROOF.md)
 
 | Task | Arm | Wall | Pass | ≤120s |
 |------|-----|------|------|-------|
-| login-never-navigates | **TRAIL** | **40s** | ✓ | ✓ |
+| login-never-navigates | **TRAIL** | **33s** | ✓ | ✓ |
 | onboarding-home-broken | **TRAIL** | **64s** | ✓ | ✓ |
-| kix-notes-tab-missing | **TRAIL** | **126s** | ✓ | ✗ |
+| kix-notes-tab-missing | **TRAIL** | **78s** | ✓ | ✓ |
 | login-never-navigates | autopilot chat | 61s | ✓ | ✓ |
 | login-never-navigates | vision chat | 622s | ✗ | ✗ |
 | kix-notes-tab-missing | autopilot chat | 644s | ✓ | ✗ |

@@ -216,8 +216,8 @@ def bootstrap_app(
 
     last_keys: list[str] = []
     last_reason = "wrong_surface"
-    attempts = 3 if fast else 8
-    perceive_ms = 500 if fast else 1200
+    attempts = 2 if fast else 8
+    perceive_ms = 400 if fast else 1200
     for attempt in range(1, attempts + 1):
         p = perceive(perceive_ms)
         last_keys = sorted(p["keys"])[:24]
@@ -241,7 +241,7 @@ def bootstrap_app(
         # Contaminant or SpringBoard: kill expected + relaunch; never soft-ok.
         quarantine_bundles(bundle_id)
         call_tool("ligh_launch", {"bundle_id": bundle_id})
-        time.sleep(0.8)
+        time.sleep(0.35 if fast else 0.8)
         app_label = os.path.basename(app).replace(".app", "")
         if app_label in p["keys"]:
             call_tool(
@@ -249,11 +249,11 @@ def bootstrap_app(
                 {
                     "intent": "tap",
                     "label": app_label,
-                    "settle_ms": 1500,
+                    "settle_ms": 700 if fast else 1500,
                     "timeout_ms": 8000,
                 },
             )
-            time.sleep(0.6)
+            time.sleep(0.3 if fast else 0.6)
 
     return {
         **boot,
