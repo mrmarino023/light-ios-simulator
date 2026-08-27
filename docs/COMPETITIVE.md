@@ -63,8 +63,6 @@ Shell: `./scripts/ligh-paradise.sh` · `./scripts/ligh-test.sh`
 - Repair fully in Rust (Python harness on hot path)
 - 10+ stranger-repo trials published
 
-**OSS stranger proof (2026-08-27):** 2/2 iOS apps with **0 accessibility ids** — CountriesSwiftUI + Apple Food Truck — `ligh_test ok:true` via label-first discover (`docs/assets/oss-stranger-trial-latest.json`).
-
-**CI:** every push/PR runs [`.github/workflows/oss-stranger-smoke.yml`](../.github/workflows/oss-stranger-smoke.yml) → `./scripts/gate-oss-stranger-smoke.sh` (clone → build → discover → `ligh_test`).
+**OSS stranger proof (2026-08-27):** 2/2 iOS apps with **0 accessibility ids** — CountriesSwiftUI + Apple Food Truck — `ligh_test ok:true` via label-first discover (`docs/assets/oss-stranger-trial-latest.json`). Local re-run: `./scripts/gate-oss-stranger-smoke.sh`.
 
 See [`AGENT_PARADISE.md`](AGENT_PARADISE.md) roadmap.

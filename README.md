@@ -111,7 +111,7 @@ Label-first paradise on **unrelated** public repos — no AX ids, no per-app pat
 | CountriesSwiftUI | [nalexn/clean-architecture-swiftui](https://github.com/nalexn/clean-architecture-swiftui) | 0 | `Countries` | ✓ |
 | Food Truck | [apple/sample-food-truck](https://github.com/apple/sample-food-truck) | 0 | `Donuts` | ✓ |
 
-**2/2** → [`oss-stranger-trial-latest.json`](docs/assets/oss-stranger-trial-latest.json) · CI: [`.github/workflows/oss-stranger-smoke.yml`](.github/workflows/oss-stranger-smoke.yml) (`./scripts/gate-oss-stranger-smoke.sh`) · competitive map: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
+**2/2** → [`oss-stranger-trial-latest.json`](docs/assets/oss-stranger-trial-latest.json) · local: `./scripts/gate-oss-stranger-smoke.sh` · competitive map: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
 
 ### LIGH Autopilot only (UI goals — not repair)
 
