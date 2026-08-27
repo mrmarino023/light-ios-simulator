@@ -12,6 +12,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LIGH="${LIGH_BIN:-$ROOT/target/release/ligh}"
+LIGHD="$(dirname "$LIGH")/lighd"
 TARGET="${1:-$ROOT/fixtures/LighFixture/build/LighFixture.app}"
 BUILD=0
 [[ "${2:-}" == "--build" ]] && BUILD=1
@@ -27,7 +28,7 @@ echo
 [[ "$(uname -s)" == "Darwin" ]] || fail "macOS + Xcode required"
 xcode-select -p &>/dev/null || fail "install Xcode CLT"
 
-if [[ ! -x "$LIGH" ]] || [[ ! -x "${LIGH%d/ligh}/lighd" ]]; then
+if [[ ! -x "$LIGH" ]] || [[ ! -x "$LIGHD" ]]; then
   echo "▶ build release…"
   (cd "$ROOT" && unset CARGO_TARGET_DIR && cargo build --release --locked -p ligh-cli -p ligh-daemon) \
     || fail "cargo build failed"
@@ -75,7 +76,7 @@ echo "▶ daemon + sim warm"
 "$LIGH" daemon stop >/dev/null 2>&1 || true
 pkill -x lighd 2>/dev/null || true
 sleep 0.5
-nohup "${LIGH%d/ligh}/lighd" >>/tmp/lighd-paradise.log 2>&1 &
+nohup "$LIGHD" >>/tmp/lighd-paradise.log 2>&1 &
 sleep 1.2
 "$LIGH" up --device "${LIGH_DEVICE:-iphone-15-pro}" >/dev/null 2>&1 || "$LIGH" up --device "${LIGH_DEVICE:-iphone-15-pro}"
 "$ROOT/scripts/agent-first-loop.sh" >/tmp/ligh-paradise-first.log 2>&1 \

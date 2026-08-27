@@ -12,7 +12,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 LIGH="${LIGH_BIN:-$ROOT/target/release/ligh}"
-LIGHD="${LIGH%d/ligh}/lighd"
+LIGHD="$(dirname "$LIGH")/lighd"
 DEVICE="${LIGH_DEVICE:-iphone-15-pro}"
 WORK="${LIGH_OSS_WORK:-${RUNNER_TEMP:-/tmp}/ligh-oss-smoke}"
 OUT="${LIGH_OSS_OUT:-$ROOT/docs/assets/oss-stranger-smoke-latest.json}"
