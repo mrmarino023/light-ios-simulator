@@ -35,7 +35,7 @@ write → build → run → interact → verify → fix
 - **Autopilot** — host reaches UI goals with **0 LLM UI tokens**
 - **TRAIL repair** — [`repair_engine.py`](scripts/repair_engine.py): classify → KB localize → structural ops → ≤2 LLM patches → certify (same path for every OSS app)
 
-Requires Mac + Xcode Simulator. Works best when the app exposes stable `accessibilityIdentifier`s.
+Requires Mac + Xcode Simulator. Works with **label-first discover** when apps have no `accessibilityIdentifier`s (and better still when they do).
 
 ### Agent paradise (start here)
 
@@ -101,6 +101,17 @@ broken tree → StructuralKB → classify → causal localize → operators → 
 ```
 
 Refuse unknown effects rather than edit the wrong file.
+
+### Stranger OSS apps (0 accessibility ids)
+
+Label-first paradise on **unrelated** public repos — no AX ids, no per-app patches. Discover proves chrome with motor `wait-label`, then `ligh_test` goal-first.
+
+| App | Repo | Ids | Proven chrome | `ligh_test` |
+|-----|------|-----|---------------|-------------|
+| CountriesSwiftUI | [nalexn/clean-architecture-swiftui](https://github.com/nalexn/clean-architecture-swiftui) | 0 | `Countries` | ✓ |
+| Food Truck | [apple/sample-food-truck](https://github.com/apple/sample-food-truck) | 0 | `Donuts` | ✓ |
+
+**2/2** → [`oss-stranger-trial-latest.json`](docs/assets/oss-stranger-trial-latest.json) · competitive map: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
 
 ### LIGH Autopilot only (UI goals — not repair)
 

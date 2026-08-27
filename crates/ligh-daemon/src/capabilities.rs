@@ -98,9 +98,10 @@ fn only_app_icon_on_home(snap: &ObserveSnapshot, app_label: &str) -> bool {
 }
 
 fn ax_has_marker(snap: &ObserveSnapshot, wait_label: Option<&str>, wait_id: Option<&str>) -> bool {
-    let nodes = ax_nodes(snap);
     if let Some(id) = wait_id {
-        if nodes
+        if snap
+            .accessibility_tree
+            .nodes()
             .iter()
             .any(|n| ligh_core::node_matches_identifier(n, id))
         {
@@ -108,7 +109,7 @@ fn ax_has_marker(snap: &ObserveSnapshot, wait_label: Option<&str>, wait_id: Opti
         }
     }
     if let Some(lab) = wait_label {
-        if nodes.iter().any(|n| node_label(n) == Some(lab)) {
+        if snap.accessibility_tree.find_label(lab).is_some() {
             return true;
         }
     }
@@ -125,6 +126,24 @@ pub(crate) fn confirm_app_ready(
     wait_label: Option<&str>,
     wait_id: Option<&str>,
 ) -> CapabilityResult {
+    // Entry markers prove in-app chrome — same matching as motor ensure_path.
+    // Surface heuristics lie while AX attaches; trust markers when motor would.
+    if wait_label.is_some() || wait_id.is_some() {
+        if ax_has_marker(snap, wait_label, wait_id) {
+            return CapabilityResult::success(
+                phase_of(snap),
+                surface_of(snap),
+                "app_ready",
+                json!({
+                    "app_ready": true,
+                    "via": "entry_marker",
+                    "bundle_id": bundle_id,
+                }),
+                Some(snap.clone()),
+            );
+        }
+    }
+
     if looks_like_springboard(snap) || only_app_icon_on_home(snap, app_label) {
         return CapabilityResult::fail(
             FaultClass::AppNotForeground,
@@ -143,29 +162,16 @@ pub(crate) fn confirm_app_ready(
     }
 
     if wait_label.is_some() || wait_id.is_some() {
-        if !ax_has_marker(snap, wait_label, wait_id) {
-            return CapabilityResult::fail(
-                FaultClass::AppNotForeground,
-                phase_of(snap),
-                surface_of(snap),
-                "app_ready",
-                json!({
-                    "reason": "entry_marker_missing",
-                    "bundle_id": bundle_id,
-                    "wait_label": wait_label,
-                    "wait_id": wait_id,
-                }),
-                Some(snap.clone()),
-            );
-        }
-        return CapabilityResult::success(
+        return CapabilityResult::fail(
+            FaultClass::AppNotForeground,
             phase_of(snap),
             surface_of(snap),
             "app_ready",
             json!({
-                "app_ready": true,
-                "via": "entry_marker",
+                "reason": "entry_marker_missing",
                 "bundle_id": bundle_id,
+                "wait_label": wait_label,
+                "wait_id": wait_id,
             }),
             Some(snap.clone()),
         );
@@ -797,22 +803,30 @@ pub(crate) fn run_app(
         if fg <= 2 {
             continue;
         }
-        if only_app_icon_on_home(&snap, &app_label) && fg >= 5 {
-            let _ = crate::motor::motor_tap(
-                build,
-                state,
-                Some(app_label.as_str()),
-                None,
-                settle_ms.min(2000),
-                timeout_ms.min(8000),
-                None,
-                None,
-            );
-            std::thread::sleep(Duration::from_millis(1200));
-        } else if looks_like_springboard(&snap) {
-            // Relaunch without terminate — killing the process mid-attach keeps AX on SpringBoard.
-            let _ = ligh_sim::Simctl::run(&["launch", &udid, &bid]);
-            std::thread::sleep(Duration::from_millis(900 + u64::from(fg) * 150));
+        let icon_on_home = only_app_icon_on_home(&snap, &app_label)
+            || ax_nodes(&snap).iter().any(|n| {
+                node_label(n)
+                    .map(|l| l.eq_ignore_ascii_case(&app_label))
+                    .unwrap_or(false)
+            });
+        if icon_on_home || (looks_like_springboard(&snap) && fg >= 3) {
+            if icon_on_home {
+                let _ = crate::motor::motor_tap(
+                    build,
+                    state,
+                    Some(app_label.as_str()),
+                    None,
+                    settle_ms.min(2000),
+                    timeout_ms.min(8000),
+                    None,
+                    None,
+                );
+                std::thread::sleep(Duration::from_millis(1200));
+            } else if looks_like_springboard(&snap) {
+                // Relaunch without terminate — killing the process mid-attach keeps AX on SpringBoard.
+                let _ = ligh_sim::Simctl::run(&["launch", &udid, &bid]);
+                std::thread::sleep(Duration::from_millis(900 + u64::from(fg) * 150));
+            }
         }
     }
 
@@ -838,6 +852,20 @@ pub(crate) fn run_app(
 
         // Optional chrome markers: wait first, then trust-gate on the settled tree.
         let snap_after_chrome = if wait_label.is_some() || wait_id.is_some() {
+            let snap0 = build();
+            if looks_like_springboard(&snap0) || only_app_icon_on_home(&snap0, &app_label) {
+                let _ = crate::motor::motor_tap(
+                    build,
+                    state,
+                    Some(app_label.as_str()),
+                    None,
+                    settle_ms.min(2000),
+                    timeout_ms.min(8000),
+                    None,
+                    None,
+                );
+                std::thread::sleep(Duration::from_millis(900));
+            }
             let mut r = crate::motor::motor_wait(
                 build,
                 state,
@@ -857,7 +885,23 @@ pub(crate) fn run_app(
                 r.capability = Some("run_app".into());
                 return r;
             }
-            r.observe.unwrap_or_else(|| build())
+            let snap = r.observe.unwrap_or_else(|| build());
+            // Motor ensure_path proved entry chrome on live AX dump — snapshot surface may lag.
+            return CapabilityResult::success(
+                phase_of(&snap),
+                surface_of(&snap),
+                "run_app",
+                json!({
+                    "bundle_id": bid,
+                    "install": install,
+                    "attempt": attempt,
+                    "app_ready": true,
+                    "via": "motor_chrome",
+                    "wait_label": wait_label,
+                    "wait_id": wait_id,
+                }),
+                Some(snap),
+            );
         } else {
             ready.observe.clone().unwrap_or_else(|| build())
         };
@@ -1283,10 +1327,24 @@ pub(crate) fn app_goal(
     let mut last = if let Some(app_path) = app {
         let home_id = postconditions
             .first()
-            .and_then(|p| p.get("wait_id").and_then(|v| v.as_str()));
+            .and_then(|p| p.get("wait_id").and_then(|v| v.as_str()))
+            .or_else(|| {
+                setup.iter().find_map(|s| {
+                    (s.get("op").and_then(|v| v.as_str()) == Some("wait"))
+                        .then(|| s.get("id").and_then(|v| v.as_str()))
+                        .flatten()
+                })
+            });
         let home_label = postconditions
             .first()
-            .and_then(|p| p.get("wait_label").and_then(|v| v.as_str()));
+            .and_then(|p| p.get("wait_label").and_then(|v| v.as_str()))
+            .or_else(|| {
+                setup.iter().find_map(|s| {
+                    (s.get("op").and_then(|v| v.as_str()) == Some("wait"))
+                        .then(|| s.get("label").and_then(|v| v.as_str()))
+                        .flatten()
+                })
+            });
         let launched = run_app(
             build,
             state,

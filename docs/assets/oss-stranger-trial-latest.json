@@ -1,0 +1,40 @@
+{
+  "gate": "oss_stranger_trial",
+  "schema": 1,
+  "ok": true,
+  "holy_shit": true,
+  "architecture": "label_first_live_discover + motor_chrome_trust + chrome_probe",
+  "summary": "2/2 stranger iOS apps with zero/near-zero accessibility ids — ligh_test ok:true via label goals",
+  "apps": [
+    {
+      "repo": "https://github.com/nalexn/clean-architecture-swiftui",
+      "app": "CountriesSwiftUI",
+      "bundle_id": "com.swiftui.CountriesSwiftUI",
+      "accessibility_ids": 0,
+      "proven_chrome": "Countries",
+      "ligh_test": { "ok": true, "mode": "goal", "fault": "ok" }
+    },
+    {
+      "repo": "https://github.com/apple/sample-food-truck",
+      "app": "Food Truck",
+      "bundle_id": "com.example.apple-samplecode.Food-Truck",
+      "accessibility_ids": 0,
+      "proven_chrome": "Donuts",
+      "ligh_test": { "ok": true, "mode": "goal", "fault": "ok" },
+      "direct_app_goal_food_truck_label": { "ok": true }
+    }
+  ],
+  "skipped": [
+    { "repo": "https://github.com/insidegui/WWDC", "reason": "macOS-only — not iOS Simulator" },
+    { "repo": "https://github.com/Dimillian/IceCubesApp", "reason": "requires Swift tools 6.2; host has 6.0" }
+  ],
+  "daemon_invariants": [
+    "confirm_app_ready: entry_marker before springboard reject",
+    "run_app chrome_wait: motor_wait success ⇒ app_ready via motor_chrome",
+    "scheme detect: xcshareddata/*.xcscheme before xcodebuild -list",
+    "pick_scheme: skip Extension/Widget/Share/Test",
+    "static scrape: navigationTitle preferred; reject Swift interpolations",
+    "smoke goal: wait chrome only — do not invent tap from Text scrape",
+    "discover: icon tap if boot fails → probe wait-label until motor proves chrome"
+  ]
+}

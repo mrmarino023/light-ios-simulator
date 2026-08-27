@@ -44,5 +44,9 @@ jobs:
 
       - name: Scaffold .ligh bundle (offline)
         run: |
+          # Prefer xcodeproj — fixtures/**/build/ is gitignored so .app is absent on CI.
+          # Missing-.app paths also fall back to sibling .xcodeproj in ligh_project.detect.
+          PYTHONPATH=scripts python3 scripts/ligh_project.py fixtures/LighFixture --json \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); assert d.get('ligh_dir'); assert d.get('kind') in ('xcodeproj','app'); print('grade', d.get('audit',{}).get('readiness_grade'), 'kind', d.get('kind'))"
           PYTHONPATH=scripts python3 scripts/ligh_project.py fixtures/LighFixture/build/LighFixture.app --json \
-            | python3 -c "import json,sys; d=json.load(sys.stdin); assert d.get('ligh_dir'); print('grade', d.get('audit',{}).get('readiness_grade'))"
+            | python3 -c "import json,sys; d=json.load(sys.stdin); assert d.get('ligh_dir'); assert d.get('kind')=='xcodeproj'; print('missing-app fallback ok', d.get('scheme'))"

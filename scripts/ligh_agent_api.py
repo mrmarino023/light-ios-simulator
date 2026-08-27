@@ -41,6 +41,39 @@ def load_app_job(workspace: str | None = None) -> list[dict[str, Any]]:
     return data
 
 
+def _goal_needs_discover(goal: dict[str, Any]) -> bool:
+    for p in goal.get("postconditions") or []:
+        for key in ("wait_id", "wait_label"):
+            val = p.get(key)
+            if isinstance(val, str) and ("REPLACE" in val or not val.strip()):
+                return True
+    for s in goal.get("setup") or []:
+        for key in ("id", "label"):
+            val = s.get(key)
+            if isinstance(val, str) and "REPLACE" in val:
+                return True
+    return False
+
+
+def ensure_live_goal(workspace: str | None = None) -> dict[str, Any]:
+    """If static audit left placeholders, discover live AX labels (Maestro parity)."""
+    goal = load_app_goal(workspace)
+    if not _goal_needs_discover(goal):
+        return goal
+    proj = load_project(workspace)
+    app = proj.get("app_path")
+    bid = proj.get("bundle_id")
+    if not app or not bid or not os.path.isdir(app):
+        return goal
+    from ligh_discover import discover_live, write_discovered_bundle
+
+    disc = discover_live(app, bid, source_root=proj.get("source_root"))
+    if disc.get("ok") and disc.get("agent_ready") and disc.get("goal"):
+        write_discovered_bundle(ligh_dir(workspace), proj, disc)
+        return disc["goal"]
+    return goal
+
+
 def load_app_goal(workspace: str | None = None) -> dict[str, Any]:
     path = os.path.join(ligh_dir(workspace), "app-goal.json")
     if os.path.isfile(path):
@@ -126,7 +159,7 @@ def run_test(
         ]
         raw = _ligh_json(*cmd)
     else:
-        goal = load_app_goal(workspace)
+        goal = ensure_live_goal(workspace)
         cmd = [
             "--json",
             "cap",

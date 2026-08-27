@@ -23,6 +23,8 @@ IDENT_RE = re.compile(
 )
 LABEL_RE = re.compile(r'Label\s*\(\s*"([^"]+)"')
 BUTTON_TEXT_RE = re.compile(r'Button\s*\(\s*"([^"]+)"')
+TEXT_RE = re.compile(r'Text\s*\(\s*"([^"]{2,60})"')
+NAV_TITLE_RE = re.compile(r'\.navigationTitle\s*\(\s*"([^"]{2,60})"')
 
 
 def _walk_swift(source_root: str) -> list[tuple[str, list[str]]]:
@@ -86,30 +88,58 @@ def audit_source_root(source_root: str) -> dict[str, Any]:
             if not ident:
                 missing.append(site)
 
+    label_hints: list[str] = []
+    nav_hints: list[str] = []
+    seen_labels: set[str] = set()
+    interp = re.compile(r"\\[\($]")
+    for _rel, lines in _walk_swift(source_root):
+        for line in lines:
+            for m in NAV_TITLE_RE.finditer(line):
+                lab = m.group(1).strip()
+                if lab and lab not in seen_labels and not interp.search(lab):
+                    seen_labels.add(lab)
+                    nav_hints.append(lab)
+            for pat in (TEXT_RE, LABEL_RE, BUTTON_TEXT_RE):
+                for m in pat.finditer(line):
+                    lab = m.group(1).strip()
+                    if lab and lab not in seen_labels and not interp.search(lab):
+                        seen_labels.add(lab)
+                        label_hints.append(lab)
+    label_hints = nav_hints + label_hints
+
     total = len(interactive_sites)
     identified = total - len(missing)
     score = int(round(100 * identified / total)) if total else 100
     grade = "A" if score >= 80 else "B" if score >= 50 else "C" if score >= 25 else "F"
+    # Static id audit alone under-rates OSS apps — live AX discovery upgrades readiness.
+    agent_ready = (score >= 50 and len(identities) >= 3) or len(label_hints) >= 2
 
     return {
         "source_root": source_root,
         "identity_count": len(identities),
         "identities": identities[:64],
+        "label_hints": label_hints[:32],
         "interactive_count": total,
         "identified_interactive": identified,
         "missing_interactive": len(missing),
         "readiness_score": score,
         "readiness_grade": grade,
         "missing_sites": missing[:24],
-        "agent_ready": score >= 50 and len(identities) >= 3,
+        "agent_ready": agent_ready,
+        "needs_live_discovery": len(identities) < 2,
     }
 
 
 def suggest_app_job_steps(audit: dict[str, Any]) -> list[dict[str, Any]]:
     """Suggest cap app-job steps from indexed identities (goal-first, not tap soup)."""
     ids = list(audit.get("identities") or [])
+    hints = list(audit.get("label_hints") or [])
     if not ids:
-        return [{"op": "wait", "id": "REPLACE_FIRST_SCREEN_ID"}]
+        if hints:
+            # Smoke = chrome visible. Do not invent tap→next from static Text scrape —
+            # that often taps navigationTitle. Live discovery / agent owns deeper flows.
+            return [{"op": "wait", "label": hints[0]}]
+        return [{"op": "wait", "label": "REPLACE_FIRST_SCREEN_LABEL"}]
 
     def pick(pred) -> str | None:
         for ident in ids:
@@ -155,42 +185,74 @@ def suggest_app_goal(audit: dict[str, Any], steps: list[dict[str, Any]]) -> dict
         setup.append({"op": "wait", "label": bootstrap, "timeout_ms": 12000})
 
     for s in steps:
-        if s["op"] == "type" and s.get("id"):
-            setup.append({"op": "type", "id": s["id"], "text": s.get("text", "")})
-        elif s["op"] == "tap" and s.get("id"):
-            setup.append({"op": "tap", "id": s["id"]})
+        if s["op"] == "type" and (s.get("id") or s.get("label")):
+            step: dict[str, Any] = {"op": "type", "text": s.get("text", "")}
+            if s.get("id"):
+                step["id"] = s["id"]
+            if s.get("label"):
+                step["label"] = s["label"]
+            setup.append(step)
+        elif s["op"] == "tap" and (s.get("id") or s.get("label")):
+            step = {"op": "tap"}
+            if s.get("id"):
+                step["id"] = s["id"]
+            if s.get("label"):
+                step["label"] = s["label"]
+            setup.append(step)
 
     post: list[dict[str, Any]] = []
     for s in reversed(steps):
-        if s.get("op") == "wait" and s.get("id"):
-            post.append({"wait_id": s["id"], "timeout_ms": 15000})
-            break
+        if s.get("op") == "wait":
+            if s.get("id") and "REPLACE" not in str(s.get("id")):
+                post.append({"wait_id": s["id"], "timeout_ms": 15000})
+                break
+            if s.get("label") and "REPLACE" not in str(s.get("label")):
+                post.append({"wait_label": s["label"], "timeout_ms": 15000})
+                break
     if not post:
-        post = [{"wait_label": "REPLACE_SUCCESS_LABEL", "timeout_ms": 12000}]
+        hints = audit.get("label_hints") or []
+        if hints:
+            post = [{"wait_label": hints[0], "timeout_ms": 12000}]
+        else:
+            post = [{"wait_label": "REPLACE_SUCCESS_LABEL", "timeout_ms": 12000}]
     return {"setup": setup, "postconditions": post}
 
 
 def suggest_verification(audit: dict[str, Any], steps: list[dict[str, Any]]) -> dict[str, Any]:
     ids = set(audit.get("identities") or [])
-    last_wait = next((s["id"] for s in reversed(steps) if s.get("op") == "wait" and s.get("id")), None)
+    last_wait = next(
+        (
+            s.get("id") or s.get("label")
+            for s in reversed(steps)
+            if s.get("op") == "wait" and (s.get("id") or s.get("label"))
+        ),
+        None,
+    )
     must_see = [last_wait] if last_wait else []
     bootstrap = pick_bootstrap_label(audit)
     pre = [bootstrap] if bootstrap else []
     exercise = []
     for s in steps:
         if s["op"] == "wait":
-            exercise.append({"action": "assert", "id": s["id"], "settle_ms": 1500})
+            if s.get("id"):
+                exercise.append({"action": "assert", "id": s["id"], "settle_ms": 1500})
+            elif s.get("label"):
+                exercise.append({"action": "assert", "label": s["label"], "settle_ms": 1500})
         elif s["op"] == "type":
-            exercise.append(
-                {
-                    "action": "type",
-                    "id": s["id"],
-                    "text": s.get("text", ""),
-                    "settle_ms": 1500,
-                }
-            )
+            step = {"action": "type", "text": s.get("text", ""), "settle_ms": 1500}
+            if s.get("id"):
+                step["id"] = s["id"]
+            if s.get("label"):
+                step["label"] = s["label"]
+            exercise.append(step)
         elif s["op"] == "tap":
-            exercise.append({"action": "tap", "id": s["id"], "settle_ms": 2500})
+            step = {"action": "tap", "settle_ms": 2500}
+            if s.get("id"):
+                step["id"] = s["id"]
+            if s.get("label"):
+                step["label"] = s["label"]
+            if step.get("id") or step.get("label"):
+                exercise.append(step)
     return {
         "bootstrap_wait_label": bootstrap,
         "preconditions": {"must_see_labels": pre, "must_not_see_labels": []},
@@ -200,13 +262,12 @@ def suggest_verification(audit: dict[str, Any], steps: list[dict[str, Any]]) -> 
 
 
 def pick_bootstrap_label(audit: dict[str, Any]) -> str | None:
+    hints = audit.get("label_hints") or []
+    if hints:
+        return hints[0]
     for site in audit.get("missing_sites") or []:
         if site.get("label_hint"):
             return site["label_hint"]
-    ids = audit.get("identities") or []
-    for ident in ids:
-        if "welcome" in ident.lower() or "login" in ident.lower():
-            return None
     return None
 
 

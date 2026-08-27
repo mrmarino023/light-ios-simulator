@@ -20,7 +20,7 @@ Last updated: 2026-08-27
 | **Structured faults** | YAML errors | build JSON | raw | none | **`motor_no_effect`, repair_contract** ✅ |
 | **Autonomous repair** | ❌ | ❌ | ❌ | retry forever | **TRAIL** ✅ (unique) |
 | **UI token cost** | inspect + author flows | high MCP schema tax | medium | **very high** | **0 on motor** ✅ |
-| **Needs AX ids** | flexible (text/labels) | n/a | partial | no | **yes** (audit tool ships) |
+| **Needs AX ids** | flexible (text/labels) | n/a | partial | no | **no — label-first discover** ✅ |
 | **Cloud CI** | Maestro Cloud ✅ | ❌ | ❌ | varies | **GitHub Action** (starter) |
 
 ---
@@ -62,5 +62,7 @@ Shell: `./scripts/ligh-paradise.sh` · `./scripts/ligh-test.sh`
 - Android
 - Repair fully in Rust (Python harness on hot path)
 - 10+ stranger-repo trials published
+
+**OSS stranger proof (2026-08-27):** 2/2 iOS apps with **0 accessibility ids** — CountriesSwiftUI + Apple Food Truck — `ligh_test ok:true` via label-first discover (`docs/assets/oss-stranger-trial-latest.json`).
 
 See [`AGENT_PARADISE.md`](AGENT_PARADISE.md) roadmap.

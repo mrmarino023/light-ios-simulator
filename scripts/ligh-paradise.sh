@@ -37,9 +37,16 @@ echo "▶ detect project + accessibility audit"
 DETECT_JSON=/tmp/ligh-paradise-detect.json
 BUILD_FLAG=""
 [[ "$BUILD" -eq 1 ]] && BUILD_FLAG="--build"
-if ! PYTHONPATH="$ROOT/scripts" python3 "$ROOT/scripts/ligh_project.py" "$TARGET" $BUILD_FLAG --json >"$DETECT_JSON"; then
-  echo "  ⚠ audit grade below agent-ready threshold — continuing anyway"
-  PYTHONPATH="$ROOT/scripts" python3 "$ROOT/scripts/ligh_project.py" "$TARGET" $BUILD_FLAG --json >"$DETECT_JSON" || true
+if ! PYTHONPATH="$ROOT/scripts" python3 "$ROOT/scripts/ligh_project.py" "$TARGET" $BUILD_FLAG --json >"$DETECT_JSON" 2>/tmp/ligh-paradise-detect.err; then
+  echo "  ⚠ detect/audit soft-failed — continuing if JSON present"
+  if [[ ! -s "$DETECT_JSON" ]]; then
+    PYTHONPATH="$ROOT/scripts" python3 "$ROOT/scripts/ligh_project.py" "$TARGET" $BUILD_FLAG --json >"$DETECT_JSON" 2>>/tmp/ligh-paradise-detect.err || true
+  fi
+fi
+if [[ ! -s "$DETECT_JSON" ]] || ! python3 -c "import json; json.load(open('$DETECT_JSON'))" 2>/dev/null; then
+  echo "✗ detect produced no JSON — see /tmp/ligh-paradise-detect.err" >&2
+  tail -20 /tmp/ligh-paradise-detect.err 2>/dev/null || true
+  exit 1
 fi
 
 LIGH_DIR=$(python3 -c "import json; print(json.load(open('$DETECT_JSON')).get('ligh_dir',''))")
@@ -74,25 +81,42 @@ sleep 1.2
 "$ROOT/scripts/agent-first-loop.sh" >/tmp/ligh-paradise-first.log 2>&1 \
   || "$LIGH" --json ready --settle-ms 2000 --recover-homes 2 >/dev/null 2>&1 || true
 
+NEEDS_LIVE=$(python3 -c "import json; a=json.load(open('$DETECT_JSON')).get('audit',{}); print(1 if a.get('needs_live_discovery') or not a.get('agent_ready') else 0)" 2>/dev/null || echo 1)
+DISCOVERY_OK=0
+if [[ -n "$APP" && -d "$APP" && -n "$BID" && "$NEEDS_LIVE" == "1" ]]; then
+  echo "▶ live AX discover (label-first — Maestro parity)"
+  DISC_OUT=/tmp/ligh-paradise-discover.json
+  if PYTHONPATH="$ROOT/scripts" python3 "$ROOT/scripts/ligh_discover.py" \
+    --app "$APP" --bundle-id "$BID" \
+    --source-root "$(python3 -c "import json; print(json.load(open('$DETECT_JSON')).get('source_root') or '')")" \
+    --write "$LIGH_DIR" --project-json "$LIGH_DIR/project.json" >"$DISC_OUT" 2>/tmp/ligh-paradise-disc.err; then
+    DISCOVERY_OK=1
+    GRADE=$(python3 -c "import json; print(json.load(open('$DISC_OUT')).get('readiness_grade','?'))")
+    echo "  → live grade $GRADE"
+  else
+    echo "  ⚠ live discover weak — will retry on ligh-test"
+    cat /tmp/ligh-paradise-disc.err 2>/dev/null | tail -3 || true
+  fi
+fi
+
 SMOKE_OK=0
 if [[ -n "$APP" && -d "$APP" && -n "$BID" ]]; then
-  echo "▶ smoke app-job"
-  STEPS=$(python3 -c "import json; print(json.dumps(json.load(open('$LIGH_DIR/app-job.json'))))")
-  JOB_OUT=/tmp/ligh-paradise-job.json
-  if "$LIGH" --json cap app-job "$APP" --bundle-id "$BID" --steps "$STEPS" \
-    --settle-ms 3000 --timeout-ms 20000 >"$JOB_OUT" 2>/tmp/ligh-paradise-job.err; then
+  echo "▶ smoke app-goal (label-first)"
+  GOAL_OUT=/tmp/ligh-paradise-goal.json
+  if LIGH_WORKSPACE="$WORKSPACE" "$ROOT/scripts/ligh-test.sh" \
+    >"$GOAL_OUT" 2>/tmp/ligh-paradise-goal.err; then
     SMOKE_OK=1
-  elif python3 -c "import json; d=json.load(open('$JOB_OUT')); exit(0 if d.get('ok') else 1)" 2>/dev/null; then
+  elif python3 -c "import json; d=json.load(open('$GOAL_OUT')); exit(0 if d.get('ok') else 1)" 2>/dev/null; then
     SMOKE_OK=1
   else
-    echo "  ⚠ smoke failed — edit $LIGH_DIR/app-job.json and run: ./scripts/ligh-test.sh"
-    python3 -c "import json; d=json.load(open('$JOB_OUT')); print('  fault:', d.get('fault'))" 2>/dev/null || true
+    echo "  ⚠ smoke failed — edit $LIGH_DIR/app-goal.json and run: ./scripts/ligh-test.sh"
+    python3 -c "import json; d=json.load(open('$GOAL_OUT')); print('  fault:', d.get('fault'))" 2>/dev/null || true
   fi
 fi
 
 PARADISE_OUT="${LIGH_PARADISE_OUT:-$ROOT/docs/assets/agent-paradise-latest.json}"
 python3 - "$PARADISE_OUT" "$DETECT_JSON" "$SMOKE_OK" <<'PY'
-import json, sys, time
+import json, os, sys
 out, detect_path, smoke_ok = sys.argv[1:4]
 doc = json.load(open(detect_path))
 bundle = {
@@ -108,6 +132,13 @@ bundle = {
   "identity_count": (doc.get("audit") or {}).get("identity_count"),
   "agent_ready": (doc.get("audit") or {}).get("agent_ready"),
 }
+disc_path = "/tmp/ligh-paradise-discover.json"
+if os.path.isfile(disc_path):
+  disc = json.load(open(disc_path))
+  bundle["live_discovery"] = True
+  bundle["live_grade"] = disc.get("readiness_grade")
+  bundle["discovered_labels"] = disc.get("discovered_labels")
+  bundle["agent_ready"] = disc.get("agent_ready") or bundle.get("agent_ready")
 json.dump(bundle, open(out, "w"), indent=2)
 open(out, "a").write("\n")
 print(json.dumps(bundle, indent=2))

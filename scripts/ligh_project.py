@@ -40,19 +40,79 @@ def find_xcodeproj(path: str) -> str | None:
     return None
 
 
+def schemes_from_disk(xcode_path: str) -> list[str]:
+    """Shared/user schemes without waiting on SPM / xcodebuild -list."""
+    names: list[str] = []
+    for rel in (
+        ("xcshareddata", "xcschemes"),
+        ("xcuserdata",),  # scanned below for *.xcscheme
+    ):
+        base = os.path.join(xcode_path, *rel) if rel[0] != "xcuserdata" else os.path.join(xcode_path, "xcuserdata")
+        if not os.path.isdir(base):
+            continue
+        if rel[0] == "xcuserdata":
+            for dp, _, files in os.walk(base):
+                for f in files:
+                    if f.endswith(".xcscheme"):
+                        names.append(f[: -len(".xcscheme")])
+            continue
+        for f in os.listdir(base):
+            if f.endswith(".xcscheme"):
+                names.append(f[: -len(".xcscheme")])
+    # Stable order, dedupe
+    out: list[str] = []
+    seen: set[str] = set()
+    for n in names:
+        if n not in seen:
+            seen.add(n)
+            out.append(n)
+    return out
+
+
+def schemes_from_pbx_targets(xcode_path: str) -> list[str]:
+    if xcode_path.endswith(".xcworkspace"):
+        return []
+    pbx = os.path.join(xcode_path, "project.pbxproj")
+    if not os.path.isfile(pbx):
+        return []
+    text = open(pbx, encoding="utf-8", errors="ignore").read()
+    # PBXNativeTarget name = Foo;
+    found = re.findall(r"/\* (\w+) \*/ = \{\s*isa = PBXNativeTarget;", text)
+    if not found:
+        found = re.findall(r'name = "?([A-Za-z0-9_.-]+)"?;\s*productName =', text)
+    return found
+
+
 def list_schemes(xcode_path: str) -> list[str]:
+    # Fast path: disk schemes — works offline / before SPM resolve (OSS-general).
+    disk = schemes_from_disk(xcode_path)
+    if disk:
+        return disk
+
     args = ["xcodebuild", "-list", "-json"]
     if xcode_path.endswith(".xcworkspace"):
         args.extend(["-workspace", xcode_path])
     else:
         args.extend(["-project", xcode_path])
-    cp = _run(args, timeout=60)
-    if cp.returncode == 0 and cp.stdout.strip().startswith("{"):
-        data = json.loads(cp.stdout)
-        schemes = data.get("project", {}).get("schemes") or data.get("workspace", {}).get("schemes")
-        if schemes:
-            return list(schemes)
-    cp = _run(["xcodebuild", "-list", "-project", xcode_path], timeout=60)
+    cp = _run(args, timeout=180)
+    blob = (cp.stdout or "") + "\n" + (cp.stderr or "")
+    # SPM / xcodebuild often emit logs before the JSON object.
+    brace = blob.find("{")
+    if brace >= 0:
+        try:
+            data = json.loads(blob[brace:])
+            schemes = data.get("project", {}).get("schemes") or data.get("workspace", {}).get("schemes")
+            if schemes:
+                return list(schemes)
+        except json.JSONDecodeError:
+            pass
+
+    list_args = ["xcodebuild", "-list"]
+    if xcode_path.endswith(".xcworkspace"):
+        list_args.extend(["-workspace", xcode_path])
+    else:
+        list_args.extend(["-project", xcode_path])
+    cp = _run(list_args, timeout=180)
     schemes: list[str] = []
     in_schemes = False
     for line in (cp.stdout or "").splitlines():
@@ -63,14 +123,26 @@ def list_schemes(xcode_path: str) -> list[str]:
             if not line.strip():
                 break
             schemes.append(line.strip())
-    return schemes
+    if schemes:
+        return schemes
+    return schemes_from_pbx_targets(xcode_path)
 
 
 def pick_scheme(schemes: list[str]) -> str | None:
+    skip = ("Test", "UITest", "Tests", "Extension", "Widget", "Intents", "Watch", "TV", "Share")
+    preferred: list[str] = []
     for s in schemes:
-        if "Test" in s or "UITest" in s:
+        if any(tok in s for tok in skip):
             continue
-        return s
+        preferred.append(s)
+    if preferred:
+        # Prefer shortest name that isn't a satellite (often the main app).
+        preferred.sort(key=lambda x: (len(x), x.lower()))
+        return preferred[0]
+    # Fall back: longest common basename match without Extension suffix
+    for s in schemes:
+        if not any(tok in s for tok in ("Test", "UITest", "Tests")):
+            return s
     return schemes[0] if schemes else None
 
 
@@ -141,7 +213,12 @@ def build_sim_app(xcode_path: str, scheme: str, out_dir: str) -> str:
         args[1:1] = ["-workspace", xcode_path]
     else:
         args[1:1] = ["-project", xcode_path]
-    cp = _run(args, timeout=600)
+    # SPM checkouts write git hooks; sandboxes/CI often block that — disable hooks.
+    env = os.environ.copy()
+    env["GIT_CONFIG_COUNT"] = "1"
+    env["GIT_CONFIG_KEY_0"] = "core.hooksPath"
+    env["GIT_CONFIG_VALUE_0"] = "/dev/null"
+    cp = subprocess.run(args, capture_output=True, text=True, timeout=600, env=env)
     if cp.returncode != 0:
         raise RuntimeError((cp.stderr or cp.stdout or "xcodebuild failed")[-800:])
     apps = []
@@ -187,18 +264,33 @@ def detect(path: str, *, build: bool = False) -> dict[str, Any]:
                 "workspace": os.path.dirname(path),
             }
         )
-    elif path.endswith(".app") and os.path.isdir(path):
-        project_dir = os.path.dirname(os.path.dirname(path))
-        doc.update(
-            {
-                "kind": "app",
-                "app_path": path,
-                "bundle_id": bundle_id_from_app(path),
-                "source_root": guess_source_root(project_dir, None),
-                "workspace": project_dir,
-            }
-        )
-    else:
+    elif path.endswith(".app"):
+        # Built .app is often gitignored — fall back to sibling .xcodeproj for offline CI.
+        if os.path.isdir(path):
+            project_dir = os.path.dirname(os.path.dirname(path))
+            doc.update(
+                {
+                    "kind": "app",
+                    "app_path": path,
+                    "bundle_id": bundle_id_from_app(path),
+                    "source_root": guess_source_root(project_dir, None),
+                    "workspace": project_dir,
+                }
+            )
+        else:
+            project_dir = os.path.dirname(os.path.dirname(path))
+            xcode = find_xcodeproj(project_dir) if os.path.isdir(project_dir) else None
+            if not xcode:
+                raise SystemExit(
+                    f"missing .app (not built / gitignored): {path}\n"
+                    f"  build it first, or pass the .xcodeproj directory"
+                )
+            path = project_dir
+            # fall through to xcodeproj handling below
+            doc["input"] = path
+            doc["_fallback_from_missing_app"] = True
+
+    if "kind" not in doc:
         xcode = find_xcodeproj(path)
         if not xcode:
             raise SystemExit(f"no .xcodeproj/.app/task.json at {path}")
