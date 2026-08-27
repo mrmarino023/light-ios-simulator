@@ -104,14 +104,33 @@ Refuse unknown effects rather than edit the wrong file.
 
 ### Stranger OSS apps (0 accessibility ids)
 
-Label-first paradise on **unrelated** public repos — no AX ids, no per-app patches. Discover proves chrome with motor `wait-label`, then `ligh_test` goal-first.
+**One pipeline for every URL** — no per-app scheme / label / bundle maps:
 
-| App | Repo | Ids | Proven chrome | `ligh_test` |
-|-----|------|-----|---------------|-------------|
-| CountriesSwiftUI | [nalexn/clean-architecture-swiftui](https://github.com/nalexn/clean-architecture-swiftui) | 0 | `Countries` | ✓ |
-| Food Truck | [apple/sample-food-truck](https://github.com/apple/sample-food-truck) | 0 | `Donuts` | ✓ |
+```text
+HostCapability → acquire → ProjectResolve → gate_project → build
+  → EyesReady → label-first discover → ligh_test
+```
 
-**2/2** → [`oss-stranger-trial-latest.json`](docs/assets/oss-stranger-trial-latest.json) · local: `./scripts/gate-oss-stranger-smoke.sh` · competitive map: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
+| Class | Meaning |
+|-------|---------|
+| ✓ pass | motor-proven chrome + `ligh_test ok` |
+| ⊘ host-skip | `missing_watchos_runtime`, `xcode_format_too_new`, `acquire_not_found` |
+| ✗ host | `sim_boot_hung` / `eyes_unusable` — fix Simulator, not Swift |
+| ✗ app | `discover_no_chrome` / goal fail — only after EyesReady |
+
+Proven (label-first, 0 AX ids):
+
+| App | Repo | Chrome | Result |
+|-----|------|--------|--------|
+| CountriesSwiftUI | [nalexn/clean-architecture-swiftui](https://github.com/nalexn/clean-architecture-swiftui) | motor label | ✓ |
+| Food Truck | [apple/sample-food-truck](https://github.com/apple/sample-food-truck) | motor label | ✓ |
+
+```bash
+./scripts/gate-oss-stranger-batch.sh    # scripts/oss-stranger-urls.txt
+./scripts/gate-oss-stranger-smoke.sh    # Countries + Food Truck only
+```
+
+→ artifact [`oss-stranger-trial-latest.json`](docs/assets/oss-stranger-trial-latest.json) · contract [`docs/OSS_PIPELINE.md`](docs/OSS_PIPELINE.md) · vs Maestro [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
 
 ### LIGH Autopilot only (UI goals — not repair)
 

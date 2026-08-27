@@ -1,0 +1,14 @@
+# Competitive OSS stranger set — URLs only. Same pipeline for every row.
+# HostCapability classifies skips (watch / Xcode format) without per-app maps.
+#
+# Run: ./scripts/gate-oss-stranger-batch.sh
+
+https://github.com/nalexn/clean-architecture-swiftui.git
+https://github.com/apple/sample-food-truck.git
+https://github.com/pointfreeco/swift-composable-architecture.git#Examples/Todos
+https://github.com/aheze/Popovers.git
+https://github.com/exyte/ConcentricOnboarding.git
+https://github.com/exyte/AnimatedTabBar.git
+# Host taxonomy probes (expect classified skip, not crash):
+https://github.com/apple/sample-backyard-birds.git
+https://github.com/exyte/PopupView.git

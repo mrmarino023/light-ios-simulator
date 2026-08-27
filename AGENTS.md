@@ -18,7 +18,8 @@ You test **iOS Simulator Debug builds** on this Mac via **LIGH MCP**. Fail-close
 
 Then paste MCP config, open `.ligh/AGENT_PROMPT.md` in chat.
 
-Competitive map: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
+Competitive map: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)  
+OSS stranger contract: [`docs/OSS_PIPELINE.md`](docs/OSS_PIPELINE.md)
 
 ## Primary loop (verify)
 
@@ -28,6 +29,8 @@ ligh_up → ligh_viewer (optional)
 ligh_test        → goal-first verify from .ligh/app-goal.json
 → { ok: true } or { fault, detail } → fix Swift → rebuild → ligh_test
 ```
+
+**Eyes first:** if `eyes_unusable` / `sim_boot_hung`, recover Simulator (SpringBoard AX) — do **not** patch the app.
 
 Legacy: `ligh_cap_app_goal` / `ligh_cap_app_job` — prefer **`ligh_test`**.
 

@@ -27,17 +27,100 @@ def _run(cmd: list[str], *, timeout: int = 120) -> subprocess.CompletedProcess[s
     return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
 
 
-def find_xcodeproj(path: str) -> str | None:
+# Directories never walked when hunting for an app project (OSS-general).
+_XCODE_SKIP_DIRS = frozenset(
+    {
+        ".git",
+        ".build",
+        "DerivedData",
+        "Pods",
+        "Carthage",
+        "node_modules",
+        "vendor",
+        ".swiftpm",
+        "xcuserdata",
+        "SourcePackages",  # SPM checkouts under DerivedData-like trees
+        "checkouts",
+        "Library",  # poisoned clones / accidental FS copies
+        "System",
+        "usr",
+    }
+)
+_XCODE_SKIP_NAME_TOKS = ("Test", "UITest", "Tests", "Watch", "TV", "Widget", "Extension", "Intents")
+_XCODE_PATH_BOOST = ("Example", "Examples", "Demo", "Playground", "Sample", "App", "iOS")
+
+
+def _xcode_score(cand: str, root: str, prefer: str | None) -> tuple[int, int, str]:
+    """Higher score wins. Prefer Example/Demo apps, shallow paths, non-satellite targets."""
+    rel = os.path.relpath(cand, root)
+    parts = rel.split(os.sep)
+    depth = max(0, len(parts) - 1)
+    base = os.path.basename(cand)
+    stem = base[: -len(".xcodeproj")] if base.endswith(".xcodeproj") else base[: -len(".xcworkspace")]
+    score = 0
+    if any(tok in stem for tok in _XCODE_SKIP_NAME_TOKS):
+        score -= 200
+    for boost in _XCODE_PATH_BOOST:
+        if any(boost.lower() == p.lower() or boost.lower() in p.lower() for p in parts[:-1]):
+            score += 40
+            break
+    if prefer:
+        pref = prefer.lower().replace(" ", "").replace("-", "")
+        st = stem.lower().replace(" ", "").replace("-", "")
+        if pref and (pref in st or st in pref):
+            score += 35
+    score -= depth * 8
+    # Prefer workspace when CocoaPods/SPM wrap the same stem (resolved later).
+    if cand.endswith(".xcworkspace"):
+        score += 3
+    return (score, -depth, stem.lower())
+
+
+def iter_xcode_candidates(path: str) -> list[str]:
+    """All .xcodeproj / .xcworkspace under path (recursive, OSS-general)."""
+    path = os.path.abspath(path)
+    out: list[str] = []
+    if path.endswith(".xcodeproj") or path.endswith(".xcworkspace"):
+        return [path] if os.path.isdir(path) else []
+    if not os.path.isdir(path):
+        return []
+    for dp, dirs, _ in os.walk(path):
+        dirs[:] = [d for d in dirs if d not in _XCODE_SKIP_DIRS and not d.startswith(".")]
+        for d in list(dirs):
+            if d.endswith(".xcodeproj") or d.endswith(".xcworkspace"):
+                out.append(os.path.join(dp, d))
+                # Do not walk into the bundle.
+                dirs.remove(d)
+    return out
+
+
+def find_xcodeproj(path: str, *, prefer_name: str | None = None) -> str | None:
+    """Pick the best app project under path — recursive, scored, no per-app maps."""
     path = os.path.abspath(path)
     if path.endswith(".xcodeproj") and os.path.isdir(path):
         return path
     if path.endswith(".xcworkspace") and os.path.isdir(path):
         return path
-    if os.path.isdir(path):
-        for name in sorted(os.listdir(path)):
-            if name.endswith(".xcodeproj"):
-                return os.path.join(path, name)
-    return None
+
+    cands = iter_xcode_candidates(path)
+    if not cands:
+        return None
+
+    # Prefer .xcworkspace over sibling .xcodeproj with the same stem/dir.
+    by_key: dict[str, str] = {}
+    for c in cands:
+        parent = os.path.dirname(c)
+        stem = os.path.basename(c).rsplit(".", 1)[0]
+        key = f"{parent}::{stem}"
+        prev = by_key.get(key)
+        if prev is None or (c.endswith(".xcworkspace") and prev.endswith(".xcodeproj")):
+            by_key[key] = c
+    ranked = sorted(
+        by_key.values(),
+        key=lambda c: _xcode_score(c, path, prefer_name),
+        reverse=True,
+    )
+    return ranked[0] if ranked else None
 
 
 def schemes_from_disk(xcode_path: str) -> list[str]:
@@ -83,18 +166,71 @@ def schemes_from_pbx_targets(xcode_path: str) -> list[str]:
     return found
 
 
+def scheme_file(xcode_path: str, scheme: str) -> str | None:
+    for rel in (
+        ("xcshareddata", "xcschemes", f"{scheme}.xcscheme"),
+        # user schemes: xcuserdata/*/xcschemes/
+    ):
+        p = os.path.join(xcode_path, *rel)
+        if os.path.isfile(p):
+            return p
+    user = os.path.join(xcode_path, "xcuserdata")
+    if os.path.isdir(user):
+        for dp, _, files in os.walk(user):
+            if f"{scheme}.xcscheme" in files:
+                return os.path.join(dp, f"{scheme}.xcscheme")
+    return None
+
+
+def scheme_embeds_watch(xcode_path: str, scheme: str) -> bool:
+    """True if scheme XML *or* project graph needs watchOS (companion apps)."""
+    if "Watch" in scheme or "watchOS" in scheme:
+        return True
+    path = scheme_file(xcode_path, scheme)
+    if path:
+        text = open(path, encoding="utf-8", errors="ignore").read()
+        if "watchos" in text.lower() or "WatchKit" in text:
+            return True
+        if re.search(r'BlueprintName\s*=\s*"[^"]*Watch[^"]*"', text):
+            return True
+    # Backyard Birds etc.: scheme looks iOS-only but pbx embeds Watch via deps.
+    try:
+        from ligh_host_capability import pbx_has_watch_product
+
+        if pbx_has_watch_product(xcode_path):
+            return True
+    except Exception:  # noqa: BLE001
+        pass
+    return False
+
+
+def host_has_watchos_runtime() -> bool:
+    try:
+        from ligh_host_capability import probe_host
+
+        return bool(probe_host().watchos_runtimes)
+    except Exception:  # noqa: BLE001
+        cp = _run(["xcrun", "simctl", "list", "runtimes"], timeout=30)
+        blob = (cp.stdout or "") + (cp.stderr or "")
+        return "watchOS" in blob
+
+
 def list_schemes(xcode_path: str) -> list[str]:
     # Fast path: disk schemes — works offline / before SPM resolve (OSS-general).
     disk = schemes_from_disk(xcode_path)
     if disk:
         return disk
+    # Next: PBX targets — avoid hanging xcodebuild -list on SPM packages.
+    pbx = schemes_from_pbx_targets(xcode_path)
+    if pbx:
+        return pbx
 
     args = ["xcodebuild", "-list", "-json"]
     if xcode_path.endswith(".xcworkspace"):
         args.extend(["-workspace", xcode_path])
     else:
         args.extend(["-project", xcode_path])
-    cp = _run(args, timeout=180)
+    cp = _run(args, timeout=60)
     blob = (cp.stdout or "") + "\n" + (cp.stderr or "")
     # SPM / xcodebuild often emit logs before the JSON object.
     brace = blob.find("{")
@@ -112,7 +248,7 @@ def list_schemes(xcode_path: str) -> list[str]:
         list_args.extend(["-workspace", xcode_path])
     else:
         list_args.extend(["-project", xcode_path])
-    cp = _run(list_args, timeout=180)
+    cp = _run(list_args, timeout=60)
     schemes: list[str] = []
     in_schemes = False
     for line in (cp.stdout or "").splitlines():
@@ -125,25 +261,31 @@ def list_schemes(xcode_path: str) -> list[str]:
             schemes.append(line.strip())
     if schemes:
         return schemes
-    return schemes_from_pbx_targets(xcode_path)
+    return []
 
 
-def pick_scheme(schemes: list[str]) -> str | None:
+def pick_scheme(schemes: list[str], *, xcode_path: str | None = None) -> str | None:
     skip = ("Test", "UITest", "Tests", "Extension", "Widget", "Intents", "Watch", "TV", "Share")
-    preferred: list[str] = []
-    for s in schemes:
+    has_watch_rt = None  # lazy
+
+    def ok(s: str) -> bool:
+        nonlocal has_watch_rt
         if any(tok in s for tok in skip):
-            continue
-        preferred.append(s)
+            return False
+        if xcode_path and scheme_embeds_watch(xcode_path, s):
+            if has_watch_rt is None:
+                has_watch_rt = host_has_watchos_runtime()
+            if not has_watch_rt:
+                return False
+        return True
+
+    preferred = [s for s in schemes if ok(s)]
     if preferred:
         # Prefer shortest name that isn't a satellite (often the main app).
         preferred.sort(key=lambda x: (len(x), x.lower()))
         return preferred[0]
-    # Fall back: longest common basename match without Extension suffix
-    for s in schemes:
-        if not any(tok in s for tok in ("Test", "UITest", "Tests")):
-            return s
-    return schemes[0] if schemes else None
+    # No runnable scheme on this host (e.g. every app embeds Watch).
+    return None
 
 
 def bundle_id_from_pbxproj(xcode_path: str) -> str | None:
@@ -187,6 +329,19 @@ def guess_source_root(project_dir: str, scheme: str | None) -> str:
     return project_dir
 
 
+def classify_build_error(msg: str) -> str:
+    low = msg.lower()
+    if "watchos" in low and ("must be installed" in low or "watch" in low):
+        return "missing_watchos_runtime"
+    if "future xcode project file format" in low:
+        return "xcode_format_too_new"
+    if "requires a development team" in low or "code signing" in low:
+        return "codesign"
+    if "timed out" in low:
+        return "build_timeout"
+    return "build_failed"
+
+
 def build_sim_app(xcode_path: str, scheme: str, out_dir: str) -> str:
     os.makedirs(out_dir, exist_ok=True)
     derived = os.path.join(out_dir, "DerivedData")
@@ -202,6 +357,7 @@ def build_sim_app(xcode_path: str, scheme: str, out_dir: str) -> str:
         derived,
         "-destination",
         "generic/platform=iOS Simulator",
+        "-skipPackagePluginValidation",
         "ONLY_ACTIVE_ARCH=YES",
         "ARCHS=arm64",
         "CODE_SIGNING_ALLOWED=NO",
@@ -218,9 +374,10 @@ def build_sim_app(xcode_path: str, scheme: str, out_dir: str) -> str:
     env["GIT_CONFIG_COUNT"] = "1"
     env["GIT_CONFIG_KEY_0"] = "core.hooksPath"
     env["GIT_CONFIG_VALUE_0"] = "/dev/null"
-    cp = subprocess.run(args, capture_output=True, text=True, timeout=600, env=env)
+    cp = subprocess.run(args, capture_output=True, text=True, timeout=360, env=env)
     if cp.returncode != 0:
-        raise RuntimeError((cp.stderr or cp.stdout or "xcodebuild failed")[-800:])
+        err = (cp.stderr or cp.stdout or "xcodebuild failed")[-800:]
+        raise RuntimeError(f"{classify_build_error(err)}: {err}")
     apps = []
     for dp, dirs, _ in os.walk(derived):
         for d in dirs:
@@ -228,7 +385,13 @@ def build_sim_app(xcode_path: str, scheme: str, out_dir: str) -> str:
                 apps.append(os.path.join(dp, d))
     if not apps:
         raise RuntimeError("no .app under DerivedData")
-    apps.sort(key=lambda p: os.path.getmtime(p), reverse=True)
+    # Prefer the main app (not Watch.app / Appex).
+    def app_rank(p: str) -> tuple:
+        name = os.path.basename(p)
+        bad = any(tok in name for tok in ("Watch", "Widget", "Appextension", "Extension"))
+        return (1 if bad else 0, -os.path.getmtime(p))
+
+    apps.sort(key=app_rank)
     dest = os.path.join(out_dir, os.path.basename(apps[0]))
     if os.path.isdir(dest):
         import shutil
@@ -237,6 +400,11 @@ def build_sim_app(xcode_path: str, scheme: str, out_dir: str) -> str:
     import shutil
 
     shutil.copytree(apps[0], dest)
+    # Drop DerivedData after copy — OSS batch otherwise fills the disk.
+    try:
+        shutil.rmtree(derived)
+    except OSError:
+        pass
     return dest
 
 
@@ -291,14 +459,36 @@ def detect(path: str, *, build: bool = False) -> dict[str, Any]:
             doc["_fallback_from_missing_app"] = True
 
     if "kind" not in doc:
-        xcode = find_xcodeproj(path)
+        prefer = os.path.basename(path.rstrip("/"))
+        xcode = find_xcodeproj(path, prefer_name=prefer)
         if not xcode:
             raise SystemExit(f"no .xcodeproj/.app/task.json at {path}")
+        # HostCapability gate — skip before burning build minutes.
+        try:
+            from ligh_host_capability import gate_project, probe_host
+
+            host = probe_host()
+            skip = gate_project(xcode, host)
+            if skip:
+                raise RuntimeError(f"{skip['fault']}: {skip.get('detail')}")
+        except ImportError:
+            pass
         project_dir = os.path.dirname(xcode)
+        # Workspace for .ligh is the clone/subtree root (path), not only the xcode parent —
+        # monorepos (Package + Example/) keep agent bundle at the scoped root.
+        workspace = path if os.path.isdir(path) else project_dir
         schemes = list_schemes(xcode)
-        scheme = pick_scheme(schemes)
+        scheme = pick_scheme(schemes, xcode_path=xcode)
         if not scheme:
-            raise SystemExit(f"no scheme in {xcode}")
+            raise RuntimeError(
+                "missing_watchos_runtime: no iOS scheme runnable without watchOS on this host"
+                if not host_has_watchos_runtime()
+                else f"no scheme in {xcode}"
+            )
+        if scheme_embeds_watch(xcode, scheme) and not host_has_watchos_runtime():
+            raise RuntimeError(
+                f"missing_watchos_runtime: scheme {scheme!r} embeds Watch; no watchOS runtime"
+            )
         doc.update(
             {
                 "kind": "xcodeproj",
@@ -307,8 +497,11 @@ def detect(path: str, *, build: bool = False) -> dict[str, Any]:
                 "schemes": schemes,
                 "bundle_id": bundle_id_from_pbxproj(xcode),
                 "source_root": guess_source_root(project_dir, scheme),
-                "workspace": project_dir,
-                "build_out": os.path.join(project_dir, "build", "ligh"),
+                "workspace": workspace,
+                "build_out": os.path.join(workspace, "build", "ligh"),
+                "xcode_candidates": [
+                    os.path.relpath(c, path) for c in iter_xcode_candidates(path)[:12]
+                ],
             }
         )
         if build:

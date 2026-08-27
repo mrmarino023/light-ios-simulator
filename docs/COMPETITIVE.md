@@ -4,7 +4,7 @@ Last updated: 2026-08-27
 
 ## One line
 
-**Maestro proves the UI. LIGH proves your agent's code change** — verify + localize + fix + certify.
+**Maestro proves the UI. LIGH proves your agent's code change** — verify + localize + fix + certify — on **any stranger iOS repo** with one pipeline.
 
 ---
 
@@ -14,14 +14,40 @@ Last updated: 2026-08-27
 |--|-----------------|-------------------|----------------------|---------------------|----------|
 | **Primary job** | Write/run E2E flows | Build + test Xcode | Drive sim | Screenshot → guess | **Verify + repair agent edits** |
 | **Agent entry** | `inspect_screen`, `run` | 79 MCP tools | tap/swipe/screenshot | chat + vision | **`ligh_test`** (goal-first) |
-| **Live viewer** | Maestro Viewer ✅ | ❌ | screenshots | screenshots | **`ligh_viewer`** ✅ (new) |
-| **Cross-platform** | iOS + Android + web | Apple only | iOS sim | any | **iOS sim** (+ partial Expo) |
-| **Saved flows** | YAML in repo ✅ | ❌ | ❌ | ❌ | **`.ligh/app-goal.json`** ✅ |
-| **Structured faults** | YAML errors | build JSON | raw | none | **`motor_no_effect`, repair_contract** ✅ |
-| **Autonomous repair** | ❌ | ❌ | ❌ | retry forever | **TRAIL** ✅ (unique) |
+| **Stranger repo** | hand-authored YAML | build only | manual | flaky | **URL → HostCapability → discover → certify** |
+| **0 AX ids** | text match | n/a | partial | vision | **label-first motor-proven chrome** |
+| **Live viewer** | Maestro Viewer ✅ | ❌ | screenshots | screenshots | **`ligh_viewer`** ✅ |
+| **Structured faults** | YAML errors | build JSON | raw | none | **`motor_no_effect`, host skips, repair_contract** |
+| **Autonomous repair** | ❌ | ❌ | ❌ | retry forever | **TRAIL** ✅ |
 | **UI token cost** | inspect + author flows | high MCP schema tax | medium | **very high** | **0 on motor** ✅ |
-| **Needs AX ids** | flexible (text/labels) | n/a | partial | no | **no — label-first discover** ✅ |
-| **Cloud CI** | Maestro Cloud ✅ | ❌ | ❌ | varies | **GitHub Action** (starter) |
+| **Cloud CI** | Maestro Cloud ✅ | ❌ | ❌ | varies | GitHub Action starter |
+
+---
+
+## OSS stranger architecture (the competitive wedge)
+
+No per-app scheme/label/bundle maps. Same stages for every URL:
+
+```text
+HostCapability (Xcode objectVersion, watchOS, disk, iOS runtime)
+  → acquire (git|zip, optional #subtree for monorepos)
+  → recursive scored find_xcodeproj + pick_scheme
+  → gate_project (skip: missing_watchos_runtime | xcode_format_too_new | disk)
+  → xcodebuild Debug sim (DerivedData purged after copy)
+  → EyesReady (ligh ready — refuse discover on empty AX)
+  → label-first live discover (motor wait-label proves chrome)
+  → ligh_test goal-first  →  ok:true only
+```
+
+| Class | Meaning |
+|-------|---------|
+| `ok` | motor-proven chrome + goal postconditions |
+| `missing_watchos_runtime` | pbx has Watch product; host has no watchOS — **skip**, don't thrash |
+| `xcode_format_too_new` | objectVersion > host max — **skip** |
+| `discover_no_chrome` | refuse `REPLACE_ME` placeholders |
+| `eyes_unusable` | recover once, then fail-closed |
+
+**Reproduce:** `./scripts/gate-oss-stranger-batch.sh` · URLs: `scripts/oss-stranger-urls.txt` · API: `scripts/ligh_oss_smoke.py` · contract: [`OSS_PIPELINE.md`](OSS_PIPELINE.md) · artifact: [`oss-stranger-trial-latest.json`](assets/oss-stranger-trial-latest.json)
 
 ---
 
@@ -29,13 +55,14 @@ Last updated: 2026-08-27
 
 - Agent **edits Swift** and must **prove + fix** in the same session
 - You care about **token cost** and **fail-closed** semantics
+- You want **stranger OSS** onboarding without writing Maestro YAML first
 - Bug class: login gate, missing tab, disabled control, stuck overlay
 
 ## When agents should pick Maestro
 
 - Cross-platform E2E suite in repo
 - QA team owns YAML flows
-- Need Maestro Cloud + Viewer polish today
+- Need Maestro Cloud polish today
 
 ## When agents should pick XcodeBuildMCP
 
@@ -61,8 +88,6 @@ Shell: `./scripts/ligh-paradise.sh` · `./scripts/ligh-test.sh`
 - Hosted Mac runner (monetization path)
 - Android
 - Repair fully in Rust (Python harness on hot path)
-- 10+ stranger-repo trials published
+- 5+ stranger `ligh_test ok` on every host Xcode (host skips are expected)
 
-**OSS stranger proof (2026-08-27):** 2/2 iOS apps with **0 accessibility ids** — CountriesSwiftUI + Apple Food Truck — `ligh_test ok:true` via label-first discover (`docs/assets/oss-stranger-trial-latest.json`). Local re-run: `./scripts/gate-oss-stranger-smoke.sh`.
-
-See [`AGENT_PARADISE.md`](AGENT_PARADISE.md) roadmap.
+See [`AGENT_PARADISE.md`](AGENT_PARADISE.md) · [`TRAIL_BULLETPROOF.md`](TRAIL_BULLETPROOF.md)
