@@ -1,0 +1,78 @@
+name: OSS stranger smoke
+
+# Label-first paradise on public iOS apps with zero accessibility ids.
+# Clones CountriesSwiftUI + Apple Food Truck → build → discover → ligh_test.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: "all | countries | foodtruck"
+        required: false
+        default: all
+
+concurrency:
+  group: oss-stranger-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  LIGH_DEVICE: iphone-15-pro
+
+jobs:
+  oss-stranger-smoke:
+    runs-on: macos-15
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          # Prefer newest installed Xcode (Food Truck / Countries need recent SDK).
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          xcrun simctl list devices available | head -40
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-oss-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build release ligh + lighd
+        run: cargo build --release --locked -p ligh-cli -p ligh-daemon
+
+      - name: Shell syntax
+        run: bash -n scripts/gate-oss-stranger-smoke.sh
+
+      - name: OSS stranger smoke (label-first)
+        env:
+          LIGH_BIN: ${{ github.workspace }}/target/release/ligh
+          LIGH_OSS_WORK: ${{ runner.temp }}/ligh-oss-smoke
+          LIGH_OSS_OUT: ${{ github.workspace }}/docs/assets/oss-stranger-smoke-latest.json
+        run: |
+          chmod +x scripts/gate-oss-stranger-smoke.sh
+          SELECT="${{ github.event.inputs.apps || 'all' }}"
+          ./scripts/gate-oss-stranger-smoke.sh "$SELECT"
+
+      - name: Upload smoke artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oss-stranger-smoke
+          path: |
+            docs/assets/oss-stranger-smoke-latest.json
+            ${{ runner.temp }}/ligh-oss-smoke/*-test.json
+            ${{ runner.temp }}/ligh-oss-smoke/*-discover.json
+            ${{ runner.temp }}/ligh-oss-smoke/*.log
+          if-no-files-found: warn
