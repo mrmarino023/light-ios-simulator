@@ -98,23 +98,91 @@ def gate_from_health(ph: dict[str, Any] | None) -> dict[str, Any] | None:
     }
 
 
+def _launchctl_running(udid: str, bundle_id: str) -> tuple[bool, int | None]:
+    """Guest process present in sim launchctl for this bundle."""
+    if not udid or not bundle_id:
+        return False, None
+    try:
+        p = subprocess.run(
+            ["xcrun", "simctl", "spawn", udid, "launchctl", "list"],
+            capture_output=True,
+            text=True,
+            timeout=20,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False, None
+    needle = f"UIKitApplication:{bundle_id}"
+    for line in (p.stdout or "").splitlines():
+        if needle not in line and bundle_id not in line:
+            continue
+        parts = line.split()
+        pid = None
+        if parts:
+            try:
+                v = int(parts[0])
+                if v > 0:
+                    pid = v
+            except ValueError:
+                pass
+        if needle in line or pid is not None:
+            return True, pid
+    return False, None
+
+
+def _eyes_imply_alive(snap: dict[str, Any], bundle_id: str) -> bool:
+    """AX shows app chrome — never invent app_not_running over live eyes."""
+    if snap.get("ax_quality") != "ready":
+        return False
+    if not snap.get("actionable_topk"):
+        return False
+    if snap.get("app_bundle_id") == bundle_id or snap.get("expected_bundle_id") == bundle_id:
+        return True
+    label = (snap.get("observed_app_label") or "").lower()
+    bid = bundle_id.lower()
+    if "mastodon" in bid and "mastodon" in label:
+        return True
+    # Generic: penultimate or last DNS label appears in observed app name.
+    parts = [p for p in bid.split(".") if p]
+    for token in reversed(parts[-2:] if len(parts) >= 2 else parts):
+        if len(token) >= 4 and token in label:
+            return True
+    surface = ((snap.get("scene") or {}) if isinstance(snap.get("scene"), dict) else {}).get(
+        "surface"
+    )
+    return surface == "app" and bool(label)
+
+
+def resolve_process_health(
+    snap: dict[str, Any],
+    *,
+    bundle_id: str | None = None,
+) -> dict[str, Any] | None:
+    """Prefer daemon process_health; else launchctl + eyes. Never invent death blindly."""
+    ph = snap.get("process_health") if isinstance(snap.get("process_health"), dict) else None
+    if isinstance(ph, dict) and ph.get("bundle_id"):
+        return ph
+    if not bundle_id:
+        return ph if isinstance(ph, dict) else None
+    udid = str(snap.get("udid") or "")
+    running, pid = _launchctl_running(udid, bundle_id)
+    if not running and _eyes_imply_alive(snap, bundle_id):
+        running = True
+    return {
+        "bundle_id": bundle_id,
+        "running": running,
+        "pid": pid,
+        "crashed_recently": False,
+        "hint": None
+        if running
+        else "app_not_running: expected bundle absent from sim launchctl — relaunch before discover",
+        "source": "session_gate_probe",
+    }
+
+
 def gate_session(*, bundle_id: str | None = None, settle_ms: int = 1500) -> dict[str, Any] | None:
     """Observe once and refuse if expected app is dead/crashed."""
     snap = observe_snapshot(settle_ms=settle_ms)
-    ph = snap.get("process_health") if isinstance(snap.get("process_health"), dict) else None
-    # If daemon didn't stamp health (no expected_bundle), synthesize from observe fields.
-    if ph is None and bundle_id:
-        ph = {
-            "bundle_id": bundle_id,
-            "running": False,
-            "crashed_recently": False,
-            "hint": "process_health missing on observe — treat as not_running until relaunch",
-        }
-        # Prefer live stamp when present under expected match
-        if snap.get("expected_bundle_id") == bundle_id or snap.get("app_bundle_id") == bundle_id:
-            # ax ready with actionable often implies running
-            if snap.get("ax_quality") == "ready" and snap.get("actionable_topk"):
-                ph["running"] = True
+    ph = resolve_process_health(snap, bundle_id=bundle_id)
     blocked = gate_from_health(ph)
     if blocked:
         blocked["observe"] = {
@@ -123,6 +191,7 @@ def gate_session(*, bundle_id: str | None = None, settle_ms: int = 1500) -> dict
             "ax_source": snap.get("ax_source"),
             "system_surface": snap.get("system_surface"),
             "screen_sig": snap.get("screen_sig"),
+            "observed_app_label": snap.get("observed_app_label"),
         }
     return blocked
 

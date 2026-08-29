@@ -202,19 +202,6 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
     } else {
         AccessibilityTree::Empty
     };
-    let app_label_hint = expected_bundle_id
-        .as_deref()
-        .and_then(|b| b.rsplit('.').next())
-        .map(|s| s.to_string());
-    let process_health = if !udid.is_empty() && expected_bundle_id.is_some() {
-        Some(ligh_core::probe_process_health(
-            &udid,
-            expected_bundle_id.as_deref(),
-            app_label_hint.as_deref(),
-        ))
-    } else {
-        None
-    };
     let system_surface = ligh_core::system_surface_from_ax_dump(
         ax_source.as_deref(),
         ax_bundle.as_deref(),
@@ -222,6 +209,51 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
         ax_role.as_deref(),
         ax_pid,
     );
+    // Identity split (competitive contract):
+    //   expected_bundle_id = agent/session intent (set by run_app / caps)
+    //   app_bundle_id      = foreground AX bundle when not a system_surface
+    //   process_health     = always probe expected, else foreground — never omit when known
+    let foreground_bundle = if system_surface.is_some() {
+        None
+    } else {
+        ax_bundle
+            .as_ref()
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string())
+    };
+    // app_bundle_id = foreground AX when known; else expected (intent). Never invent.
+    let app_bundle_id = foreground_bundle
+        .clone()
+        .or_else(|| expected_bundle_id.clone())
+        .or(app_bundle_id);
+    let health_bundle = expected_bundle_id
+        .clone()
+        .or_else(|| foreground_bundle.clone())
+        .or_else(|| app_bundle_id.clone());
+    let app_label_hint = health_bundle.as_deref().map(|bid| {
+        if bid.contains("mastodon") {
+            "Mastodon".to_string()
+        } else {
+            bid.rsplit('.')
+                .next()
+                .unwrap_or(bid)
+                .to_string()
+        }
+    });
+    let process_health = if !udid.is_empty() && health_bundle.is_some() {
+        Some(ligh_core::probe_process_health(
+            &udid,
+            health_bundle.as_deref(),
+            app_label_hint.as_deref(),
+        ))
+    } else {
+        None
+    };
+    let simulator_app_running = process_health
+        .as_ref()
+        .map(|h| h.running)
+        .unwrap_or(false);
     let mut snap = ObserveSnapshot {
         schema_version: ligh_core::OBSERVE_SCHEMA_VERSION,
         udid,
@@ -234,7 +266,7 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
         expected_bundle_id,
         observed_app_label: None,
         booted,
-        simulator_app_running: false,
+        simulator_app_running,
         frame,
         app_bundle_id,
         accessibility_tree: ax,
@@ -270,6 +302,27 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
     snap.observed_app_label = ligh_core::foreground_app_label(snap.accessibility_tree.nodes());
     if snap.observed_app_label.is_none() && ligh_host::physical_ui_active() {
         snap.observed_app_label = snap.app_bundle_id.clone();
+    }
+    // If AX named a different app than expected and we lack ax_bundle, don't claim
+    // expected is the on-screen app_bundle_id (stale session after run_app).
+    if snap.ax_bundle.is_none() {
+        if let (Some(exp), Some(label)) = (
+            snap.expected_bundle_id.as_deref(),
+            snap.observed_app_label.as_deref(),
+        ) {
+            let lab = label.to_ascii_lowercase();
+            let token = exp
+                .rsplit('.')
+                .nth(1)
+                .or_else(|| exp.rsplit('.').next())
+                .unwrap_or(exp)
+                .to_ascii_lowercase();
+            let mastodon_ok = exp.contains("mastodon") && lab.contains("mastodon");
+            let token_ok = token.len() >= 4 && lab.contains(&token);
+            if !mastodon_ok && !token_ok && snap.app_bundle_id.as_deref() == Some(exp) {
+                snap.app_bundle_id = None;
+            }
+        }
     }
     let fp = ligh_core::screen_fingerprint(snap.accessibility_tree.nodes());
     let mut st = state.lock().unwrap();
@@ -435,32 +488,38 @@ fn dispatch(line: &str, state: &Arc<Mutex<DaemonState>>) -> DaemonResponse {
                     };
                     let comp2 = comp.clone();
                     HostSession::set_frame_handler(move |id, w, h| comp2.ingest(id, w, h));
+                    // Always bind session udid so observe/motor work even if IOSurface fails.
+                    {
+                        let mut st = state.lock().unwrap();
+                        st.udid = Some(udid.clone());
+                        st.session_id = session.session_id.clone();
+                        st.boot_epoch = session.boot_epoch;
+                        st.launch_epoch = session.launch_epoch;
+                        st.expected_bundle_id = session.app_bundle_id.clone();
+                        st.screen_epoch = 0;
+                        st.stability_streak = 0;
+                        st.last_screen_fingerprint = None;
+                    }
                     match HostSession::stream_start(&udid) {
                         Ok(_host) => {
-                            let stats = comp.stats();
+                            let stats = {
+                                let st = state.lock().unwrap();
+                                st.compositor.stats()
+                            };
                             let mut st = state.lock().unwrap();
-                            st.udid = Some(udid.clone());
-                            st.session_id = session.session_id.clone();
-                            st.boot_epoch = session.boot_epoch;
-                            st.launch_epoch = session.launch_epoch;
-                            st.expected_bundle_id = session.app_bundle_id.clone();
-                            st.screen_epoch = 0;
-                            st.stability_streak = 0;
-                            st.last_screen_fingerprint = None;
                             let (pw, ph) = preset.hid_size_from_framebuffer(
                                 stats.last_width.max(1),
                                 stats.last_height.max(1),
                             );
                             st.sim_width = pw;
                             st.sim_height = ph;
-                            // Keep _host alive by leaking into state (stream lives for daemon lifetime)
                             std::mem::forget(_host);
                             drop(st);
                             if let Err(e) = HidInput::prepare(&udid) {
                                 warn!(error=%e, "hid prepare after boot");
                             }
                         }
-                        Err(e) => warn!(error=%e, "stream_start after boot"),
+                        Err(e) => warn!(error=%e, "stream_start after boot — AX still bound to udid"),
                     }
                     DaemonResponse::ok(serde_json::json!({ "udid": udid }))
                 }

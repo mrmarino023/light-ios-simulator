@@ -170,6 +170,17 @@ def run_test(
         out["certify_path"] = write_certify_artifact(ws, out)
         return out
 
+    # Seed daemon expected_bundle so observe stamps authoritative process_health.
+    _ligh_json(
+        "cap",
+        "run-app",
+        str(app),
+        "--bundle-id",
+        str(bid),
+        "--settle-ms",
+        str(min(settle_ms, 2500)),
+    )
+
     # Session hard-gate before motor goal (crash ≠ missing chrome).
     blocked = gate_session(bundle_id=str(bid), settle_ms=min(settle_ms, 2000))
     if blocked:

@@ -59,6 +59,18 @@ process_health.running?
   yes                  → proceed
 ```
 
+Observe identity (do not conflate):
+
+| Field | Meaning |
+|-------|---------|
+| `expected_bundle_id` | Agent/session intent (`run_app` / caps) |
+| `app_bundle_id` | Foreground AX bundle (not system_surface) |
+| `process_health` | Always probed for expected, else foreground — never invent death when missing |
+
+**`ligh up` must Boot via `lighd`** (not CLI-local supervisor alone). Otherwise daemon `observe` keeps `udid=""` / `phase=dead` while the CLI prints ready — the agent-environment gate failure mode.
+
+Python `gate_session` falls back to launchctl + eyes when observe omits health (stale daemon). Prefer rebuilt `lighd`.
+
 TRAIL may edit Swift **only** when `trail_allowed: true` (app alive + app-owned fault).
 
 ### Stranger KPI

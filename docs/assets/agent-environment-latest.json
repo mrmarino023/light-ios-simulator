@@ -4,7 +4,7 @@
   "ok": true,
   "checks_pass": 4,
   "checks_total": 4,
-  "total_ms": 82564,
+  "total_ms": 89588,
   "checks": [
     {
       "id": "first_loop",

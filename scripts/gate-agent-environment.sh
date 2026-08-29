@@ -31,12 +31,60 @@ source "$ROOT/scripts/lib/sim-clean.sh"
 echo "══ agent environment gate ══"
 sim_clean_reboot "$LIGH" || fail "sim prep failed"
 
+assert_booted_session() {
+  # sim_clean_reboot can leave lighd up with empty udid after ready/eyes faults.
+  local udid=""
+  local i
+  for i in 1 2 3 4 5; do
+    "$LIGH" daemon status >/dev/null 2>&1 || "$LIGH" daemon start
+    "$LIGH" up --device "${LIGH_DEVICE:-iphone-15-pro}" >/dev/null 2>&1 || "$LIGH" up >/dev/null 2>&1 || true
+    udid=$("$LIGH" --json observe --settle-ms 1200 2>/dev/null | python3 -c '
+import json,sys
+raw=sys.stdin.read(); i=raw.find("{")
+try:
+  d=json.loads(raw[i:] if i>=0 else "{}")
+  print(d.get("udid") or "")
+except Exception:
+  print("")
+' 2>/dev/null || true)
+    if [[ -n "$udid" ]]; then
+      echo "  session udid: $udid"
+      return 0
+    fi
+    sleep 1
+  done
+  echo "✗ daemon observe has empty udid after up — session not attached" >&2
+  return 1
+}
+
+assert_booted_session || fail "session attach failed"
+"$LIGH" home >/dev/null 2>&1 || true
+sleep 1
+
 T0=$(python3 -c 'import time; print(time.time())')
 CHECKS=()
+
+ensure_daemon() {
+  "$LIGH" daemon status >/dev/null 2>&1 || "$LIGH" daemon start
+  # Re-attach if session dropped mid-gate (empty udid ⇒ all motor looks like eyes_unusable).
+  local udid
+  udid=$("$LIGH" --json observe --settle-ms 800 2>/dev/null | python3 -c '
+import json,sys
+raw=sys.stdin.read(); i=raw.find("{")
+try:
+  print(json.loads(raw[i:] if i>=0 else "{}").get("udid") or "")
+except Exception:
+  print("")
+' 2>/dev/null || true)
+  if [[ -z "$udid" ]]; then
+    "$LIGH" up --device "${LIGH_DEVICE:-iphone-15-pro}" >/dev/null 2>&1 || "$LIGH" up >/dev/null 2>&1 || true
+  fi
+}
 
 run_check() {
   local id="$1" title="$2"
   shift 2
+  ensure_daemon
   echo "  ▶ $title"
   if "$@"; then
     CHECKS+=("{\"id\":\"$id\",\"ok\":true}")
@@ -45,15 +93,46 @@ run_check() {
     CHECKS+=("{\"id\":\"$id\",\"ok\":false}")
     echo "    FAIL"
   fi
+  ensure_daemon
 }
 
 check_first_loop() {
-  "$ROOT/scripts/agent-first-loop.sh" >/tmp/agent-env-first.log 2>&1
+  # Poll observe only — spamming `home`/`ready` while AX is empty post-boot
+  # has killed lighd (SIGKILL) and left motor checks cascading fail.
+  : >/tmp/agent-env-first.log
+  local i out q n
+  for i in $(seq 1 30); do
+    out=$("$LIGH" --json observe --settle-ms 2000 2>/dev/null || true)
+    q=$(printf '%s' "$out" | python3 -c '
+import json,sys
+raw=sys.stdin.read(); i=raw.find("{")
+try:
+  d=json.loads(raw[i:] if i>=0 else "{}")
+  udid=bool(d.get("udid"))
+  print(d.get("ax_quality"), (d.get("scene") or {}).get("surface"), len(d.get("actionable_topk") or []), int(udid))
+except Exception:
+  print("bad")
+' 2>/dev/null || echo bad)
+    echo "  wake $i: $q" >>/tmp/agent-env-first.log
+    case "$q" in
+      ready\ *\ [1-9]*\ 1|ready\ *\ [1-9][0-9]*\ 1)
+        return 0
+        ;;
+    esac
+    # One gentle home only if still empty after a few settles (not every loop).
+    if [[ "$i" -eq 8 || "$i" -eq 16 ]]; then
+      "$LIGH" home >/dev/null 2>&1 || true
+    fi
+    sleep 0.5
+  done
+  echo "    wake failed last=$q" >>/tmp/agent-env-first.log
+  return 1
 }
 
 check_fixture_job() {
   [[ -d "$APP" ]] || "$ROOT/scripts/build-fixture.sh" >/tmp/agent-env-fixture.log 2>&1
-  local steps='[{"op":"wait","id":"LighHome"},{"op":"wait","id":"NameField"},{"op":"type","text":"env"},{"op":"tap","id":"GoNext"},{"op":"wait","id":"LighDone"}]'
+  # Type requires focus — tap NameField before type (motor contract).
+  local steps='[{"op":"wait","id":"LighHome"},{"op":"wait","id":"NameField"},{"op":"tap","id":"NameField"},{"op":"type","text":"env"},{"op":"tap","id":"GoNext"},{"op":"wait","id":"LighDone"}]'
   local doc
   doc=$("$LIGH" --json cap app-job "$APP" --bundle-id "$BID" --steps "$steps" \
     --settle-ms 4000 --timeout-ms 20000 2>/tmp/agent-env-job.err || true)

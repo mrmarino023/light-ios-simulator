@@ -737,28 +737,79 @@ fn main() -> anyhow::Result<()> {
                 .as_deref()
                 .map(FeatureRequirements::parse_csv)
                 .unwrap_or_default();
-            let sup = SimSupervisor::new(config).with_requirements(req);
+            // Headless path must Boot via lighd — CLI-local supervisor left daemon
+            // with empty udid so observe/motor looked "dead" after every `ligh up`.
             if !gui {
-                ensure_headless();
-            }
-            let t = std::time::Instant::now();
-            let s = sup.up(device.into(), !gui, udid.as_deref())?;
-            let fp = sup.measure().ok();
-            if use_json {
-                println!("{}", serde_json::json!({
-                    "udid": s.udid,
-                    "boot_secs": t.elapsed().as_secs_f64(),
-                    "ram_mb": fp.as_ref().map(|f| f.total_mb),
-                    "slim": s.slim_applied,
-                }));
-            } else {
-                println!("✓ headless ready in {:.1}s", t.elapsed().as_secs_f64());
-                println!("  udid: {}", s.udid);
-                if let Some(fp) = fp {
-                    println!("  RAM:  {:.0} MB ({} procs)", fp.total_mb, fp.process_count);
-                }
-                if s.slim_applied {
+                let client = hot_client()?;
+                let t = std::time::Instant::now();
+                let device_slug = match device {
+                    DeviceArg::IphoneSe => "iphone-se",
+                    DeviceArg::Iphone15Pro => "iphone-15-pro",
+                    DeviceArg::Iphone15ProMax => "iphone-15-pro-max",
+                    DeviceArg::IpadPro11 => "ipad-pro-11",
+                };
+                let data = if let Some(ref u) = udid {
+                    // Boot RPC is device-preset today; if explicit udid, still boot then rely on session.
+                    let _ = u;
+                    client.boot(Some(device_slug.into()))?
+                } else {
+                    client.boot(Some(device_slug.into()))?
+                };
+                let udid_out = data
+                    .get("udid")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let fp = SimSupervisor::new(config).measure().ok();
+                if use_json {
+                    println!(
+                        "{}",
+                        serde_json::json!({
+                            "udid": udid_out,
+                            "boot_secs": t.elapsed().as_secs_f64(),
+                            "ram_mb": fp.as_ref().map(|f| f.total_mb),
+                            "via": "daemon",
+                        })
+                    );
+                } else {
+                    println!("✓ headless ready in {:.1}s", t.elapsed().as_secs_f64());
+                    println!("  udid: {udid_out}");
+                    if let Some(fp) = fp {
+                        println!(
+                            "  RAM:  {:.0} MB ({} procs)",
+                            fp.total_mb, fp.process_count
+                        );
+                    }
                     println!("  slim: disabledJob + runtime (session)");
+                }
+            } else {
+                let sup = SimSupervisor::new(config).with_requirements(req);
+                let t = std::time::Instant::now();
+                let s = sup.up(device.into(), false, udid.as_deref())?;
+                let fp = sup.measure().ok();
+                if use_json {
+                    println!(
+                        "{}",
+                        serde_json::json!({
+                            "udid": s.udid,
+                            "boot_secs": t.elapsed().as_secs_f64(),
+                            "ram_mb": fp.as_ref().map(|f| f.total_mb),
+                            "slim": s.slim_applied,
+                            "via": "cli",
+                        })
+                    );
+                } else {
+                    println!("✓ headless ready in {:.1}s", t.elapsed().as_secs_f64());
+                    println!("  udid: {}", s.udid);
+                    if let Some(fp) = fp {
+                        println!(
+                            "  RAM:  {:.0} MB ({} procs)",
+                            fp.total_mb, fp.process_count
+                        );
+                    }
+                    if s.slim_applied {
+                        println!("  slim: disabledJob + runtime (session)");
+                    }
                 }
             }
         }

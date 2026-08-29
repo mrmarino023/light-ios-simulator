@@ -11,6 +11,7 @@ import unittest
 from ligh_session_gate import (
     classify_process_health,
     gate_from_health,
+    resolve_process_health,
     trail_allowed,
     write_certify_artifact,
 )
@@ -104,6 +105,21 @@ class TestSessionGate(unittest.TestCase):
                 }
             )
         )
+
+    def test_eyes_alive_when_process_health_missing(self) -> None:
+        """Don't invent app_not_running when AX shows Mastodon chrome."""
+        snap = {
+            "ax_quality": "ready",
+            "observed_app_label": "Mastodon",
+            "app_bundle_id": None,
+            "udid": "",
+            "scene": {"surface": "app"},
+            "actionable_topk": [{"label": "Accedi"}],
+        }
+        ph = resolve_process_health(snap, bundle_id="org.joinmastodon.app")
+        assert ph is not None
+        self.assertTrue(ph["running"])
+        self.assertIsNone(gate_from_health(ph))
 
 
 if __name__ == "__main__":
