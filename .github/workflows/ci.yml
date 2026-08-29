@@ -51,3 +51,8 @@ jobs:
           bash -n scripts/workloads/springboard-icons.sh
           bash -n scripts/demo-type-agent.sh
           bash -n scripts/demo-agent.sh
+          bash -n scripts/ligh-test.sh
+
+      - name: Session gate unit tests
+        working-directory: scripts
+        run: python3 -m unittest test_ligh_session_gate.py -v

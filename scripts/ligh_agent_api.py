@@ -128,18 +128,62 @@ def run_test(
     settle_ms: int = 3000,
     timeout_ms: int = 20000,
 ) -> dict[str, Any]:
-    """Run verify from .ligh bundle — goal-first by default."""
+    """Run verify from .ligh bundle — goal-first by default.
+
+    Always writes `.ligh/last-certify.json`. Refuses TRAIL-facing work when
+    process_health says crashed/not running.
+    """
+    from ligh_session_gate import (
+        enrich_certify_from_observe,
+        gate_session,
+        observe_snapshot,
+        trail_allowed,
+        write_certify_artifact,
+    )
+
+    ws = workspace_root(workspace)
     proj = load_project(workspace)
     app = proj.get("app_path")
     bid = proj.get("bundle_id")
     if not app or not os.path.isdir(app):
-        return {
+        out = {
             "ok": False,
             "fault": "infra",
+            "fault_owner": "host",
+            "capability": "ligh_test",
             "error": f"app not built: {app!r} — run ligh_init with --build",
+            "trail_allowed": False,
+            "repair_allowed": False,
         }
+        out["certify_path"] = write_certify_artifact(ws, out)
+        return out
     if not bid:
-        return {"ok": False, "fault": "infra", "error": "bundle_id missing in project.json"}
+        out = {
+            "ok": False,
+            "fault": "infra",
+            "fault_owner": "host",
+            "capability": "ligh_test",
+            "error": "bundle_id missing in project.json",
+            "trail_allowed": False,
+            "repair_allowed": False,
+        }
+        out["certify_path"] = write_certify_artifact(ws, out)
+        return out
+
+    # Session hard-gate before motor goal (crash ≠ missing chrome).
+    blocked = gate_session(bundle_id=str(bid), settle_ms=min(settle_ms, 2000))
+    if blocked:
+        blocked.update(
+            {
+                "capability": "ligh_test",
+                "mode": mode,
+                "workspace": ws,
+                "app": app,
+                "bundle_id": bid,
+            }
+        )
+        blocked["certify_path"] = write_certify_artifact(ws, blocked)
+        return blocked
 
     if mode == "job":
         steps = load_app_job(workspace)
@@ -182,16 +226,34 @@ def run_test(
     ok = bool(raw.get("ok"))
     if not ok and isinstance(raw.get("data"), dict):
         ok = bool(raw["data"].get("ok"))
-    out = raw.get("data") if isinstance(raw.get("data"), dict) else raw
-    return {
+    data = raw.get("data") if isinstance(raw.get("data"), dict) else raw
+    fault = data.get("fault") if isinstance(data, dict) else None
+    if ok:
+        fault = "ok"
+
+    # Post observe for certify stamp (system_surface / screen_sig / health).
+    snap = observe_snapshot(settle_ms=800)
+    ph = snap.get("process_health") if isinstance(snap, dict) else None
+    out: dict[str, Any] = {
         "ok": ok,
         "capability": "ligh_test",
         "mode": mode,
-        "workspace": workspace_root(workspace),
+        "workspace": ws,
         "app": app,
         "bundle_id": bid,
-        **{k: out.get(k) for k in ("fault", "detail", "evidence", "trace") if out.get(k) is not None},
+        "fault": fault,
+        "fault_owner": "none" if ok else ("app" if fault not in ("infra", "eyes_unusable", "timeout") else "host"),
+        "trail_allowed": bool(ok is False and trail_allowed(str(fault) if fault else None, process_health=ph)),
+        "repair_allowed": bool(ok is False and trail_allowed(str(fault) if fault else None, process_health=ph)),
     }
+    if isinstance(data, dict):
+        for k in ("detail", "evidence", "trace", "overlay"):
+            if data.get(k) is not None:
+                out[k] = data[k]
+    enrich_certify_from_observe(out, snap)
+    out["certify_path"] = write_certify_artifact(ws, out)
+    return out
+
 
 
 def run_init(

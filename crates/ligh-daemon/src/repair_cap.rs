@@ -14,7 +14,7 @@ use ligh_core::{
 };
 use serde_json::{json, Value};
 
-use crate::capabilities::app_job;
+use crate::capabilities::{app_job, phase_of, surface_of};
 use crate::qa_cap::perceive_from_snap;
 use crate::DaemonState;
 
@@ -119,6 +119,32 @@ pub(crate) fn cap_repair_job(
     let t0 = Instant::now();
     let steps = normalize_steps(exercise);
     let root = workspace.unwrap_or_else(|| Path::new("."));
+
+    // Session hard-gate: never TRAIL-prove on a dead/crashed process.
+    if let Some(bid) = bundle_id {
+        let mut st = state.lock().unwrap();
+        st.expected_bundle_id = Some(bid.to_string());
+        drop(st);
+    }
+    let pre = build();
+    if let Some(ref ph) = pre.process_health {
+        if let Some(fault) = ligh_core::fault_from_process_health(ph) {
+            return CapabilityResult::fail(
+                fault,
+                phase_of(&pre),
+                surface_of(&pre),
+                "repair_job",
+                json!({
+                    "phase": "session_gate",
+                    "process_health": ph,
+                    "detail": ph.hint.clone().unwrap_or_else(|| fault.as_str().into()),
+                    "trail_allowed": false,
+                    "wall_ms": t0.elapsed().as_millis() as u64,
+                }),
+                Some(pre),
+            );
+        }
+    }
 
     if let Some(p) = patch {
         if let Err(e) = write_patch(root, p) {

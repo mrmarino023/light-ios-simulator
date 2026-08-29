@@ -27,10 +27,14 @@ OSS stranger contract: [`docs/OSS_PIPELINE.md`](docs/OSS_PIPELINE.md)
 ligh_init(path)  → once
 ligh_up → ligh_viewer (optional)
 ligh_test        → goal-first verify from .ligh/app-goal.json
-→ { ok: true } or { fault, detail } → fix Swift → rebuild → ligh_test
+                 → always writes .ligh/last-certify.json
+→ { ok: true } or { fault, detail, trail_allowed }
+→ if trail_allowed: fix Swift → rebuild → ligh_test
+→ if app_crashed / app_not_running: open process_health.crash_report_path — do NOT TRAIL
 ```
 
 **Eyes first:** if `eyes_unusable` / `sim_boot_hung`, recover Simulator (SpringBoard AX) — do **not** patch the app.
+**Crash first:** if `app_crashed`, read DiagnosticReports — never treat as `discover_no_chrome`.
 
 Legacy: `ligh_cap_app_goal` / `ligh_cap_app_job` — prefer **`ligh_test`**.
 

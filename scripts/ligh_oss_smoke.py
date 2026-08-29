@@ -474,8 +474,9 @@ def _write_artifact(rows: list[dict[str, Any]], host: Any, out: str) -> dict[str
         "gate": "oss_stranger_trial",
         "schema": 5,
         "primary_metric": "tier_b_verify_pass",
-        "ok": n_pass >= 1 and len(tier_b_pass) >= 1 if tier_b else n_pass >= 2,
-        "holy_shit": n_pass >= 5,
+        "ok": n_pass >= 1 and len(tier_b_pass) >= 1 if tier_b else False,
+        # Competitive bar: Tier B verify volume — cold build passes do not inflate holy_shit.
+        "holy_shit": len(tier_b_pass) >= 3,
         "passed": len(ok_rows),
         "passed_runnable": n_pass,
         "passed_tier_b": len(tier_b_pass),
@@ -489,15 +490,18 @@ def _write_artifact(rows: list[dict[str, Any]], host: Any, out: str) -> dict[str
         "summary": (
             f"{len(tier_b_pass)}/{len(tier_b)} tier-B verify pass · "
             f"{n_pass}/{n_run} total · {len(skipped)} skip · {len(failed)} fail "
-            f"— build≠verify; chrome_trust=motor_only"
+            f"— primary_metric=tier_b_verify_pass; Tier C build≠LIGH"
         ),
         "invariants": [
+            "PRIMARY KPI: tier_b_verify_pass (prebuilt .app) — not cold xcodebuild",
             "Tier A/B/C: LIGH verifies; cold xcodebuild is Tier C benchmark only",
             "Preflight v2: full Package.swift tree + SPM resolve before xcodebuild (swift_tools skip)",
             "Tier B/--app: prebuilt .app only — build_required skip, not LIGH fail",
             "motor wait-label must prove chrome before ligh_test",
+            "session_gate: app_crashed / app_not_running refuse discover_no_chrome + TRAIL",
             "harness_repair on fail — never patch stranger Swift",
             "ligh_invariants enforced at discover + smoke boundaries",
+            ".ligh/last-certify.json written on every ligh_test",
         ],
         "architecture": (
             "Tier A: ligh_init → ligh_test | "

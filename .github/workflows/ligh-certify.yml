@@ -1,0 +1,65 @@
+# Optional: certify a Debug .app in CI (macOS + Simulator).
+# Default CI stays build/test-only; this workflow is the competitive PR motor surface.
+#
+# Required secrets/vars for a real run:
+#   LIGH_CERTIFY_APP_URL  — URL to a prebuilt .app.zip (Tier B)
+#   LIGH_CERTIFY_BUNDLE_ID
+# Or skip when unset (documents the contract).
+
+name: LIGH certify
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "crates/**"
+      - "scripts/ligh_*.py"
+      - "scripts/ligh-test.sh"
+      - ".github/workflows/ligh-certify.yml"
+
+jobs:
+  session-gate-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Session gate + harness unit tests
+        working-directory: scripts
+        run: |
+          python3 -m unittest test_ligh_session_gate.py -v
+
+  certify-app:
+    runs-on: macos-14
+    if: ${{ vars.LIGH_CERTIFY_BUNDLE_ID != '' && vars.LIGH_CERTIFY_APP_URL != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build ligh
+        run: cargo build --release -p ligh-cli -p ligh-daemon --locked
+      - name: Fetch Tier B .app
+        env:
+          APP_URL: ${{ vars.LIGH_CERTIFY_APP_URL }}
+          BID: ${{ vars.LIGH_CERTIFY_BUNDLE_ID }}
+        run: |
+          mkdir -p /tmp/ligh-certify
+          curl -fsSL "$APP_URL" -o /tmp/ligh-certify/app.zip
+          unzip -q /tmp/ligh-certify/app.zip -d /tmp/ligh-certify/out
+          APP=$(find /tmp/ligh-certify/out -name '*.app' -type d | head -1)
+          test -d "$APP"
+          echo "APP=$APP" >> "$GITHUB_ENV"
+          echo "BID=$BID" >> "$GITHUB_ENV"
+      - name: Paradise + ligh_test
+        env:
+          LIGH_BIN: ${{ github.workspace }}/target/release/ligh
+        run: |
+          ./scripts/ligh-paradise.sh "$APP"
+          export LIGH_WORKSPACE="$APP"
+          # If paradise wrote beside the .app parent:
+          WS=$(dirname "$APP")
+          if [ -d "$WS/.ligh" ]; then export LIGH_WORKSPACE="$WS"; fi
+          ./scripts/ligh-test.sh
+          test -f "$LIGH_WORKSPACE/.ligh/last-certify.json"
+          python3 -c "import json,os; d=json.load(open(os.environ['LIGH_WORKSPACE']+'/.ligh/last-certify.json')); assert d.get('ok'), d"

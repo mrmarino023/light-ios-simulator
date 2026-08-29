@@ -40,21 +40,31 @@ ready → perceive → ensure_path → fire_verified → settle
 - **System surface** — foreign-process occlusion (auth / share / permission / …). Discover by **hit-test**, classify by role, motor policy from role table — never Safari-only special cases
 - **Transition** — wait, do not tap
 
-### Process health (L1 session invariant)
+### Certify artifact (competitive product surface)
 
-Every observe with `expected_bundle_id` stamps `process_health`. Crash loops surface as `app_crashed` (with `.ips` hint), never `discover_no_chrome`.
+Every `ligh_test` writes **`.ligh/last-certify.json`**:
 
-### System surface (L2 perception)
-
-```text
-frontmost AX
-  → hit-test mid-screen → foreign pid?
-  → else known UIService catalog (classify only)
-  → stamp ax_source=system_surface + role + bundle
-  → overlay=system_surface; eyes stay usable when tree is ready
+```json
+{ "ok", "fault", "fault_owner", "process_health", "system_surface", "overlay", "screen_sig", "trail_allowed" }
 ```
 
-Motor asks `policy_for_overlay(role)` — e.g. auth: prefer AX, **never** auto-dismiss.
+Agents and CI consume this file — not screenshots.
+
+### Session hard-gate (before discover / test / TRAIL)
+
+```text
+process_health.running?
+  no + crashed_recently → app_crashed (refuse TRAIL / harness discover_extended)
+  no                   → app_not_running
+  yes                  → proceed
+```
+
+TRAIL may edit Swift **only** when `trail_allowed: true` (app alive + app-owned fault).
+
+### Stranger KPI
+
+Primary: **`tier_b_verify_pass`**. Tier C cold build is benchmark/skip only — never inflates `holy_shit`.
+
 
 ### fire_verified (no fake ok)
 
