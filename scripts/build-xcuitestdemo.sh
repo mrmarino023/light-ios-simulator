@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 # Build third-party XCUITestDemo.app (OSS, not designed for LIGH).
+# No `| tail` — pipes swallow xcodebuild exit / SIGKILL under BuildGovernor.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PROJ="$ROOT/fixtures/third-party/XCUITestDemo/XCUITestDemo.xcodeproj"
 OUT="$ROOT/fixtures/third-party/XCUITestDemo/build"
-DERIVED="$OUT/DerivedData"
+DERIVED="${LIGH_DERIVED_DATA:-$OUT/DerivedData}"
+LOG="${LIGH_BUILD_LOG:-/tmp/ligh-build-xcuitestdemo.log}"
 
-mkdir -p "$OUT"
+mkdir -p "$OUT" "$(dirname "$LOG")"
+set +e
 xcodebuild \
   -project "$PROJ" \
   -scheme XCUITestDemo \
@@ -20,13 +23,11 @@ xcodebuild \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGN_IDENTITY="" \
-  build \
-  2>&1 | tail -40
+  build >"$LOG" 2>&1
+rc=$?
+set -e
+tail -40 "$LOG" || true
+[[ "$rc" -eq 0 ]] || exit "$rc"
 
 APP=$(find "$DERIVED" -name 'XCUITestDemo.app' -type d | head -1)
-[[ -n "$APP" && -d "$APP" ]] || { echo "✗ XCUITestDemo.app not found under $DERIVED"; exit 1; }
-rm -rf "$OUT/XCUITestDemo.app"
-cp -R "$APP" "$OUT/XCUITestDemo.app"
-/usr/libexec/PlistBuddy -c "Set :MinimumOSVersion 18.0" "$OUT/XCUITestDemo.app/Info.plist" 2>/dev/null || true
-echo "✓ $OUT/XCUITestDemo.app"
-echo "$OUT/XCUITestDemo.app"
+[[ -n "$APP" && -d "$APP" ]] || { echo "✗ XCUITestDemo.app not found under $DERIVED"; exi
