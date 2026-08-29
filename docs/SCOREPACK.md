@@ -40,11 +40,10 @@ Core tasks (three effect shapes): login gate · tab chrome · overlay/onboarding
 `./scripts/ligh-paradise.sh` + MCP remain for developers who already own a Mac.  
 **Do not lead marketing with paradise** — lead with scorepack + certify.
 
-## Distance (honest)
+## Host requirements (honest)
 
-| Layer | Status |
-|-------|--------|
-| Fail-closed certify + TRAIL lab | Strong |
-| External scorepack SKU | **This pack** — start of product |
-| Hosted Mac multi-tenant | Missing (commodity without unique job) |
-| Production breadth | Narrow effect classes — expand pack versions, not tap MCP |
+Scorepack builds are **memory-heavy**. BuildGovernor fails with **`infra_oom`** (not silent kill theater) when free RAM is below `LIGH_BUILD_MIN_FREE_MB` (default **2048**) or xcodebuild is jetsam’d.
+
+Fixture `build-*.sh` scripts must **not** pipe `xcodebuild | tail` — that hides SIGKILL from the governor.
+
+Publish fail boards. A red `claim_pass: false` with structured faults is the product working.

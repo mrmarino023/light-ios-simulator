@@ -40,20 +40,31 @@ def run_task(task_path: str, *, out_path: str, wall_ms: int, reuse: bool) -> dic
     env["LIGH_TRAIL_WALL_MS"] = str(wall_ms)
     env["LIGH_TRAIL_REUSE_SESSION"] = "1" if reuse else "0"
     gate = os.path.join(ROOT, "scripts", "gate-trail-holy.sh")
-    p = subprocess.run(
-        [gate],
-        cwd=ROOT,
-        env=env,
-        capture_output=True,
-        text=True,
-        timeout=max(300, wall_ms // 1000 + 240),
-    )
+    # Infra (inject+build) is outside holy wall — allow long build under governor.
+    timeout_s = max(900, wall_ms // 1000 + 600)
     row: dict[str, Any] = {
         "task_path": task_path,
-        "gate_exit": p.returncode,
+        "gate_exit": 1,
         "verified": False,
         "holy_shit": False,
     }
+    try:
+        p = subprocess.run(
+            [gate],
+            cwd=ROOT,
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=timeout_s,
+        )
+        row["gate_exit"] = p.returncode
+        gate_tail = ((p.stderr or "") + "\n" + (p.stdout or ""))[-1500:]
+    except subprocess.TimeoutExpired as e:
+        row["fault"] = "infra_timeout"
+        row["log_tail"] = f"gate timed out after {timeout_s}s"
+        gate_tail = str(e)[-800:]
+        p = None
+
     if os.path.isfile(out_path):
         try:
             d = json.load(open(out_path, encoding="utf-8"))
@@ -73,16 +84,14 @@ def run_task(task_path: str, *, out_path: str, wall_ms: int, reuse: bool) -> dic
             )
         except (OSError, json.JSONDecodeError) as e:
             row["fault"] = f"artifact_unreadable:{e}"
-    else:
-        # Build/governor OOM often leaves no holy JSON — surface gate log fault.
-        tail = ((p.stderr or "") + "\n" + (p.stdout or ""))[-1500:]
+    elif row.get("fault") != "infra_timeout":
         fault = "gate_failed"
-        if "infra_oom" in tail:
+        if "infra_oom" in gate_tail:
             fault = "infra_oom"
-        elif "Killed: 9" in tail or "killed" in tail.lower():
+        elif "Killed: 9" in gate_tail or "killed" in gate_tail.lower():
             fault = "infra_oom"
         row["fault"] = fault
-        row["log_tail"] = tail[-800:]
+        row["log_tail"] = gate_tail[-800:]
     return row
 
 

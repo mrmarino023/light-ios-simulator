@@ -27,7 +27,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DEFAULT_LOCK = os.path.join(os.path.expanduser("~"), ".ligh", "build.lock")
 DEFAULT_CACHE = os.path.join(os.path.expanduser("~"), ".ligh", "build-cache")
 # Below this free RAM, wait; after deadline → infra_oom.
-DEFAULT_MIN_FREE_MB = int(os.environ.get("LIGH_BUILD_MIN_FREE_MB", "1536"))
+DEFAULT_MIN_FREE_MB = int(os.environ.get("LIGH_BUILD_MIN_FREE_MB", "2048"))
 DEFAULT_WAIT_S = float(os.environ.get("LIGH_BUILD_PRESSURE_WAIT_S", "90"))
 DEFAULT_POLL_S = float(os.environ.get("LIGH_BUILD_PRESSURE_POLL_S", "3"))
 

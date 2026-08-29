@@ -17,33 +17,48 @@
   },
   "tasks": [
     {
-      "task": "login-never-navigates",
       "task_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/login-never-navigates/task.json",
+      "gate_exit": 1,
       "verified": false,
       "holy_shit": false,
-      "fault": "dry_run",
+      "fault": "infra_oom",
+      "log_tail": "\n\u2550\u2550 TRAIL repair \u2550\u2550\n  task=/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/login-never-navigates/task.json\n  \u25b6 inject + build broken (infra)\npatching file 'fixtures/third-party/XCUITestDemo/XCUITestDemo/LoginViewModel.swift'\n{\n  \"ok\": false,\n  \"fault\": \"infra_oom\",\n  \"exit_code\": -9,\n  \"ms\": 6160,\n  \"pressure_wait_ms\": 6052,\n  \"cache_hit\": false,\n  \"cache_key\": \"8686eb606a0a62c059750a779aa7c350\",\n  \"log_tail\": \"\\n\",\n  \"detail\": {\n    \"free_mb\": 903.546875,\n    \"label\": \"trail-broken:login-never-navigates\"\n  }\n}\n",
+      "task": "login-never-navigates",
       "effect_class": "state_gate_stuck",
       "shape": "form_login"
     },
     {
-      "task": "kix-notes-tab-missing",
       "task_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/kix-notes-tab-missing/task.json",
+      "gate_exit": 1,
       "verified": false,
       "holy_shit": false,
-      "fault": "dry_run",
+      "task": "kix-notes-tab-missing",
+      "wall_ms": 516984,
+      "infra_ms": 28300,
+      "llm_tokens": 8058,
+      "mode": "tab_chrome_missing",
+      "primary_path": null,
+      "fault": "fixer_no_change",
+      "reason": "fixer_no_change",
       "effect_class": "tab_chrome_missing",
       "shape": "tab_composition"
     },
     {
-      "task": "onboarding-home-broken",
       "task_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/onboarding-home-broken/task.json",
+      "gate_exit": 1,
       "verified": false,
       "holy_shit": false,
-      "fault": "dry_run",
+      "task": "onboarding-home-broken",
+      "wall_ms": 427236,
+      "infra_ms": 26133,
+      "llm_tokens": 8595,
+      "mode": "blocked_overlay",
+      "primary_path": null,
+      "fault": "fixer_no_change",
+      "reason": "fixer_no_change",
       "effect_class": "blocked_overlay",
       "shape": "overlay_onboarding"
     }
   ],
-  "ts": 1788042796,
-  "dry_run": true
+  "ts": 1788046012
 }
