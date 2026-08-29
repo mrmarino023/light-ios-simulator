@@ -369,14 +369,40 @@ def build_sim_app(xcode_path: str, scheme: str, out_dir: str) -> str:
         args[1:1] = ["-workspace", xcode_path]
     else:
         args[1:1] = ["-project", xcode_path]
-    # SPM checkouts write git hooks; sandboxes/CI often block that — disable hooks.
     env = os.environ.copy()
     env["GIT_CONFIG_COUNT"] = "1"
     env["GIT_CONFIG_KEY_0"] = "core.hooksPath"
     env["GIT_CONFIG_VALUE_0"] = "/dev/null"
-    cp = subprocess.run(args, capture_output=True, text=True, timeout=360, env=env)
-    if cp.returncode != 0:
-        err = (cp.stderr or cp.stdout or "xcodebuild failed")[-800:]
+
+    from ligh_build_governor import cache_get, cache_key, cache_put, run_governed
+
+    stamp_root = os.path.dirname(os.path.abspath(xcode_path))
+    key = cache_key(
+        args,
+        cwd=stamp_root,
+        stamp_roots=[stamp_root],
+        extra=f"export:{scheme}",
+    )
+    # Fast path: identical project stamp → restore exported .app.
+    probe = os.path.join(out_dir, f"{scheme}.app")
+    hit = cache_get(key, probe)
+    if hit:
+        return hit
+
+    result = run_governed(
+        args,
+        cwd=stamp_root,
+        stamp_roots=[stamp_root],
+        artifact=None,
+        use_cache=False,
+        timeout_s=360,
+        env=env,
+        label=f"xcodebuild:{scheme}",
+    )
+    if not result.ok:
+        err = result.log_tail or result.fault or "xcodebuild failed"
+        if result.fault == "infra_oom":
+            raise RuntimeError(f"infra_oom: {err}")
         raise RuntimeError(f"{classify_build_error(err)}: {err}")
     apps = []
     for dp, dirs, _ in os.walk(derived):
@@ -385,7 +411,7 @@ def build_sim_app(xcode_path: str, scheme: str, out_dir: str) -> str:
                 apps.append(os.path.join(dp, d))
     if not apps:
         raise RuntimeError("no .app under DerivedData")
-    # Prefer the main app (not Watch.app / Appex).
+
     def app_rank(p: str) -> tuple:
         name = os.path.basename(p)
         bad = any(tok in name for tok in ("Watch", "Widget", "Appextension", "Extension"))
@@ -400,9 +426,12 @@ def build_sim_app(xcode_path: str, scheme: str, out_dir: str) -> str:
     import shutil
 
     shutil.copytree(apps[0], dest)
-    # Drop DerivedData after copy — OSS batch otherwise fills the disk.
     try:
         shutil.rmtree(derived)
+    except OSError:
+        pass
+    try:
+        cache_put(key, dest)
     except OSError:
         pass
     return dest

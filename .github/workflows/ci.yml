@@ -56,3 +56,7 @@ jobs:
       - name: Session gate unit tests
         working-directory: scripts
         run: python3 -m unittest test_ligh_session_gate.py -v
+
+      - name: BuildGovernor unit tests
+        working-directory: scripts
+        run: python3 -m unittest test_ligh_build_governor.py -v

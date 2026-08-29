@@ -81,11 +81,20 @@ for dp, _, files in os.walk(root):
         if new != text:
             open(path, "w", encoding="utf-8").write(new)
 PY
-"$BUILD_ABS" >/tmp/trail-holy-build-broken.log 2>&1 || fail "build broken failed"
-
-# Install broken binary once — prove relaunches only (cuts ~15–30s).
+# Build plane: flock + memory backpressure + artifact cache (general governor).
 APP_PATH="$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['app_path']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")"
 BUNDLE_ID="$(python3 -c "import json; print(json.load(open('$TASK'))['bundle_id'])")"
+python3 "$ROOT/scripts/ligh_build_governor.py" run \
+  --cwd "$ROOT" \
+  --stamp-root "$SOURCE_ROOT" \
+  --artifact "$APP_PATH" \
+  --label "trail-broken:$(basename "$(dirname "$TASK")")" \
+  --json \
+  -- "$BUILD_ABS" | tee /tmp/trail-holy-build-broken.json
+python3 -c 'import json,sys; d=json.load(open("/tmp/trail-holy-build-broken.json")); sys.exit(0 if d.get("ok") else 1)' \
+  || fail "build broken failed (see /tmp/trail-holy-build-broken.json — infra_oom if pressure/SIGKILL)"
+
+# Install broken binary once — prove relaunches only (cuts ~15–30s).
 "$LIGH" --json cap run-app "$APP_PATH" --bundle-id "$BUNDLE_ID" --settle-ms 700 --timeout-ms 12000 \
   >/tmp/trail-holy-install-broken.log 2>&1 || true
 export LIGH_TRAIL_NO_INSTALL=1

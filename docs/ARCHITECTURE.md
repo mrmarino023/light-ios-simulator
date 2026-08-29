@@ -77,6 +77,21 @@ TRAIL may edit Swift **only** when `trail_allowed: true` (app alive + app-owned 
 
 Primary: **`tier_b_verify_pass`**. Tier C cold build is benchmark/skip only — never inflates `holy_shit`.
 
+### Build plane (BuildGovernor)
+
+All host builds (TRAIL inject, paradise `--build`, OSS Tier C) go through **`scripts/ligh_build_governor.py`**:
+
+| Invariant | Enforcement |
+|-----------|-------------|
+| Serialize | `~/.ligh/build.lock` flock — one xcodebuild at a time |
+| Memory backpressure | Wait for free RAM (`LIGH_BUILD_MIN_FREE_MB`, default 1536) or fault **`infra_oom`** |
+| SIGKILL | exit -9 / 137 → **`infra_oom`** (never silent “build failed”) |
+| Artifact cache | Key = argv + cwd + source stamp; restore `.app` on identical stamp |
+
+Env: `LIGH_BUILD_CACHE=0` disables cache · `LIGH_BUILD_CACHE_DIR` · `LIGH_BUILD_LOCK`.
+
+This is a **host capability**, not a TRAIL patch — same governor for every stranger Debug sim build.
+
 
 ### fire_verified (no fake ok)
 
@@ -287,6 +302,8 @@ Product path: **`./scripts/gate-trail-holy-multi.sh`** (`scripts/trail_holy.py`)
 | **R6** | Bounded ReFix | Shot 2 only if certify fails; harness fault as feedback (ChatRepair-style) | 1 call | +30s |
 
 Hot wall budget (infra excluded): prove 20 + patch 15 + build 35 + certify 20 + slack 30 = **120s**.
+
+Repair **rebuilds** also go through BuildGovernor (serialize + `infra_oom` + stamp cache) — same plane as inject builds.
 
 ### TraceFailure wire (TaskAudit-inspired)
 

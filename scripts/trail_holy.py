@@ -420,21 +420,39 @@ def main() -> int:
     prior_tab_ids = set(re.findall(r'\.accessibilityIdentifier\(\s*"(tab_[^"]+)"\s*\)', original))
 
     def _run_build() -> tuple[bool, int, str]:
-        build_t0 = _now()
-        build = subprocess.run(
-            [
-                task["build_script"]
-                if os.path.isabs(task["build_script"])
-                else os.path.join(ROOT, task["build_script"])
-            ],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            timeout=180,
+        from ligh_build_governor import run_governed
+
+        script = (
+            task["build_script"]
+            if os.path.isabs(task["build_script"])
+            else os.path.join(ROOT, task["build_script"])
         )
-        ms = _now() - build_t0
-        tail = (build.stderr or build.stdout or "")[-1200:]
-        return build.returncode == 0, ms, tail
+        app = (
+            task["app_path"]
+            if os.path.isabs(task.get("app_path") or "")
+            else os.path.join(ROOT, task["app_path"])
+            if task.get("app_path")
+            else None
+        )
+        src = (
+            task["source_root"]
+            if os.path.isabs(task.get("source_root") or "")
+            else os.path.join(ROOT, task["source_root"])
+            if task.get("source_root")
+            else None
+        )
+        result = run_governed(
+            [script],
+            cwd=ROOT,
+            stamp_roots=[src] if src else None,
+            artifact=app if app and app.endswith(".app") else None,
+            label=f"trail-fix:{task.get('id') or 'task'}",
+            timeout_s=180,
+        )
+        tail = result.log_tail or result.fault or ""
+        if result.fault == "infra_oom":
+            tail = f"infra_oom: {tail}"
+        return result.ok, int(result.ms), tail
 
     # R4 structural operators (effect-class) before LLM.
     structural_hits = try_structural_fixes(ctx, mode, tf, loc_result)

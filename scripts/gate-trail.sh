@@ -59,13 +59,22 @@ trap 'restore_tree' EXIT
 echo "  ▶ inject bug + build broken app (infra)"
 rsync -a "$SOURCE_ROOT/" "$BACKUP/"
 patch -p1 -d "$ROOT" < "$PATCH_ABS"
-"$BUILD_ABS" >/tmp/trail-build-broken.log 2>&1 || fail "build broken app failed"
+APP_PATH="$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['app_path']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")"
+python3 "$ROOT/scripts/ligh_build_governor.py" run \
+  --cwd "$ROOT" \
+  --stamp-root "$SOURCE_ROOT" \
+  --artifact "$APP_PATH" \
+  --label "trail-broken:$(basename "$(dirname "$TASK")")" \
+  --json \
+  -- "$BUILD_ABS" | tee /tmp/trail-build-broken.json
+python3 -c 'import json,sys; d=json.load(open("/tmp/trail-build-broken.json")); sys.exit(0 if d.get("ok") else 1)' \
+  || fail "build broken app failed (governor — see /tmp/trail-build-broken.json)"
 
 INFRA_MS=$(python3 -c "import time; print(int(time.time()*1000) - $INFRA_START)")
 
 unset LIGH_IDENTITY_SOURCE || true
 export LIGH_KILLER_TASK="$TASK"
-export LIGH_APP_PATH="$(python3 -c "import json,os; t=json.load(open('$TASK')); p=t['app_path']; print(p if os.path.isabs(p) else os.path.join('$ROOT', p))")"
+export LIGH_APP_PATH="$APP_PATH"
 export LIGH_APP_BUNDLE_ID="$(python3 -c "import json; print(json.load(open('$TASK'))['bundle_id'])")"
 export LIGH_TRAIL_INFRA_MS="$INFRA_MS"
 export LIGH_TRAIL_T0_MS="$(python3 -c 'import time; print(int(time.time()*1000))')"
