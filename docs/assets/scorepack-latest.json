@@ -1,0 +1,49 @@
+{
+  "schema": "ligh.scorepack.result.v1",
+  "pack_id": "ligh-ui-repair-core-v1",
+  "pack_version": 1,
+  "buyer": "eval_harness | agent_platform | ci_agent_pr",
+  "wall_budget_ms": 120000,
+  "tasks_run": 3,
+  "tasks_verified": 0,
+  "tasks_holy_shit": 0,
+  "need_verified": 2,
+  "claim_pass": false,
+  "holy_shit_generalized": false,
+  "compose_with": {
+    "maestro": "Durable cross-platform E2E flows + Cloud",
+    "xcodebuildmcp": "Build / test / sim toolkit",
+    "ligh": "Fail-closed certify + structured repair of this agent change"
+  },
+  "tasks": [
+    {
+      "task": "login-never-navigates",
+      "task_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/login-never-navigates/task.json",
+      "verified": false,
+      "holy_shit": false,
+      "fault": "dry_run",
+      "effect_class": "state_gate_stuck",
+      "shape": "form_login"
+    },
+    {
+      "task": "kix-notes-tab-missing",
+      "task_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/kix-notes-tab-missing/task.json",
+      "verified": false,
+      "holy_shit": false,
+      "fault": "dry_run",
+      "effect_class": "tab_chrome_missing",
+      "shape": "tab_composition"
+    },
+    {
+      "task": "onboarding-home-broken",
+      "task_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/fixtures/frozen/tasks/onboarding-home-broken/task.json",
+      "verified": false,
+      "holy_shit": false,
+      "fault": "dry_run",
+      "effect_class": "blocked_overlay",
+      "shape": "overlay_onboarding"
+    }
+  ],
+  "ts": 1788042796,
+  "dry_run": true
+}

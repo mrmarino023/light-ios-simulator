@@ -75,7 +75,8 @@ TRAIL may edit Swift **only** when `trail_allowed: true` (app alive + app-owned 
 
 ### Stranger KPI
 
-Primary: **`tier_b_verify_pass`**. Tier C cold build is benchmark/skip only — never inflates `holy_shit`.
+Primary product KPI is **scorepack `claim_pass` / `holy_shit_generalized`** ([`SCOREPACK.md`](SCOREPACK.md)).  
+Stranger Tier B (`tier_b_verify_pass`) supports dogfood — never inflates scorepack holy.
 
 ### Build plane (BuildGovernor)
 

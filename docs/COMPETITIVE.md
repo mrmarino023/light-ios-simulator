@@ -1,10 +1,12 @@
 # LIGH vs competitors — brutal honest map
 
-Last updated: 2026-08-27
+Last updated: 2026-08-30
 
 ## One line
 
-**Maestro proves the UI. LIGH proves your agent's code change** — verify + localize + fix + certify — on **any stranger iOS repo** with one pipeline.
+**Maestro proves durable UI flows. LIGH proves the agent's code change** — fail-closed certify + TRAIL repair — sold to **eval / CI / agent platforms** that cannot vibes-merge.
+
+Not competing for “every Cursor user installs a tap MCP.” That market is owned.
 
 ---
 
@@ -12,19 +14,27 @@ Last updated: 2026-08-27
 
 | | **Maestro MCP** | **XcodeBuildMCP** | **ios-simulator-mcp** | **Vision baseline** | **LIGH** |
 |--|-----------------|-------------------|----------------------|---------------------|----------|
-| **Primary job** | Write/run E2E flows | Build + test Xcode | Drive sim | Screenshot → guess | **Verify + repair agent edits** |
-| **Agent entry** | `inspect_screen`, `run` | 79 MCP tools | tap/swipe/screenshot | chat + vision | **`ligh_test`** (goal-first) |
-| **Stranger repo** | hand-authored YAML | build only | manual | flaky | **URL → HostCapability → discover → certify** |
-| **0 AX ids** | text match | n/a | partial | vision | **label-first motor-proven chrome** |
-| **Live viewer** | Maestro Viewer ✅ | ❌ | screenshots | screenshots | **`ligh_viewer`** ✅ |
-| **Structured faults** | YAML errors | build JSON | raw | none | **`motor_no_effect`, host skips, repair_contract** |
-| **Autonomous repair** | ❌ | ❌ | ❌ | retry forever | **TRAIL** ✅ |
-| **UI token cost** | inspect + author flows | high MCP schema tax | medium | **very high** | **0 on motor** ✅ |
-| **Cloud CI** | Maestro Cloud ✅ | ❌ | ❌ | varies | GitHub Action starter |
+| **Primary job** | Write/run E2E flows | Build + test Xcode | Drive sim | Screenshot → guess | **Certify + repair agent edits** |
+| **Buyer** | QA + agents | Agents building | Agents tapping | Chat default | **Eval harnesses · agent PR CI · platforms** |
+| **Agent entry** | `inspect_screen`, `run` | 79 MCP tools | tap/swipe/screenshot | chat + vision | **`ligh_test` / scorepack** |
+| **Scored repair** | ❌ | ❌ | ❌ | ❌ | **TRAIL + scorepack** ✅ |
+| **Structured faults** | YAML errors | build JSON | raw | none | **`ok` / `app_crashed` / repair_contract** |
+| **UI token cost** | inspect + flows | schema tax | medium | **very high** | **0 on motor** ✅ |
+| **Cloud** | Maestro Cloud ✅ | ❌ | ❌ | varies | Scorepack/certify Actions (hosted Mac = later) |
+
+**Compose:** Maestro = durable E2E. XcodeBuildMCP = build. LIGH = truth of **this** Swift change.
 
 ---
 
-## OSS stranger architecture (the competitive wedge)
+## Where we shine (ranked)
+
+1. **Agent scorepack** — frozen inject → fix → `ok:true` → wall/tokens/faults ([`docs/SCOREPACK.md`](SCOREPACK.md))
+2. **CI certify** — agent PR goal postconditions; emit fault / `trail_allowed`
+3. **Not** solo-dev paradise, stranger cold-build theater, or Android parity with Maestro
+
+---
+
+## OSS stranger architecture (supporting, not the wedge)
 
 No per-app scheme/label/bundle maps. Same stages for every URL:
 
@@ -55,43 +65,40 @@ HostCapability (Xcode objectVersion, watchOS, disk, iOS runtime)
 
 ---
 
-## When agents should pick LIGH
+## When buyers should pick LIGH
 
-- Agent **edits Swift** and must **prove + fix** in the same session
-- You care about **token cost** and **fail-closed** semantics
-- You want **stranger OSS** onboarding without writing Maestro YAML first
-- Bug class: login gate, missing tab, disabled control, stuck overlay
+- Scoring **coding agents** on iOS UI repair (eval harness / platform)
+- **Agent PR CI**: goal certify + structured fault; optional TRAIL
+- Fail-closed `ok:true` only — cannot vibes-merge
 
-## When agents should pick Maestro
+## When buyers should pick Maestro
 
-- Cross-platform E2E suite in repo
-- QA team owns YAML flows
-- Need Maestro Cloud polish today
+- Cross-platform durable E2E suite + Cloud
+- QA-owned YAML flows
 
-## When agents should pick XcodeBuildMCP
+## When buyers should pick XcodeBuildMCP
 
-- Build/test/debug loop only — no verify semantics needed
+- Build/test/debug loop only — no certify/repair semantics
 
 ---
 
-## LIGH product surface (agent paradise)
+## LIGH product surface
 
 ```text
-ligh_init(path)     → .ligh/ audit + app-goal.json
-ligh_test()         → verify (PRIMARY)
-ligh_viewer()       → browser sim (debug)
-ligh_cap_repair_job → TRAIL when test proves bug
+gate-scorepack.sh     → scored TRAIL pack (PRIMARY for platforms)
+ligh_test / agent-loop → .ligh/last-certify.json (CI + dogfood)
+ligh_cap_repair_job   → TRAIL when certify proves bug
+ligh_viewer           → debug only
 ```
-
-Shell: `./scripts/ligh-paradise.sh` · `./scripts/ligh-test.sh`
 
 ---
 
 ## Still missing (honest)
 
-- Hosted Mac runner (monetization path)
+- Hosted Mac multi-tenant (commodity without unique job — add after scorepack demand)
+- External agent plug-in API (today: TRAIL host arm; agent-under-test harness next)
 - Android
-- Repair fully in Rust (Python harness on hot path)
-- 5+ stranger `ligh_test ok` on every host Xcode (host skips are expected)
+- Repair fully in Rust (Python on hot path)
+- Broad production effect classes beyond core pack
 
-See [`AGENT_PARADISE.md`](AGENT_PARADISE.md) · [`TRAIL_BULLETPROOF.md`](TRAIL_BULLETPROOF.md)
+See [`SCOREPACK.md`](SCOREPACK.md) · [`TRAIL_BULLETPROOF.md`](TRAIL_BULLETPROOF.md)

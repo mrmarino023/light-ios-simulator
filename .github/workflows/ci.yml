@@ -60,3 +60,7 @@ jobs:
       - name: BuildGovernor unit tests
         working-directory: scripts
         run: python3 -m unittest test_ligh_build_governor.py -v
+
+      - name: Scorepack contract unit tests
+        working-directory: scripts
+        run: python3 -m unittest test_ligh_scorepack.py -v

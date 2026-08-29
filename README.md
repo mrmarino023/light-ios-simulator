@@ -5,48 +5,70 @@
 <h1 align="center">LIGH</h1>
 
 <p align="center">
-  <strong>Host-side control plane for coding agents on iOS.</strong><br/>
-  Observe · act · verify · repair — on Simulator and physical Expo debug builds.<br/>
+  <strong>Truth machine for iOS coding agents.</strong><br/>
+  Fail-closed certify · structured repair (TRAIL) · scored eval/CI — not another tap MCP.<br/>
   MIT · macOS + Xcode
 </p>
 
 <p align="center">
+  <a href="#the-bet"><strong>The bet</strong></a> ·
   <a href="#results"><strong>Results</strong></a> ·
-  <a href="#apps-under-test"><strong>Apps under test</strong></a> ·
+  <a href="#agent-scorepack"><strong>Scorepack</strong></a> ·
   <a href="#install"><strong>Install</strong></a> ·
-  <a href="#connect-cursor"><strong>Cursor</strong></a> ·
-  <a href="#expo--physical-iphone"><strong>Expo</strong></a> ·
   <a href="#how-it-works"><strong>How it works</strong></a>
 </p>
 
 ---
 
+## The bet
+
+**Maestro proves durable UI flows. XcodeBuildMCP builds. LIGH proves the agent's Swift change** — with `ok: true` only, structured faults, and optional TRAIL repair.
+
+Sold to people who **cannot vibes-merge**: agent eval harnesses, platforms, and CI on agent-authored PRs.  
+Compose with Maestro (E2E partner). Do not compete for “every Cursor user installs another MCP.”
+
+| Buyer | Job |
+|-------|-----|
+| **Eval / agent platforms** | Frozen scorepack → inject bug → agent or TRAIL → scoreboard |
+| **CI (agent PRs)** | Goal certify on critical paths → block merge on `ok: false` |
+| Local Mac dogfood | Secondary — [`docs/AGENT_PARADISE.md`](docs/AGENT_PARADISE.md) |
+
+→ Strategy + distance: [`docs/SCOREPACK.md`](docs/SCOREPACK.md) · vs stack: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
+
+---
+
 ## What it does
 
-Coding agents can edit Swift. They still cannot reliably **use** the app they just changed.
-
-LIGH closes that loop on the host:
-
 ```text
-write → build → run → interact → verify → fix
+agent edits Swift → build → sim → prove → fault taxonomy → localize/repair → certify
 ```
 
-- **Feel IR** — structured interaction frame (not a screenshot dump)
-- **Autopilot** — host reaches UI goals with **0 LLM UI tokens**
-- **TRAIL repair** — [`repair_engine.py`](scripts/repair_engine.py): classify → KB localize → structural ops → ≤2 LLM patches → certify (same path for every OSS app)
+- **`ligh_test`** — goal-first verify; always writes `.ligh/last-certify.json`
+- **TRAIL** — prove → effect-class localize → ≤2 patches → certify (lab + scorepack)
+- **BuildGovernor** — serialize builds, memory backpressure, `infra_oom` (host plane)
+- **0 LLM UI tokens** on motor (Autopilot)
 
-Requires Mac + Xcode Simulator. Works with **label-first discover** when apps have no `accessibilityIdentifier`s (and better still when they do).
+Requires Mac + Xcode Simulator.
 
-### Agent paradise (start here)
+### Agent Scorepack (start here if you buy the bet)
+
+```bash
+./scripts/gate-scorepack.sh --dry-run    # contract + scoreboard schema
+./scripts/gate-scorepack.sh              # full TRAIL core pack (OPENAI_API_KEY + Mac)
+```
+
+Pack: [`scorepack/v1/manifest.json`](scorepack/v1/manifest.json) · CI: `.github/workflows/ligh-scorepack.yml`
+
+### Local certify (secondary)
 
 ```bash
 ./scripts/ligh-paradise.sh /path/to/MyApp.xcodeproj --build
-LIGH_WORKSPACE=/path/to/app ./scripts/ligh-test.sh      # goal-first verify
+LIGH_WORKSPACE=/path/to/app ./scripts/ligh-agent-loop.sh
 ```
 
-**MCP:** `ligh_init` → `ligh_test` → `ligh_viewer` · vs Maestro: [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
+**MCP:** `ligh_init` → `ligh_test` → `ligh_viewer` — dogfood, not the wedge.
 
-→ [Agent paradise guide](docs/AGENT_PARADISE.md) · [AGENTS.md](AGENTS.md)
+→ [AGENTS.md](AGENTS.md)
 
 ---
 

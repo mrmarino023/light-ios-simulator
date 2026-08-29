@@ -1,0 +1,67 @@
+{
+  "schema": "ligh.scorepack.v1",
+  "pack_id": "ligh-ui-repair-core-v1",
+  "title": "LIGH UI repair core (agent truth machine)",
+  "version": 1,
+  "buyer": "eval_harness | agent_platform | ci_agent_pr",
+  "job": "Inject a UI bug into a real iOS app. Score whether the coding agent (or TRAIL host) fixes Swift and certifies on Simulator with ok:true only.",
+  "not_job": [
+    "Replace Maestro durable E2E YAML suites",
+    "Replace XcodeBuildMCP build/debug",
+    "Cold stranger git→xcodebuild as the headline KPI"
+  ],
+  "compose_with": {
+    "maestro": "Durable cross-platform E2E flows + Cloud",
+    "xcodebuildmcp": "Build / test / sim toolkit",
+    "ligh": "Fail-closed certify + structured repair of this agent change"
+  },
+  "scoring": {
+    "unit": "task",
+    "fields": [
+      "verified",
+      "holy_shit",
+      "wall_ms",
+      "infra_ms",
+      "llm_tokens",
+      "fault",
+      "mode",
+      "primary_path"
+    ],
+    "holy_shit": "verified && (wall_ms - infra_ms) <= wall_budget_ms when infra excluded; else verified && wall_ms <= wall_budget_ms",
+    "wall_budget_ms": 120000,
+    "claim_pass": "verified_count >= ceil(2/3 of core tasks)",
+    "holy_shit_generalized": "every core task holy_shit"
+  },
+  "core_tasks": [
+    {
+      "id": "login-never-navigates",
+      "task": "fixtures/frozen/tasks/login-never-navigates/task.json",
+      "effect_class": "state_gate_stuck",
+      "shape": "form_login"
+    },
+    {
+      "id": "kix-notes-tab-missing",
+      "task": "fixtures/frozen/tasks/kix-notes-tab-missing/task.json",
+      "effect_class": "tab_chrome_missing",
+      "shape": "tab_composition"
+    },
+    {
+      "id": "onboarding-home-broken",
+      "task": "fixtures/frozen/tasks/onboarding-home-broken/task.json",
+      "effect_class": "blocked_overlay",
+      "shape": "overlay_onboarding"
+    }
+  ],
+  "held_out_hint": "fixtures/frozen/tasks/* not listed in core_tasks — sealed L3; do not train prompts on them",
+  "artifacts": {
+    "scoreboard": "docs/assets/scorepack-latest.json",
+    "per_task": "/tmp/ligh-scorepack-<task_id>.json",
+    "certify": ".ligh/last-certify.json"
+  },
+  "api_surface": {
+    "cli": "./scripts/gate-scorepack.sh",
+    "python": "scripts/ligh_scorepack.py",
+    "ci": ".github/workflows/ligh-scorepack.yml",
+    "certify_pr": ".github/workflows/ligh-certify.yml"
+  }
+}

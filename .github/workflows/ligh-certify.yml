@@ -1,10 +1,14 @@
-# Optional: certify a Debug .app in CI (macOS + Simulator).
-# Default CI stays build/test-only; this workflow is the competitive PR motor surface.
+# Optional: fail-closed goal certify for agent-authored PRs (Tier B .app).
 #
-# Required secrets/vars for a real run:
-#   LIGH_CERTIFY_APP_URL  — URL to a prebuilt .app.zip (Tier B)
-#   LIGH_CERTIFY_BUNDLE_ID
-# Or skip when unset (documents the contract).
+# Contract (compose with Maestro E2E — do not replace YAML suites):
+#   PR ships a Debug sim .app (or URL) → ligh_test → .ligh/last-certify.json ok:true
+#   On fail: structured fault (+ trail_allowed) — merge blockers for agent platforms/CI.
+#
+# Required for live Mac certify:
+#   vars.LIGH_CERTIFY_APP_URL     — prebuilt .app.zip
+#   vars.LIGH_CERTIFY_BUNDLE_ID
+# Optional:
+#   vars.LIGH_CERTIFY_REQUIRE_OK  — if "1", ubuntu job fails when Mac certify skipped (forces config)
 
 name: LIGH certify
 
@@ -15,23 +19,36 @@ on:
       - "crates/**"
       - "scripts/ligh_*.py"
       - "scripts/ligh-test.sh"
+      - "scripts/ligh-agent-loop.sh"
+      - "scorepack/**"
       - ".github/workflows/ligh-certify.yml"
 
 jobs:
-  session-gate-unit:
+  certify-contract:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Session gate + harness unit tests
+      - name: Session gate + BuildGovernor unit tests
         working-directory: scripts
         run: |
-          python3 -m unittest test_ligh_session_gate.py -v
+          python3 -m unittest test_ligh_session_gate.py test_ligh_build_governor.py -v
+      - name: Certify contract docs present
+        run: |
+          test -f docs/SCOREPACK.md
+          test -f scorepack/v1/manifest.json
+          python3 -c "import json; m=json.load(open('scorepack/v1/manifest.json')); assert m['schema']=='ligh.scorepack.v1'"
+      - name: Require Mac certify configured (optional)
+        if: ${{ vars.LIGH_CERTIFY_REQUIRE_OK == '1' }}
+        run: |
+          test -n "${{ vars.LIGH_CERTIFY_BUNDLE_ID }}"
+          test -n "${{ vars.LIGH_CERTIFY_APP_URL }}"
 
   certify-app:
     runs-on: macos-14
+    needs: certify-contract
     if: ${{ vars.LIGH_CERTIFY_BUNDLE_ID != '' && vars.LIGH_CERTIFY_APP_URL != '' }}
     steps:
       - uses: actions/checkout@v4
@@ -51,15 +68,20 @@ jobs:
           test -d "$APP"
           echo "APP=$APP" >> "$GITHUB_ENV"
           echo "BID=$BID" >> "$GITHUB_ENV"
-      - name: Paradise + ligh_test
+      - name: Agent loop certify
         env:
           LIGH_BIN: ${{ github.workspace }}/target/release/ligh
         run: |
           ./scripts/ligh-paradise.sh "$APP"
-          export LIGH_WORKSPACE="$APP"
-          # If paradise wrote beside the .app parent:
           WS=$(dirname "$APP")
-          if [ -d "$WS/.ligh" ]; then export LIGH_WORKSPACE="$WS"; fi
-          ./scripts/ligh-test.sh
+          if [ -d "$WS/.ligh" ]; then export LIGH_WORKSPACE="$WS"; else export LIGH_WORKSPACE="$APP"; fi
+          ./scripts/ligh-agent-loop.sh
           test -f "$LIGH_WORKSPACE/.ligh/last-certify.json"
           python3 -c "import json,os; d=json.load(open(os.environ['LIGH_WORKSPACE']+'/.ligh/last-certify.json')); assert d.get('ok'), d"
+      - name: Upload last-certify
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: last-certify
+          path: "**/.ligh/last-certify.json"
+          if-no-files-found: ignore

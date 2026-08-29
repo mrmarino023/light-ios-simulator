@@ -1,0 +1,76 @@
+# LIGH Agent Scorepack — eval / CI truth machine
+#
+# Always: dry-run validates manifest + result schema (any runner).
+# Optional macos: full TRAIL scorepack when OPENAI_API_KEY + Mac sim available.
+#
+# This is the product surface for agent platforms — not "install MCP for daily coding."
+
+name: LIGH scorepack
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "scorepack/**"
+      - "scripts/ligh_scorepack.py"
+      - "scripts/gate-scorepack.sh"
+      - "scripts/gate-trail-holy.sh"
+      - "scripts/trail_holy.py"
+      - "fixtures/frozen/tasks/**"
+      - ".github/workflows/ligh-scorepack.yml"
+  pull_request:
+    paths:
+      - "scorepack/**"
+      - "scripts/ligh_scorepack.py"
+      - "scripts/gate-scorepack.sh"
+      - "fixtures/frozen/tasks/**"
+      - ".github/workflows/ligh-scorepack.yml"
+
+jobs:
+  scorepack-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dry-run scorepack contract
+        run: |
+          chmod +x scripts/gate-scorepack.sh
+          ./scripts/gate-scorepack.sh --dry-run
+          python3 - <<'PY'
+          import json
+          d=json.load(open("docs/assets/scorepack-latest.json"))
+          assert d.get("schema")=="ligh.scorepack.result.v1", d
+          assert d.get("pack_id")=="ligh-ui-repair-core-v1", d
+          assert d.get("tasks_run")==3, d
+          print("scorepack contract ok", d.get("pack_id"))
+          PY
+      - name: Upload scoreboard artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorepack-latest
+          path: docs/assets/scorepack-latest.json
+
+  scorepack-macos:
+    runs-on: macos-14
+    if: ${{ secrets.OPENAI_API_KEY != '' && vars.LIGH_SCOREPACK_MACOS == '1' }}
+    needs: scorepack-contract
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build ligh
+        run: cargo build --release -p ligh-cli -p ligh-daemon --locked
+      - name: Full scorepack
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LIGH_BIN: ${{ github.workspace }}/target/release/ligh
+        run: |
+          chmod +x scripts/gate-scorepack.sh
+          ./scripts/gate-scorepack.sh
+      - name: Upload full scoreboard
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorepack-macos
+          path: docs/assets/scorepack-latest.json
