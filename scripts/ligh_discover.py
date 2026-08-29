@@ -1,43 +1,67 @@
 #!/usr/bin/env python3
 """Live AX discovery — Maestro inspect_screen parity, OSS-general.
 
-Architecture (no per-app lists):
-  1. scrape static chrome (navigationTitle > Text)
-  2. run-app with first hint (daemon owns SpringBoard → foreground)
-  3. observe in-app labels when surface ≠ springboard
-  4. probe wait-label across candidates until motor proves chrome
-  5. write label-first app-goal from the proven chrome
+Chrome trust (bulletproof):
+  1. static scrape → hints only (filtered i18n / asset paths)
+  2. run-app → observe live AX labels
+  3. motor wait-label proves chrome — ONLY proven label becomes goal
+  4. refuse agent_ready without motor proof (no REPLACE_ME, no scrape-only)
 """
 
 from __future__ import annotations
 
 import json
 import os
-import re
 import subprocess
 import sys
+import time
 from typing import Any
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, os.path.join(ROOT, "scripts"))
 
+from ligh_chrome import (  # noqa: E402
+    SKIP_LABELS,
+    filter_chrome_candidates,
+    is_plausible_chrome,
+    scrape_static_hints,
+)
+
 LIGH = os.environ.get("LIGH_BIN", os.path.join(ROOT, "target", "release", "ligh"))
 
-SKIP_LABELS = frozenset({"", "Back", "Cancel", "Done", "Close", "Tab Bar", "SpringBoard"})
-NAV_TITLE_RE = re.compile(r'\.navigationTitle\s*\(\s*"([^"]{2,60})"')
-TEXT_LABEL_RE = re.compile(r'Text\s*\(\s*"([^"]{2,60})"')
-INTERP_RE = re.compile(r"\\[\($]")
+PREFERRED_ROLES = ("Tab", "Heading", "Button", "StaticText", "Cell", "Link")
+
+
+def _parse_json_blob(blob: str) -> dict[str, Any]:
+    blob = blob.strip()
+    if blob.startswith("{"):
+        try:
+            return json.loads(blob)
+        except json.JSONDecodeError:
+            pass
+    for i in range(len(blob) - 1, -1, -1):
+        if blob[i] != "{":
+            continue
+        try:
+            return json.loads(blob[i:])
+        except json.JSONDecodeError:
+            continue
+    return {"ok": False, "error": blob[-800:]}
 
 
 def _ligh_json(*args: str, timeout: float = 180) -> dict[str, Any]:
     p = subprocess.run([LIGH, *args], capture_output=True, text=True, timeout=timeout)
-    for blob in ((p.stdout or "").strip(), (p.stderr or "").strip()):
-        if blob.startswith("{"):
-            try:
-                return json.loads(blob)
-            except json.JSONDecodeError:
-                pass
-    return {"ok": False, "error": (p.stderr or p.stdout or f"exit {p.returncode}")[:800]}
+    blob = (p.stdout or "") + (p.stderr or "")
+    if not blob.strip():
+        return {"ok": False, "error": f"exit {p.returncode} empty output"}
+    return _parse_json_blob(blob)
+
+
+def ensure_motor_ready(device: str = "iphone-15-pro") -> None:
+    """Daemon attach before run-app / wait-label."""
+    _ligh_json("ready", "--settle-ms", "2500", timeout=90)
+    _ligh_json("up", "--gui", "--device", device, timeout=120)
+    _ligh_json("ready", "--settle-ms", "3000", timeout=90)
 
 
 def _surface(obs: dict[str, Any]) -> str:
@@ -65,76 +89,97 @@ def _node_label(node: dict[str, Any]) -> str | None:
     return None
 
 
-def labels_from_observe(obs: dict[str, Any], *, app_label: str) -> tuple[list[str], list[str]]:
-    """Pull labels/ids from observe. Prefer non-springboard; still collect actionable if mixed."""
+def _role_rank(role: str) -> int:
+    for i, pref in enumerate(PREFERRED_ROLES):
+        if pref in role:
+            return i
+    return len(PREFERRED_ROLES)
+
+
+def labels_from_observe(obs: dict[str, Any], *, app_label: str) -> tuple[list[str], list[str], list[str]]:
+    """Return (tab_labels, other_labels, ids)."""
     surface = _surface(obs)
+    if surface == "springboard":
+        return [], [], []
+
+    nodes: list[dict[str, Any]] = []
+    for n in obs.get("actionable_topk") or []:
+        if isinstance(n, dict):
+            nodes.append(n)
+    tree = obs.get("accessibility_tree")
+    if isinstance(tree, dict):
+        for n in tree.get("nodes") or []:
+            if isinstance(n, dict):
+                nodes.append(n)
+
+    nodes.sort(key=lambda n: _role_rank(str(n.get("role") or "")))
+
+    tab_labels: list[str] = []
     labels: list[str] = []
     ids: list[str] = []
     seen: set[str] = set()
 
-    def add(label: str | None, ident: str | None) -> None:
-        if ident and ident not in seen:
-            seen.add(ident)
-            ids.append(ident)
-        if not label or label in seen or label in SKIP_LABELS:
-            return
-        if label == app_label and surface in ("springboard", "transition"):
-            return
-        seen.add(label)
-        labels.append(label)
-
-    nodes = list(obs.get("actionable_topk") or [])
-    for n in (obs.get("accessibility_tree") or {}).get("nodes") or []:
-        if isinstance(n, dict):
-            nodes.append(n)
-
     for n in nodes:
-        if not isinstance(n, dict):
-            continue
         role = str(n.get("role") or "")
         if "Application" in role:
             continue
-        add(_node_label(n), str(n.get("id") or n.get("identifier") or "") or None)
+        lab = _node_label(n)
+        ident = str(n.get("id") or n.get("identifier") or "") or None
+        if ident and ident not in seen:
+            seen.add(ident)
+            ids.append(ident)
+        if lab and is_plausible_chrome(lab) and lab not in seen and lab != app_label:
+            seen.add(lab)
+            if "Tab" in role:
+                tab_labels.append(lab)
+            else:
+                labels.append(lab)
 
-    if surface == "springboard":
-        # Home grid — discard; only keep intersection later via probe.
-        return [], []
-    return labels, ids
+    return tab_labels, labels, ids
 
 
-def scrape_static_chrome(source_root: str | None, limit: int = 16) -> list[str]:
-    if not source_root or not os.path.isdir(source_root):
-        return []
-    nav: list[str] = []
-    other: list[str] = []
-    seen: set[str] = set()
+def _tap_label(label: str, *, settle_ms: int = 2000) -> None:
+    _ligh_json("--json", "tap", "--label", label, "--timeout-ms", "12000", timeout=60)
+    time.sleep(settle_ms / 1000.0)
 
-    def add(lab: str, *, is_nav: bool) -> None:
-        lab = lab.strip()
-        if not lab or INTERP_RE.search(lab) or lab in seen or lab in SKIP_LABELS:
-            return
-        if len(lab) < 2 or lab.startswith("$"):
-            return
-        seen.add(lab)
-        (nav if is_nav else other).append(lab)
 
-    for dirpath, _, files in os.walk(source_root):
-        if any(x in dirpath for x in ("/build/", "/DerivedData/", "/.git/", "/Pods/", "/Packages/")):
+def bootstrap_tab_chrome(
+    obs: dict[str, Any],
+    *,
+    app_label: str,
+    settle_ms: int = 2500,
+    max_taps: int = 4,
+) -> str | None:
+    """Tab-bar apps: tap tab items, re-probe live AX — still motor-only trust."""
+    tab_labels, labels, _ = labels_from_observe(obs, app_label=app_label)
+    tap_targets = tab_labels or [
+        lab
+        for lab in labels
+        if lab not in SKIP_LABELS and lab != "Tab Bar" and is_plausible_chrome(lab)
+    ]
+    tried: set[str] = set()
+    for lab in tap_targets[:max_taps]:
+        if lab in tried:
             continue
-        for name in files:
-            if not name.endswith(".swift"):
-                continue
-            try:
-                text = open(os.path.join(dirpath, name), encoding="utf-8").read()
-            except OSError:
-                continue
-            for m in NAV_TITLE_RE.finditer(text):
-                add(m.group(1), is_nav=True)
-            for m in TEXT_LABEL_RE.finditer(text):
-                add(m.group(1), is_nav=False)
-            if len(nav) + len(other) >= limit * 2:
-                break
-    return (nav + other)[:limit]
+        tried.add(lab)
+        _tap_label(lab, settle_ms=min(settle_ms, 1500))
+        fresh = _observe_payload(_ligh_json("--json", "observe", "--settle-ms", str(settle_ms)))
+        tabs, more, _ = labels_from_observe(fresh, app_label=app_label)
+        candidates = filter_chrome_candidates(tabs + more + [lab])
+        proven = probe_chrome(candidates, settle_ms=min(settle_ms, 2000), max_probe=8)
+        if proven:
+            return proven
+    return None
+
+
+def _scrape_roots(source_root: str | None) -> list[str]:
+    roots: list[str] = []
+    if source_root and os.path.isdir(source_root):
+        roots.append(source_root)
+        parent = os.path.dirname(source_root)
+        if os.path.isdir(parent) and parent not in roots:
+            roots.append(parent)
+    return roots
 
 
 def build_label_goal(chrome: str) -> dict[str, Any]:
@@ -144,11 +189,13 @@ def build_label_goal(chrome: str) -> dict[str, Any]:
     }
 
 
-def probe_chrome(candidates: list[str], *, settle_ms: int = 2000) -> str | None:
-    """Motor-prove which label is on screen — Maestro inspect_screen equivalent."""
+def probe_chrome(candidates: list[str], *, settle_ms: int = 2000, max_probe: int = 24) -> str | None:
+    """Motor-prove chrome — the only trust path for goals."""
     tried: set[str] = set()
-    for lab in candidates:
+    for lab in candidates[:max_probe]:
         if not lab or lab in tried or lab in SKIP_LABELS:
+            continue
+        if not is_plausible_chrome(lab):
             continue
         tried.add(lab)
         r = _ligh_json(
@@ -159,10 +206,10 @@ def probe_chrome(candidates: list[str], *, settle_ms: int = 2000) -> str | None:
             "--settle-ms",
             str(settle_ms),
             "--timeout-ms",
-            "10000",
-            timeout=60,
+            "12000",
+            timeout=90,
         )
-        if r.get("ok"):
+        if r.get("ok") or r.get("fault") == "ok":
             return lab
     return None
 
@@ -173,15 +220,17 @@ def discover_live(
     *,
     source_root: str | None = None,
     settle_ms: int = 3500,
+    device: str = "iphone-15-pro",
 ) -> dict[str, Any]:
     if not os.path.isdir(app):
         return {"ok": False, "fault": "infra", "error": f"app missing: {app}"}
 
-    app_label = os.path.basename(app).replace(".app", "")
-    static = scrape_static_chrome(source_root)
-    wait_hint = static[0] if static else None
+    ensure_motor_ready(device)
 
-    cmd = [
+    app_label = os.path.basename(app).replace(".app", "")
+    static = scrape_static_hints(_scrape_roots(source_root))
+
+    run = _ligh_json(
         "--json",
         "cap",
         "run-app",
@@ -191,86 +240,116 @@ def discover_live(
         "--settle-ms",
         str(settle_ms),
         "--timeout-ms",
-        "25000",
-    ]
-    if wait_hint:
-        cmd.extend(["--wait-label", wait_hint])
-
-    run = _ligh_json(*cmd)
+        "30000",
+        timeout=120,
+    )
     obs = _observe_payload(run)
     boot_ok = bool(run.get("ok"))
 
-    # If launch left us on home, tap the app icon once — same recovery daemon uses, but
-    # discover must own it when run-app returns before chrome is proven.
     if not boot_ok:
-        _ligh_json("--json", "tap", "--label", app_label, "--timeout-ms", "12000", timeout=60)
+        _ligh_json("run", app, timeout=120)
+        time.sleep(2)
+        obs = _observe_payload(_ligh_json("--json", "observe", "--settle-ms", str(settle_ms)))
+        boot_ok = _surface(obs) == "app" or bool(obs.get("actionable_topk"))
+
+    if not boot_ok:
+        if is_plausible_chrome(app_label):
+            _ligh_json("--json", "tap", "--label", app_label, "--timeout-ms", "12000", timeout=60)
         obs = _observe_payload(_ligh_json("--json", "observe", "--settle-ms", str(settle_ms)))
 
     if not obs.get("actionable_topk"):
         obs = _observe_payload(_ligh_json("--json", "observe", "--settle-ms", str(settle_ms)))
 
-    labels, ids = labels_from_observe(obs, app_label=app_label)
+    # Crash loop → app_crashed (never discover_no_chrome / REPLACE_ME).
+    ph = obs.get("process_health") if isinstance(obs.get("process_health"), dict) else {}
+    if ph.get("crashed_recently") and not ph.get("running"):
+        return {
+            "ok": False,
+            "fault": "app_crashed",
+            "capability": "discover",
+            "agent_ready": False,
+            "readiness_grade": "F",
+            "readiness_score": 0,
+            "proven_chrome": None,
+            "chrome_trust": "motor_only",
+            "process_health": ph,
+            "error": ph.get("hint")
+            or "app crashed (DiagnosticReports) — not discover_no_chrome; open .ips / atos",
+            "surface": _surface(obs),
+        }
+    if ph.get("bundle_id") and not ph.get("running") and not ph.get("crashed_recently"):
+        # Still allow probe if SpringBoard icon might relaunch — but stamp fault hint.
+        pass
+
+    tab_labels, labels, ids = labels_from_observe(obs, app_label=app_label)
+    all_labels = tab_labels + labels
     surface = _surface(obs)
 
-    # Candidate order: live labels → app display name → static chrome
-    candidates: list[str] = []
-    for lab in labels + [app_label] + static:
-        if lab and lab not in candidates and lab not in SKIP_LABELS:
-            candidates.append(lab)
-
-    # Also harvest actionable labels even on ambiguous surfaces (probe will reject misses).
-    for n in obs.get("actionable_topk") or []:
-        if isinstance(n, dict):
-            lab = _node_label(n)
-            if lab and lab not in candidates and lab not in SKIP_LABELS:
-                candidates.insert(0, lab)
-
-    proven = None
-    if boot_ok and wait_hint:
-        proven = wait_hint
-    if not proven:
-        proven = probe_chrome(candidates[:12], settle_ms=min(settle_ms, 2500))
-
-    chrome = proven or (labels[0] if labels else None)
-    goal = (
-        build_label_goal(chrome)
-        if chrome
-        else {"setup": [], "postconditions": [{"wait_label": "REPLACE_ME", "timeout_ms": 8000}]}
+    # Candidate order: tabs → live AX → app name → static hints (untrusted)
+    candidates = filter_chrome_candidates(
+        tab_labels
+        + labels
+        + ([app_label] if is_plausible_chrome(app_label) else [])
+        + static
     )
 
+    proven = probe_chrome(candidates, settle_ms=min(settle_ms, 2500))
+
+    if not proven and (tab_labels or "Tab Bar" in all_labels):
+        proven = bootstrap_tab_chrome(obs, app_label=app_label, settle_ms=settle_ms + 1000)
+
+    # Bulletproof: goal only from motor proof — never scrape-only or unproven live guess
     if proven:
-        grade = "A" if boot_ok or labels else "B"
-        score = 75 + 5 * len(labels)
+        goal = build_label_goal(proven)
+        grade = "A" if boot_ok else "B"
+        score = min(100, 80 + 3 * len(all_labels))
         agent_ready = True
-    elif labels:
-        grade = "C"
-        score = 50
-        agent_ready = True
+        fault = None
     else:
+        goal = {"setup": [], "postconditions": [{"wait_label": "REPLACE_ME", "timeout_ms": 8000}]}
         grade = "F"
         score = 0
         agent_ready = False
+        # Prefer process-health faults over discover_no_chrome when dead.
+        if ph.get("crashed_recently"):
+            fault = "app_crashed"
+        elif ph.get("bundle_id") and not ph.get("running"):
+            fault = "app_not_running"
+        else:
+            fault = "discover_no_chrome"
 
-    return {
-        "ok": True,
+    out = {
+        "ok": True if agent_ready else False,
         "capability": "discover",
         "goal": goal,
         "readiness_grade": grade,
-        "readiness_score": min(100, score),
+        "readiness_score": score,
         "agent_ready": agent_ready,
-        "discovered_labels": labels[:20],
+        "discovered_labels": all_labels[:20],
+        "discovered_tab_labels": tab_labels[:12],
         "discovered_ids": ids[:20],
         "static_hints": static[:12],
-        "wait_hint": chrome,
+        "probe_candidates": candidates[:24],
+        "wait_hint": proven,
         "proven_chrome": proven,
         "bootstrap_ok": boot_ok,
         "surface": surface,
+        "chrome_trust": "motor_only",
     }
+    if fault:
+        out["fault"] = fault
+    if ph:
+        out["process_health"] = ph
+    if obs.get("ax_source"):
+        out["ax_source"] = obs.get("ax_source")
+    return out
 
 
 def write_discovered_bundle(ligh_dir: str, project: dict[str, Any], discovery: dict[str, Any]) -> None:
+    from ligh_invariants import sanitize_goal_for_write
+
     os.makedirs(ligh_dir, exist_ok=True)
-    goal = discovery.get("goal") or {}
+    goal = sanitize_goal_for_write(discovery)
     json.dump(goal, open(os.path.join(ligh_dir, "app-goal.json"), "w"), indent=2)
     json.dump(discovery, open(os.path.join(ligh_dir, "discovery.json"), "w"), indent=2)
     proj = dict(project)
@@ -283,6 +362,7 @@ def write_discovered_bundle(ligh_dir: str, project: dict[str, Any], discovery: d
             "agent_ready": discovery.get("agent_ready"),
             "discovered_labels": discovery.get("discovered_labels"),
             "proven_chrome": discovery.get("proven_chrome"),
+            "chrome_trust": discovery.get("chrome_trust"),
         }
     )
     proj["audit"] = audit
@@ -299,16 +379,19 @@ def main() -> int:
     ap.add_argument("--source-root")
     ap.add_argument("--write")
     ap.add_argument("--project-json")
+    ap.add_argument("--device", default="iphone-15-pro")
     args = ap.parse_args()
 
-    disc = discover_live(args.app, args.bundle_id, source_root=args.source_root)
+    disc = discover_live(
+        args.app, args.bundle_id, source_root=args.source_root, device=args.device
+    )
     print(json.dumps(disc, indent=2))
     if args.write and disc.get("ok"):
         proj = {}
         if args.project_json and os.path.isfile(args.project_json):
             proj = json.load(open(args.project_json, encoding="utf-8"))
         write_discovered_bundle(args.write, proj, disc)
-    return 0 if disc.get("agent_ready") else 1
+    return 0 if disc.get("agent_ready") and disc.get("proven_chrome") else 1
 
 
 if __name__ == "__main__":

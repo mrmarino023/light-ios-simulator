@@ -81,6 +81,10 @@ mod tests {
             eyes_unusable: false,
             overlay: Some("none".into()),
             screen_sig: None,
+            ax_source: None,
+            ax_bundle: None,
+            system_surface: None,
+            process_health: None,
         };
         apply_mode(&mut snapshot, "stale_epoch");
         assert_eq!(snapshot.screen_epoch, 8);

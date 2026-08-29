@@ -1972,6 +1972,10 @@ fn observe_direct(config: &LighConfig, include_ax: bool) -> anyhow::Result<Obser
         eyes_unusable: false,
         overlay: None,
         screen_sig: None,
+        ax_source: None,
+        ax_bundle: None,
+        system_surface: None,
+        process_health: None,
     };
     snap.enrich_v2();
     snap.observed_app_label = ligh_core::foreground_app_label(snap.accessibility_tree.nodes());

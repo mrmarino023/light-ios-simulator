@@ -104,33 +104,46 @@ Refuse unknown effects rather than edit the wrong file.
 
 ### Stranger OSS apps (0 accessibility ids)
 
-**One pipeline for every URL** — no per-app scheme / label / bundle maps:
+**Architecture v5 — two products, same motor** ([`docs/OSS_PIPELINE.md`](docs/OSS_PIPELINE.md)):
+
+| Product | Input | KPI |
+|---------|-------|-----|
+| **Agent loop** (primary) | workspace / `ligh_init` | time-to-ok per patch |
+| **Stranger proof** | Tier B `--app` / prebuilt `.app` | `tier_b_verify_pass` |
+| Cold git build | Tier C URL | honest skip/benchmark — build fail ≠ LIGH broken |
 
 ```text
-HostCapability → acquire → ProjectResolve → gate_project → build
-  → EyesReady → label-first discover → ligh_test
+HostCapability → preflight_v2(SPM) → [Tier B: no build | Tier C: xcodebuild]
+  → EyesReady → process_health → label-first discover → ligh_test
 ```
 
 | Class | Meaning |
 |-------|---------|
 | ✓ pass | motor-proven chrome + `ligh_test ok` |
-| ⊘ host-skip | `missing_watchos_runtime`, `xcode_format_too_new`, `acquire_not_found` |
+| ⊘ host-skip | `missing_watchos_runtime`, `xcode_format_too_new`, `swift_tools_too_new`, … |
 | ✗ host | `sim_boot_hung` / `eyes_unusable` — fix Simulator, not Swift |
-| ✗ app | `discover_no_chrome` / goal fail — only after EyesReady |
+| ✗ app | `app_crashed` / `app_not_running` / `discover_no_chrome` / goal fail |
+| crash ≠ chrome | recent DiagnosticReports → `app_crashed` (never `discover_no_chrome`) |
+
+**System surfaces (login / ASWebAuth / share / permission):** hit-test occlusion → classify role → `overlay: system_surface`. Motor policy from role table (auth never auto-dismisses). → [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
 Proven (label-first, 0 AX ids):
 
-| App | Repo | Chrome | Result |
+| App | Mode | Chrome | Result |
 |-----|------|--------|--------|
-| CountriesSwiftUI | [nalexn/clean-architecture-swiftui](https://github.com/nalexn/clean-architecture-swiftui) | motor label | ✓ |
-| Food Truck | [apple/sample-food-truck](https://github.com/apple/sample-food-truck) | motor label | ✓ |
+| CountriesSwiftUI | stranger | motor label | ✓ |
+| Food Truck | stranger | motor label | ✓ |
+| **Mastodon** | Tier B `--app` | `Unisciti a mastodon.social` | ✓ `ligh_test` · 10.5s · [artifact](docs/assets/oss-stranger-mastodon-tierb.json) |
 
 ```bash
 ./scripts/gate-oss-stranger-batch.sh    # scripts/oss-stranger-urls.txt
 ./scripts/gate-oss-stranger-smoke.sh    # Countries + Food Truck only
+# Tier B (primary stranger verify — no cold xcodebuild):
+python3 scripts/ligh_oss_smoke.py --app /path/to/App.app --bundle-id bid --source-root /path/to/src
 ```
 
-→ artifact [`oss-stranger-trial-latest.json`](docs/assets/oss-stranger-trial-latest.json) · contract [`docs/OSS_PIPELINE.md`](docs/OSS_PIPELINE.md) · vs Maestro [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
+→ artifact [`oss-stranger-trial-latest.json`](docs/assets/oss-stranger-trial-latest.json) · Mastodon Tier B [`oss-stranger-mastodon-tierb.json`](docs/assets/oss-stranger-mastodon-tierb.json) · contract [`docs/OSS_PIPELINE.md`](docs/OSS_PIPELINE.md) · vs Maestro [`docs/COMPETITIVE.md`](docs/COMPETITIVE.md)
+
 
 ### LIGH Autopilot only (UI goals — not repair)
 

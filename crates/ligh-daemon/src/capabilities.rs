@@ -126,6 +126,27 @@ pub(crate) fn confirm_app_ready(
     wait_label: Option<&str>,
     wait_id: Option<&str>,
 ) -> CapabilityResult {
+    // Crash / dead process beats SpringBoard heuristics — never call this discover_no_chrome.
+    let health = snap.process_health.clone().unwrap_or_else(|| {
+        ligh_core::probe_process_health(&snap.udid, Some(bundle_id), Some(app_label))
+    });
+    if let Some(fault) = ligh_core::fault_from_process_health(&health) {
+        return CapabilityResult::fail(
+            fault,
+            phase_of(snap),
+            surface_of(snap),
+            "app_ready",
+            json!({
+                "reason": fault.as_str(),
+                "bundle_id": bundle_id,
+                "app_label": app_label,
+                "process_health": health,
+                "detail": health.hint.clone().unwrap_or_else(|| fault.as_str().into()),
+            }),
+            Some(snap.clone()),
+        );
+    }
+
     // Entry markers prove in-app chrome — same matching as motor ensure_path.
     // Surface heuristics lie while AX attaches; trust markers when motor would.
     if wait_label.is_some() || wait_id.is_some() {
@@ -144,6 +165,22 @@ pub(crate) fn confirm_app_ready(
         }
     }
 
+    // Foreign-process overlay: eyes on system surface — session still owned by expected app.
+    if snap.system_surface.is_some() && snap.is_actionable_eyes() {
+        return CapabilityResult::success(
+            phase_of(snap),
+            Some("system_surface".into()),
+            "app_ready",
+            json!({
+                "app_ready": true,
+                "via": "system_surface",
+                "bundle_id": bundle_id,
+                "system_surface": snap.system_surface,
+            }),
+            Some(snap.clone()),
+        );
+    }
+
     if looks_like_springboard(snap) || only_app_icon_on_home(snap, app_label) {
         return CapabilityResult::fail(
             FaultClass::AppNotForeground,
@@ -155,6 +192,7 @@ pub(crate) fn confirm_app_ready(
                 "bundle_id": bundle_id,
                 "app_label": app_label,
                 "surface": surface_of(snap),
+                "process_health": health,
                 "detail": "AX tree looks like SpringBoard / home grid — icon ≠ foreground",
             }),
             Some(snap.clone()),

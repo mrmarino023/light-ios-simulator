@@ -57,9 +57,9 @@ See [`docs/TRAIL_BULLETPROOF.md`](docs/TRAIL_BULLETPROOF.md).
 
 ## Fault taxonomy
 
-`ok` · `infra` · `eyes_unusable` · `target_missing` · `motor_no_effect` · `wrong_surface` · `motor_rejected` · `timeout` · `blocked`
+`ok` · `infra` · `eyes_unusable` · `target_missing` · `motor_no_effect` · `wrong_surface` · `app_crashed` · `app_not_running` · `motor_rejected` · `timeout` · `blocked`
 
-Read `detail.step`, `detail.candidates`, `detail.actionable_topk` — fix the app, not the harness.
+Read `detail.step`, `detail.candidates`, `detail.actionable_topk`, `process_health` — fix the app, not the harness. Crash loops are `app_crashed` (open `.ips`), never `discover_no_chrome`.
 
 ## Requirements
 

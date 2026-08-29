@@ -1,0 +1,83 @@
+{
+  "gate": "oss_stranger_trial",
+  "schema": 5,
+  "primary_metric": "tier_b_verify_pass",
+  "ok": true,
+  "holy_shit": false,
+  "passed": 1,
+  "passed_runnable": 1,
+  "passed_tier_b": 1,
+  "runnable": 1,
+  "tier_b_runnable": 1,
+  "pass_rate": "1/1",
+  "tier_b_pass_rate": "1/1",
+  "skipped": 0,
+  "failed": 0,
+  "attempted": 1,
+  "summary": "1/1 tier-B verify pass \u00b7 1/1 total \u00b7 0 skip \u00b7 0 fail \u2014 build\u2260verify; chrome_trust=motor_only",
+  "invariants": [
+    "Tier A/B/C: LIGH verifies; cold xcodebuild is Tier C benchmark only",
+    "Preflight v2: full Package.swift tree + SPM resolve before xcodebuild (swift_tools skip)",
+    "Tier B/--app: prebuilt .app only \u2014 build_required skip, not LIGH fail",
+    "motor wait-label must prove chrome before ligh_test",
+    "harness_repair on fail \u2014 never patch stranger Swift",
+    "ligh_invariants enforced at discover + smoke boundaries"
+  ],
+  "architecture": "Tier A: ligh_init \u2192 ligh_test | Tier B: --app / sim_app \u2192 discover \u2192 ligh_test | Tier C: git_cold \u2192 preflight_v2(SPM) \u2192 build \u2192 verify",
+  "metrics": {
+    "agent_loop": "time-to-ok per agent patch (Tier A)",
+    "stranger_sim_app": "tier_b_verify_pass / tier_b_runnable",
+    "stranger_git_cold": "benchmark only \u2014 build_fail \u2260 LIGH broken"
+  },
+  "fault_owners": [
+    "host",
+    "build",
+    "app"
+  ],
+  "host": {
+    "darwin": true,
+    "xcode_version": "16.1",
+    "xcode_build": "16B40",
+    "max_object_version": 77,
+    "ios_runtimes": [
+      "iOS 17.2 (17.2 - 21C62) - com.apple.CoreSimulator.SimRuntime.iOS-17-2",
+      "iOS 18.1 (18.1 - 22B81) - com.apple.CoreSimulator.SimRuntime.iOS-18-1"
+    ],
+    "watchos_runtimes": [],
+    "disk_free_gb": 10.37,
+    "ligh_bin_ok": true,
+    "swift_tools": "6.0.2"
+  },
+  "apps": [
+    {
+      "ok": true,
+      "stage": "done",
+      "fault_owner": null,
+      "spec": "--app /Users/mattiamarino/Desktop/light-simulatior-ios/.oss-trial/mastodon-ios/build/ligh/Mastodon.app",
+      "tier": "B",
+      "acquire_mode": "app",
+      "tier_contract": "verify-only \u2014 prebuilt .app required, no xcodebuild",
+      "bundle_id_override": "org.joinmastodon.app",
+      "source_root_override": "/Users/mattiamarino/Desktop/light-simulatior-ios/.oss-trial/mastodon-ios",
+      "name": "Mastodon",
+      "repo": "/Users/mattiamarino/Desktop/light-simulatior-ios/.oss-trial/mastodon-ios/build/ligh/Mastodon.app",
+      "root": "/Users/mattiamarino/Desktop/light-simulatior-ios/.oss-trial/mastodon-ios",
+      "scheme": null,
+      "xcode_path": null,
+      "bundle_id": "org.joinmastodon.app",
+      "app_path": "/Users/mattiamarino/Desktop/light-simulatior-ios/.oss-trial/mastodon-ios/build/ligh/Mastodon.app",
+      "accessibility_ids": 0,
+      "elapsed_s": 10.5,
+      "ax_element_count": 6,
+      "proven_chrome": "Unisciti a mastodon.social",
+      "discover_ready": true,
+      "bootstrap_ok": true,
+      "ligh_test": {
+        "ok": true,
+        "fault": "ok",
+        "mode": "goal"
+      }
+    }
+  ],
+  "ts": 1787991440
+}

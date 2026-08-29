@@ -34,7 +34,9 @@ fn dump_nodes(dump: &serde_json::Value) -> Option<&Vec<serde_json::Value>> {
 
 /// Heuristic: SwiftUI sheet presented (overlay detection misses some sheets).
 fn snap_on_sheet(snap: &ObserveSnapshot) -> bool {
-    if overlay_from_snapshot(snap) == Overlay::Sheet {
+    if overlay_from_snapshot(snap) == Overlay::Sheet
+        || overlay_from_snapshot(snap) == Overlay::SystemSurface
+    {
         return true;
     }
     if let Some(scene) = &snap.scene {
@@ -295,7 +297,7 @@ fn occluded(target: &ResolvedTarget, overlay: Overlay) -> bool {
     match overlay {
         Overlay::None => false,
         Overlay::Transition => true,
-        Overlay::Alert | Overlay::Sheet => !target.hittable,
+        Overlay::Alert | Overlay::Sheet | Overlay::SystemSurface => !target.hittable,
         // Soft keyboard typically owns the lower ~45% of the screen.
         Overlay::Keyboard => !target.hittable || target.ny > 0.52,
     }
@@ -366,11 +368,16 @@ fn try_dismiss_modal(udid: &str, w: f64, h: f64) -> bool {
     true
 }
 
+fn surface_role(snap: &ObserveSnapshot) -> Option<ligh_core::SystemSurfaceRole> {
+    snap.system_surface.as_ref().map(|s| s.role)
+}
+
 fn clear_overlay(
     overlay: Overlay,
     udid: &str,
     w: f64,
     h: f64,
+    system_role: Option<ligh_core::SystemSurfaceRole>,
 ) -> bool {
     match overlay {
         Overlay::None => true,
@@ -387,7 +394,14 @@ fn clear_overlay(
             std::thread::sleep(Duration::from_millis(80));
             true
         }
-        Overlay::Alert | Overlay::Sheet => try_dismiss_modal(udid, w, h),
+        Overlay::Alert | Overlay::Sheet | Overlay::SystemSurface => {
+            let policy = ligh_core::policy_for_overlay(overlay, system_role);
+            if !policy.auto_dismiss {
+                false
+            } else {
+                try_dismiss_modal(udid, w, h)
+            }
+        }
     }
 }
 
@@ -418,7 +432,7 @@ pub(crate) fn ensure_path(
             if !occluded(&target, last_overlay) {
                 return Ok((target, last_snap));
             }
-            if !clear_overlay(last_overlay, udid, w, h) {
+            if !clear_overlay(last_overlay, udid, w, h, surface_role(&last_snap)) {
                 return Err(CapabilityResult::fail(
                     FaultClass::Blocked,
                     phase_of(&last_snap),
@@ -435,8 +449,13 @@ pub(crate) fn ensure_path(
                     Some(last_snap),
                 ));
             }
-        } else if last_overlay.blocks_path() && !matches!(last_overlay, Overlay::Sheet | Overlay::Alert) {
-            let _ = clear_overlay(last_overlay, udid, w, h);
+        } else if last_overlay.blocks_path()
+            && !matches!(
+                last_overlay,
+                Overlay::Sheet | Overlay::Alert | Overlay::SystemSurface
+            )
+        {
+            let _ = clear_overlay(last_overlay, udid, w, h, surface_role(&last_snap));
         }
         std::thread::sleep(Duration::from_millis(40));
     }
@@ -478,7 +497,10 @@ fn motor_fire_verified(
         return Ok(("already_focused", before.clone()));
     }
     let mut strategies: Vec<(&str, Box<dyn Fn() -> bool>)> = Vec::new();
-    let prefer_ax = matches!(overlay, Overlay::Sheet | Overlay::Alert) || snap_on_sheet(before);
+    let prefer_ax = {
+        let role = before.system_surface.as_ref().map(|s| s.role);
+        ligh_core::policy_for_overlay(overlay, role).prefer_ax || snap_on_sheet(before)
+    };
     let u = udid.to_string();
     let t = target.clone();
     let tid = id.map(|s| s.to_string());
@@ -1349,10 +1371,13 @@ pub(crate) fn motor_reach(
                 let snap = build();
                 let overlay = overlay_from_snapshot(&snap);
                 // Do not dismiss sheet/alert while searching — target may live on the overlay.
-                if matches!(overlay, Overlay::Sheet | Overlay::Alert) {
+                if matches!(
+                    overlay,
+                    Overlay::Sheet | Overlay::Alert | Overlay::SystemSurface
+                ) {
                     // fall through to scroll attempt
                 } else if overlay.blocks_path() {
-                    let _ = clear_overlay(overlay, &udid, w, h);
+                    let _ = clear_overlay(overlay, &udid, w, h, surface_role(&snap));
                     continue;
                 }
                 if id.is_some() || label.is_some() {
@@ -1506,7 +1531,7 @@ pub(crate) fn motor_dismiss_overlay(
             Some(snap),
         );
     }
-    let cleared = clear_overlay(overlay, &udid, w, h);
+    let cleared = clear_overlay(overlay, &udid, w, h, surface_role(&snap));
     let snap2 = settle_eyes(build, settle_ms);
     let after = overlay_from_snapshot(&snap2);
     CapabilityResult::success(

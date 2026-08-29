@@ -108,12 +108,24 @@ pub struct ObserveSnapshot {
     /// True when agents must not plan from this snapshot (empty/transition/error/unsettle).
     #[serde(default)]
     pub eyes_unusable: bool,
-    /// Top occlusion layer: `none|keyboard|alert|sheet|transition`.
+    /// Top occlusion layer: `none|keyboard|alert|sheet|system_surface|transition`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub overlay: Option<String>,
     /// Compact screen signature for effect verification (Δ after act).
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub screen_sig: Option<String>,
+    /// AX dump provenance: `frontmost` | `system_surface` (legacy: `system_auth`).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ax_source: Option<String>,
+    /// Bundle of the AX tree when `ax_source` is a system surface.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub ax_bundle: Option<String>,
+    /// Classified foreign-process overlay (auth/share/permission/…).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub system_surface: Option<crate::system_surface::SystemSurfaceInfo>,
+    /// Guest process health for expected_bundle_id (crash ≠ no chrome).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub process_health: Option<crate::process_health::ProcessHealth>,
 }
 
 fn observe_schema_default() -> u32 {

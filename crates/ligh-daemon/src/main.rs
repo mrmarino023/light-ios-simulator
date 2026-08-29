@@ -167,10 +167,34 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
     } else {
         None
     };
+    let mut ax_source: Option<String> = None;
+    let mut ax_bundle: Option<String> = None;
+    let mut ax_process: Option<String> = None;
+    let mut ax_role: Option<String> = None;
+    let mut ax_pid: Option<i32> = None;
     let ax = if include_ax && (!udid.is_empty() || ligh_host::physical_ui_active()) {
         let dump_id = if udid.is_empty() { "device" } else { udid.as_str() };
         match AxDump::dump(dump_id) {
-            Ok(v) => AccessibilityTree::from_ax_dump(v),
+            Ok(v) => {
+                ax_source = v
+                    .get("ax_source")
+                    .and_then(|x| x.as_str())
+                    .map(|s| s.to_string());
+                ax_bundle = v
+                    .get("ax_bundle")
+                    .and_then(|x| x.as_str())
+                    .map(|s| s.to_string());
+                ax_process = v
+                    .get("ax_process")
+                    .and_then(|x| x.as_str())
+                    .map(|s| s.to_string());
+                ax_role = v
+                    .get("ax_role")
+                    .and_then(|x| x.as_str())
+                    .map(|s| s.to_string());
+                ax_pid = v.get("ax_pid").and_then(|x| x.as_i64()).map(|n| n as i32);
+                AccessibilityTree::from_ax_dump(v)
+            }
             Err(e) => AccessibilityTree::Error {
                 message: e.to_string(),
             },
@@ -178,6 +202,26 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
     } else {
         AccessibilityTree::Empty
     };
+    let app_label_hint = expected_bundle_id
+        .as_deref()
+        .and_then(|b| b.rsplit('.').next())
+        .map(|s| s.to_string());
+    let process_health = if !udid.is_empty() && expected_bundle_id.is_some() {
+        Some(ligh_core::probe_process_health(
+            &udid,
+            expected_bundle_id.as_deref(),
+            app_label_hint.as_deref(),
+        ))
+    } else {
+        None
+    };
+    let system_surface = ligh_core::system_surface_from_ax_dump(
+        ax_source.as_deref(),
+        ax_bundle.as_deref(),
+        ax_process.as_deref(),
+        ax_role.as_deref(),
+        ax_pid,
+    );
     let mut snap = ObserveSnapshot {
         schema_version: ligh_core::OBSERVE_SCHEMA_VERSION,
         udid,
@@ -205,8 +249,24 @@ fn build_observe_once(state: &Arc<Mutex<DaemonState>>, include_ax: bool) -> Obse
         eyes_unusable: false,
         overlay: None,
         screen_sig: None,
+        ax_source,
+        ax_bundle,
+        system_surface,
+        process_health,
     };
     snap.enrich_v2();
+    if snap.system_surface.is_some() {
+        if let Some(scene) = snap.scene.as_mut() {
+            let role = snap
+                .system_surface
+                .as_ref()
+                .map(|s| s.role.as_str())
+                .unwrap_or("other");
+            scene.surface = Some(format!("system_surface:{role}"));
+        }
+        let has_udid = !snap.udid.is_empty();
+        ligh_core::stamp_control_fields(&mut snap, has_udid);
+    }
     snap.observed_app_label = ligh_core::foreground_app_label(snap.accessibility_tree.nodes());
     if snap.observed_app_label.is_none() && ligh_host::physical_ui_active() {
         snap.observed_app_label = snap.app_bundle_id.clone();

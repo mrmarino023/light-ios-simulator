@@ -399,6 +399,20 @@ pub(crate) fn cap_dismiss(
             std::thread::sleep(Duration::from_millis(250));
             true
         }
+        Overlay::SystemSurface => {
+            let role = snap0.system_surface.as_ref().map(|s| s.role);
+            let policy = ligh_core::policy_for_overlay(overlay, role);
+            if policy.auto_dismiss {
+                strategy = "swipe_down";
+                let _ = HidInput::swipe(&udid, 0.5, 0.35, 0.5, 0.85, w, h);
+                std::thread::sleep(Duration::from_millis(250));
+                true
+            } else {
+                // Auth / permission — agent must interact inside; never swipe away.
+                strategy = "refuse_system_surface";
+                false
+            }
+        }
     };
 
     let snap = settle_eyes(build, settle_ms);

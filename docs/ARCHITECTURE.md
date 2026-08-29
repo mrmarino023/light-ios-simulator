@@ -37,7 +37,24 @@ ready → perceive → ensure_path → fire_verified → settle
 
 - **Keyboard** — dismiss before tapping chrome under keys
 - **Sheet / alert** — do **not** auto-dismiss if target lives on the overlay; fire AX-first
+- **System surface** — foreign-process occlusion (auth / share / permission / …). Discover by **hit-test**, classify by role, motor policy from role table — never Safari-only special cases
 - **Transition** — wait, do not tap
+
+### Process health (L1 session invariant)
+
+Every observe with `expected_bundle_id` stamps `process_health`. Crash loops surface as `app_crashed` (with `.ips` hint), never `discover_no_chrome`.
+
+### System surface (L2 perception)
+
+```text
+frontmost AX
+  → hit-test mid-screen → foreign pid?
+  → else known UIService catalog (classify only)
+  → stamp ax_source=system_surface + role + bundle
+  → overlay=system_surface; eyes stay usable when tree is ready
+```
+
+Motor asks `policy_for_overlay(role)` — e.g. auth: prefer AX, **never** auto-dismiss.
 
 ### fire_verified (no fake ok)
 
@@ -70,7 +87,13 @@ Success when target is **on-screen** (`find_onscreen_id_in_dump`), not merely pr
 | `blocked` | Overlay could not be cleared |
 | `wrong_surface` | Wrong app in foreground |
 | `infra` / `eyes_unusable` | Call `ligh_ready` |
+| `app_crashed` | Process dead + recent `.ips` — open DiagnosticReports / atos (not “no chrome”) |
+| `app_not_running` | Expected bundle not in sim launchctl |
 | `timeout` | Budget exhausted |
+
+### System surface (foreign-process overlays)
+
+Observe stamps `system_surface` + `overlay: system_surface` when AX came from a process other than the host app (hit-test first; UIService catalog classifies role). Motor uses role policy — auth never auto-dismisses.
 
 ## What counts as evidence
 

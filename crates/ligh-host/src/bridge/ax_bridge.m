@@ -759,6 +759,355 @@ static void recover_childless_chrome(NSMutableDictionary *node, NSString *token,
 
 static char g_ax_err_buf[256];
 
+/// Classification catalog for known UIServices (assist launchctl scan).
+/// Discovery is hit-test-first; these names only classify + fill gaps.
+static NSArray<NSString *> *ax_system_surface_markers(void) {
+    return @[
+        // auth
+        @"SafariViewService",
+        @"AuthenticationServicesUI",
+        @"AuthKitUI",
+        @"AppSSOUI",
+        // share / activity
+        @"ShareSheetUI",
+        @"UIActivityViewController",
+        // permission / privacy prompts
+        @"PrivacyUIService",
+        @"SpringBoardPrivacy",
+        @"UserNotificationsUI",
+    ];
+}
+
+static NSString *ax_role_for_process_hint(NSString *hint) {
+    NSString *s = (hint ?: @"").lowercaseString;
+    if ([s containsString:@"safariview"] || [s containsString:@"authentication"]
+        || [s containsString:@"authkit"] || [s containsString:@"appsso"]) {
+        return @"auth";
+    }
+    if ([s containsString:@"share"] || [s containsString:@"activity"]) {
+        return @"share";
+    }
+    if ([s containsString:@"privacy"] || [s containsString:@"permission"]
+        || [s containsString:@"usernotifications"]) {
+        return @"permission";
+    }
+    if ([s containsString:@"springboard"]) {
+        return @"springboard_transient";
+    }
+    return @"other";
+}
+
+static NSString *ax_bundle_for_marker(NSString *marker) {
+    if ([marker isEqualToString:@"SafariViewService"]) {
+        return @"com.apple.SafariViewService";
+    }
+    if ([marker isEqualToString:@"AuthenticationServicesUI"]) {
+        return @"com.apple.AuthenticationServices.AuthenticationServicesUI";
+    }
+    if ([marker isEqualToString:@"AuthKitUI"]) {
+        return @"com.apple.AuthKitUI";
+    }
+    return marker.length ? marker : @"system_surface";
+}
+
+static int ax_pid_from_obj(id obj) {
+    if (!obj) return 0;
+    @try {
+        id pidVal = nil;
+        if ([obj respondsToSelector:NSSelectorFromString(@"pid")]) {
+            pidVal = [obj valueForKey:@"pid"];
+        } else if ([obj respondsToSelector:NSSelectorFromString(@"processIdentifier")]) {
+            pidVal = [obj valueForKey:@"processIdentifier"];
+        }
+        return [pidVal intValue];
+    } @catch (NSException *ex) {
+        return 0;
+    }
+}
+
+static NSArray<NSNumber *> *ax_guest_pids_matching(NSString *udid, NSArray<NSString *> *markers) {
+    if (!udid.length || !markers.count) return @[];
+    @try {
+        NSTask *task = [[NSTask alloc] init];
+        task.executableURL = [NSURL fileURLWithPath:@"/usr/bin/xcrun"];
+        task.arguments = @[ @"simctl", @"spawn", udid, @"launchctl", @"list" ];
+        NSPipe *outPipe = [NSPipe pipe];
+        task.standardOutput = outPipe;
+        task.standardError = [NSFileHandle fileHandleWithNullDevice];
+        NSError *err = nil;
+        if (![task launchAndReturnError:&err]) return @[];
+        NSData *data = [outPipe.fileHandleForReading readDataToEndOfFile];
+        [task waitUntilExit];
+        if (task.terminationStatus != 0 || !data.length) return @[];
+        NSString *text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        if (!text.length) return @[];
+        NSMutableArray<NSNumber *> *pids = [NSMutableArray array];
+        NSMutableSet *seen = [NSMutableSet set];
+        for (NSString *line in [text componentsSeparatedByCharactersInSet:
+                                    [NSCharacterSet newlineCharacterSet]]) {
+            BOOL hit = NO;
+            for (NSString *m in markers) {
+                if ([line containsString:m]) {
+                    hit = YES;
+                    break;
+                }
+            }
+            if (!hit) continue;
+            NSArray *parts = [line componentsSeparatedByCharactersInSet:
+                                  [NSCharacterSet whitespaceCharacterSet]];
+            NSMutableArray *toks = [NSMutableArray array];
+            for (NSString *p in parts) {
+                if (p.length) [toks addObject:p];
+            }
+            if (toks.count < 1) continue;
+            int pid = [toks[0] intValue];
+            if (pid <= 0) continue;
+            NSNumber *n = @(pid);
+            if ([seen containsObject:n]) continue;
+            [seen addObject:n];
+            [pids addObject:n];
+        }
+        return pids;
+    } @catch (NSException *ex) {
+        return @[];
+    }
+}
+
+static BOOL ax_first_catalog_pid(NSString *udid, int *outPid, NSString **outMarker) {
+    if (outPid) *outPid = 0;
+    if (outMarker) *outMarker = nil;
+    @try {
+        NSTask *task = [[NSTask alloc] init];
+        task.executableURL = [NSURL fileURLWithPath:@"/usr/bin/xcrun"];
+        task.arguments = @[ @"simctl", @"spawn", udid, @"launchctl", @"list" ];
+        NSPipe *outPipe = [NSPipe pipe];
+        task.standardOutput = outPipe;
+        task.standardError = [NSFileHandle fileHandleWithNullDevice];
+        if (![task launchAndReturnError:nil]) return NO;
+        NSData *data = [outPipe.fileHandleForReading readDataToEndOfFile];
+        [task waitUntilExit];
+        if (task.terminationStatus != 0 || !data.length) return NO;
+        NSString *text = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        for (NSString *line in [text componentsSeparatedByCharactersInSet:
+                                    [NSCharacterSet newlineCharacterSet]]) {
+            NSString *hitMarker = nil;
+            for (NSString *m in ax_system_surface_markers()) {
+                if ([line containsString:m]) {
+                    hitMarker = m;
+                    break;
+                }
+            }
+            if (!hitMarker) continue;
+            NSArray *parts = [line componentsSeparatedByCharactersInSet:
+                                  [NSCharacterSet whitespaceCharacterSet]];
+            NSMutableArray *toks = [NSMutableArray array];
+            for (NSString *p in parts) {
+                if (p.length) [toks addObject:p];
+            }
+            if (toks.count < 1) continue;
+            int pid = [toks[0] intValue];
+            if (pid <= 0) continue;
+            if (outPid) *outPid = pid;
+            if (outMarker) *outMarker = hitMarker;
+            return YES;
+        }
+        return NO;
+    } @catch (NSException *ex) {
+        return NO;
+    }
+}
+
+static id ax_translation_for_pid(int pid, NSString *token) {
+    if (!g_translator || pid <= 0 || !token.length) return nil;
+    @try {
+        SEL selNum = NSSelectorFromString(@"_translationApplicationObjectForPidNumber:");
+        if ([g_translator respondsToSelector:selNum]) {
+            IMP imp = class_getMethodImplementation(object_getClass(g_translator), selNum);
+            if (imp) {
+                id (*fn)(id, SEL, id) = (id (*)(id, SEL, id))imp;
+                id translation = fn(g_translator, selNum, @(pid));
+                if (translation) {
+                    stamp_token(token, translation);
+                    return translation;
+                }
+            }
+        }
+        SEL sel = NSSelectorFromString(@"translationApplicationObjectForPid:");
+        if (![g_translator respondsToSelector:sel]) return nil;
+        IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
+        if (!imp) return nil;
+        id (*fn)(id, SEL, int) = (id (*)(id, SEL, int))imp;
+        id translation = fn(g_translator, sel, pid);
+        if (translation) stamp_token(token, translation);
+        return translation;
+    } @catch (NSException *ex) {
+        return nil;
+    }
+}
+
+static id ax_mac_root_from_translation(id translation, NSString *token) {
+    if (!translation) return nil;
+    @try {
+        SEL sel = NSSelectorFromString(@"macPlatformElementFromTranslation:");
+        if (![g_translator respondsToSelector:sel]) return nil;
+        IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
+        if (!imp) return nil;
+        id (*fn)(id, SEL, id) = (id (*)(id, SEL, id))imp;
+        id rootElement = fn(g_translator, sel, translation);
+        if (rootElement) {
+            stamp_element(token, rootElement);
+            stamp_subtree(token, rootElement, 0);
+        }
+        return rootElement;
+    } @catch (NSException *ex) {
+        return nil;
+    }
+}
+
+static id ax_frontmost_translation(NSString *token) {
+    @try {
+        SEL sel = NSSelectorFromString(@"frontmostApplicationWithDisplayId:bridgeDelegateToken:");
+        if (![g_translator respondsToSelector:sel]) return nil;
+        IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
+        if (!imp) return nil;
+        id (*fn)(id, SEL, uint32_t, id) = (id (*)(id, SEL, uint32_t, id))imp;
+        id translation = fn(g_translator, sel, 0, token);
+        if (translation) stamp_token(token, translation);
+        return translation;
+    } @catch (NSException *ex) {
+        return nil;
+    }
+}
+
+/// Hit-test mid-screen → application translation for whatever is visually on top.
+static id ax_translation_via_hit_test(NSString *token, CGSize pointSize, CGRect rootMac) {
+    if (pointSize.width < 1 || pointSize.height < 1) return nil;
+    double samples[][2] = { { 0.50, 0.42 }, { 0.50, 0.55 }, { 0.50, 0.68 }, { 0.50, 0.30 } };
+    for (size_t i = 0; i < sizeof(samples) / sizeof(samples[0]); i++) {
+        CGPoint device = CGPointMake(pointSize.width * samples[i][0],
+                                     pointSize.height * samples[i][1]);
+        CGPoint host = ax_unmap_point(device, rootMac, pointSize);
+        id hit = ax_object_at_point(host, token);
+        if (!hit) continue;
+        stamp_token(token, hit);
+        int pid = ax_pid_from_obj(hit);
+        if (pid > 0) {
+            id app = ax_translation_for_pid(pid, token);
+            if (app) return app;
+        }
+        @try {
+            id app = [hit valueForKey:@"application"];
+            if (app) {
+                stamp_token(token, app);
+                return app;
+            }
+        } @catch (NSException *ex) {
+        }
+    }
+    return nil;
+}
+
+/// Resolve foreign-process occlusion above the expected app.
+/// Primary: hit-test (any modal). Secondary: known UIService catalog via launchctl.
+static BOOL ax_resolve_system_surface(NSString *udid, NSString *token, CGSize pointSize,
+                                      CGRect hintRootMac, int frontmostPid,
+                                      id *outRoot, NSString **outBundle,
+                                      NSString **outProcess, NSString **outRole, int *outPid) {
+    if (outRoot) *outRoot = nil;
+    if (outBundle) *outBundle = nil;
+    if (outProcess) *outProcess = nil;
+    if (outRole) *outRole = nil;
+    if (outPid) *outPid = 0;
+
+    // 1) Hit-test: whatever owns the pixels at mid-sheet.
+    id hitTr = ax_translation_via_hit_test(token, pointSize, hintRootMac);
+    int hitPid = ax_pid_from_obj(hitTr);
+    if (hitTr && hitPid > 0 && (frontmostPid <= 0 || hitPid != frontmostPid)) {
+        id root = ax_mac_root_from_translation(hitTr, token);
+        if (root) {
+            if (outRoot) *outRoot = root;
+            if (outPid) *outPid = hitPid;
+            NSString *proc = @"hit_test_occluder";
+            if (outProcess) *outProcess = proc;
+            if (outRole) *outRole = ax_role_for_process_hint(proc);
+            if (outBundle) *outBundle = proc;
+            return YES;
+        }
+    }
+
+    // 2) Catalog assist — known UIServices when hit-test misses.
+    int pid = 0;
+    NSString *marker = nil;
+    if (ax_first_catalog_pid(udid, &pid, &marker) && pid != frontmostPid) {
+        id tr = ax_translation_for_pid(pid, token);
+        id root = ax_mac_root_from_translation(tr, token);
+        if (root) {
+            if (outRoot) *outRoot = root;
+            if (outPid) *outPid = pid;
+            if (outProcess) *outProcess = marker;
+            if (outBundle) *outBundle = ax_bundle_for_marker(marker);
+            if (outRole) *outRole = ax_role_for_process_hint(marker);
+            return YES;
+        }
+    }
+    for (NSNumber *n in ax_guest_pids_matching(udid, ax_system_surface_markers())) {
+        if (n.intValue == frontmostPid || n.intValue == pid) continue;
+        id tr = ax_translation_for_pid(n.intValue, token);
+        id root = ax_mac_root_from_translation(tr, token);
+        if (!root) continue;
+        if (outRoot) *outRoot = root;
+        if (outPid) *outPid = n.intValue;
+        if (outProcess) *outProcess = @"UIService";
+        if (outBundle) *outBundle = @"system_surface";
+        if (outRole) *outRole = @"other";
+        return YES;
+    }
+    return NO;
+}
+
+static NSDictionary *ax_walk_tree(id rootElement, NSString *token, CGSize pointSize) {
+    if (!rootElement) return nil;
+    CGRect rootMac = ax_frame(rootElement);
+    g_node_count = 0;
+    NSDictionary *root = walk_element(rootElement, rootMac, pointSize, 0, @"", nil, 0, YES);
+    if ([root isKindOfClass:[NSMutableDictionary class]]) {
+        recover_childless_chrome((NSMutableDictionary *)root, token, rootMac, pointSize);
+    }
+    return root;
+}
+
+static NSUInteger ax_useful_element_count(NSArray *elements) {
+    NSUInteger n = 0;
+    for (NSDictionary *e in elements ?: @[]) {
+        NSString *label = [e[@"label"] description] ?: @"";
+        NSString *role = [[e[@"role"] description] ?: @"" lowercaseString];
+        if (!label.length && ![role containsString:@"text"] && ![role containsString:@"field"]
+            && ![role containsString:@"button"] && ![role containsString:@"link"]) {
+            continue;
+        }
+        n++;
+    }
+    return n;
+}
+
+static NSDictionary *ax_system_surface_payload(NSDictionary *root, NSArray *elements,
+                                               CGSize pointSize, NSString *bundle,
+                                               NSString *process, NSString *role, int pid) {
+    NSMutableDictionary *payload = [@{
+        @"status": @"available",
+        @"root": root ?: [NSNull null],
+        @"elements": elements ?: @[],
+        @"element_count": @(elements.count),
+        @"point_size": @{ @"width": @(pointSize.width), @"height": @(pointSize.height) },
+        @"ax_source": @"system_surface",
+        @"ax_bundle": bundle ?: @"system_surface",
+        @"ax_process": process ?: @"system_surface",
+        @"ax_role": role ?: @"other",
+    } mutableCopy];
+    if (pid > 0) payload[@"ax_pid"] = @(pid);
+    return payload;
+}
+
 static char *ax_dump_inner(const char *udid_c, LighHostError *err);
 
 char *ligh_host_ax_dump(const char *udid_c, LighHostError *err) {
@@ -793,26 +1142,27 @@ static char *ax_dump_inner(const char *udid_c, LighHostError *err) {
     NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:5.0];
     [g_dispatcher registerDevice:device token:token deadline:deadline];
 
-    id translation = nil;
-    @try {
-        SEL sel = NSSelectorFromString(@"frontmostApplicationWithDisplayId:bridgeDelegateToken:");
-        if (![g_translator respondsToSelector:sel]) {
-            set_err(err, 53, "frontmostApplication selector missing");
-            [g_dispatcher unregisterToken:token];
-            return NULL;
-        }
-        IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
-        id (*fn)(id, SEL, uint32_t, id) = (id (*)(id, SEL, uint32_t, id))imp;
-        translation = fn(g_translator, sel, 0, token);
-        if (translation) stamp_token(token, translation);
-    } @catch (NSException *ex) {
-        set_err(err, 54, "frontmostApplication threw");
-        [g_dispatcher unregisterToken:token];
-        return NULL;
-    }
+    CGSize pointSize = device_point_size(device);
+    id translation = ax_frontmost_translation(token);
+    int frontmostPid = ax_pid_from_obj(translation);
 
     if (!translation) {
-        // No frontmost app (e.g. mid-boot). Return empty available tree.
+        id surfRoot = nil;
+        NSString *surfBundle = nil, *surfProc = nil, *surfRole = nil;
+        int surfPid = 0;
+        if (ax_resolve_system_surface(udid, token, pointSize, CGRectZero, 0,
+                                      &surfRoot, &surfBundle, &surfProc, &surfRole, &surfPid)
+            && surfRoot) {
+            NSDictionary *root = ax_walk_tree(surfRoot, token, pointSize);
+            NSMutableArray *elements = [NSMutableArray array];
+            flatten_interactive(root, elements, NO);
+            [g_dispatcher unregisterToken:token];
+            NSDictionary *payload = ax_system_surface_payload(
+                root, elements, pointSize, surfBundle, surfProc, surfRole, surfPid);
+            NSData *data = [NSJSONSerialization dataWithJSONObject:payload options:0 error:nil];
+            NSString *s = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            return strdup(s.UTF8String);
+        }
         [g_dispatcher unregisterToken:token];
         NSDictionary *payload = @{
             @"status": @"empty",
@@ -825,37 +1175,44 @@ static char *ax_dump_inner(const char *udid_c, LighHostError *err) {
         return strdup(s.UTF8String);
     }
 
-    id rootElement = nil;
-    @try {
-        SEL sel = NSSelectorFromString(@"macPlatformElementFromTranslation:");
-        IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
-        id (*fn)(id, SEL, id) = (id (*)(id, SEL, id))imp;
-        rootElement = fn(g_translator, sel, translation);
-        if (rootElement) {
-            stamp_element(token, rootElement);
-            stamp_subtree(token, rootElement, 0);
-        }
-    } @catch (NSException *ex) {
-        set_err(err, 55, "macPlatformElement threw");
-        [g_dispatcher unregisterToken:token];
-        return NULL;
-    }
-
+    id rootElement = ax_mac_root_from_translation(translation, token);
     if (!rootElement) {
         set_err(err, 56, "no mac platform element");
         [g_dispatcher unregisterToken:token];
         return NULL;
     }
 
-    CGSize pointSize = device_point_size(device);
     CGRect rootMac = ax_frame(rootElement);
-    g_node_count = 0;
-    NSDictionary *root = walk_element(rootElement, rootMac, pointSize, 0, @"", nil, 0, YES);
-    if ([root isKindOfClass:[NSMutableDictionary class]]) {
-        recover_childless_chrome((NSMutableDictionary *)root, token, rootMac, pointSize);
-    }
+    NSDictionary *root = ax_walk_tree(rootElement, token, pointSize);
     NSMutableArray *elements = [NSMutableArray array];
     flatten_interactive(root, elements, NO);
+
+    // Prefer foreign-process occlusion when it owns interactive content.
+    id surfRoot = nil;
+    NSString *surfBundle = nil, *surfProc = nil, *surfRole = nil;
+    int surfPid = 0;
+    if (ax_resolve_system_surface(udid, token, pointSize, rootMac, frontmostPid,
+                                  &surfRoot, &surfBundle, &surfProc, &surfRole, &surfPid)
+        && surfRoot) {
+        NSDictionary *surfTree = ax_walk_tree(surfRoot, token, pointSize);
+        NSMutableArray *surfElements = [NSMutableArray array];
+        flatten_interactive(surfTree, surfElements, NO);
+        NSUInteger surfUseful = ax_useful_element_count(surfElements);
+        NSUInteger hostUseful = ax_useful_element_count(elements);
+        if (surfUseful >= 2 || (surfUseful > 0 && hostUseful < 4) || surfUseful > hostUseful) {
+            [g_dispatcher unregisterToken:token];
+            NSDictionary *payload = ax_system_surface_payload(
+                surfTree, surfElements, pointSize, surfBundle, surfProc, surfRole, surfPid);
+            NSError *jsonErr = nil;
+            NSData *data = [NSJSONSerialization dataWithJSONObject:payload options:0 error:&jsonErr];
+            if (!data) {
+                set_err(err, 57, "JSON serialize failed");
+                return NULL;
+            }
+            NSString *s = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+            return strdup(s.UTF8String);
+        }
+    }
 
     [g_dispatcher unregisterToken:token];
 
@@ -865,6 +1222,7 @@ static char *ax_dump_inner(const char *udid_c, LighHostError *err) {
         @"elements": elements,
         @"element_count": @(elements.count),
         @"point_size": @{ @"width": @(pointSize.width), @"height": @(pointSize.height) },
+        @"ax_source": @"frontmost",
     };
     NSError *jsonErr = nil;
     NSData *data = [NSJSONSerialization dataWithJSONObject:payload options:0 error:&jsonErr];
@@ -963,48 +1321,39 @@ bool ligh_host_ax_press(const char *udid_c, const char *target_c, int by_label, 
         NSDate *deadline = [NSDate dateWithTimeIntervalSinceNow:5.0];
         [g_dispatcher registerDevice:device token:token deadline:deadline];
 
-        id translation = nil;
-        @try {
-            SEL sel = NSSelectorFromString(@"frontmostApplicationWithDisplayId:bridgeDelegateToken:");
-            IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
-            id (*fn)(id, SEL, uint32_t, id) = (id (*)(id, SEL, uint32_t, id))imp;
-            translation = fn(g_translator, sel, 0, token);
-            if (translation) stamp_token(token, translation);
-        } @catch (NSException *ex) {
-            [g_dispatcher unregisterToken:token];
-            set_err(err, 54, "frontmostApplication threw");
-            return false;
+        NSString *target = [NSString stringWithUTF8String:target_c];
+        CGSize pointSize = device_point_size(device);
+
+        // Prefer foreign-process occlusion (auth / share / permission) when present.
+        id surfRoot = nil;
+        NSString *surfBundle = nil, *surfProc = nil, *surfRole = nil;
+        int surfPid = 0;
+        if (ax_resolve_system_surface(udid, token, pointSize, CGRectZero, 0,
+                                      &surfRoot, &surfBundle, &surfProc, &surfRole, &surfPid)
+            && surfRoot) {
+            id element = by_label
+                ? find_element_by_label(surfRoot, target, 0)
+                : find_element_by_ident(surfRoot, target, 0);
+            if (element && ax_perform_press(element)) {
+                [g_dispatcher unregisterToken:token];
+                return true;
+            }
         }
 
+        id translation = ax_frontmost_translation(token);
         if (!translation) {
             [g_dispatcher unregisterToken:token];
             set_err(err, 56, "no frontmost translation");
             return false;
         }
 
-        id rootElement = nil;
-        @try {
-            SEL sel = NSSelectorFromString(@"macPlatformElementFromTranslation:");
-            IMP imp = class_getMethodImplementation(object_getClass(g_translator), sel);
-            id (*fn)(id, SEL, id) = (id (*)(id, SEL, id))imp;
-            rootElement = fn(g_translator, sel, translation);
-            if (rootElement) {
-                stamp_element(token, rootElement);
-                stamp_subtree(token, rootElement, 0);
-            }
-        } @catch (NSException *ex) {
-            [g_dispatcher unregisterToken:token];
-            set_err(err, 55, "macPlatformElement threw");
-            return false;
-        }
-
+        id rootElement = ax_mac_root_from_translation(translation, token);
         if (!rootElement) {
             [g_dispatcher unregisterToken:token];
             set_err(err, 56, "no mac platform element");
             return false;
         }
 
-        NSString *target = [NSString stringWithUTF8String:target_c];
         id element = by_label
             ? find_element_by_label(rootElement, target, 0)
             : find_element_by_ident(rootElement, target, 0);

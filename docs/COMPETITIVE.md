@@ -44,8 +44,12 @@ HostCapability (Xcode objectVersion, watchOS, disk, iOS runtime)
 | `ok` | motor-proven chrome + goal postconditions |
 | `missing_watchos_runtime` | pbx has Watch product; host has no watchOS — **skip**, don't thrash |
 | `xcode_format_too_new` | objectVersion > host max — **skip** |
-| `discover_no_chrome` | refuse `REPLACE_ME` placeholders |
+| `app_crashed` | process dead + recent DiagnosticReports — **not** discover_no_chrome; open `.ips` |
+| `app_not_running` | expected bundle absent from sim launchctl |
+| `discover_no_chrome` | app alive, eyes ok, still no motor-proven chrome — refuse `REPLACE_ME` |
 | `eyes_unusable` | recover once, then fail-closed |
+
+**Agent-speed eyes (system surfaces):** hit-test occlusion → classify role (auth/share/permission) → `overlay: system_surface`. Motor policy from role table (auth never auto-dismisses).
 
 **Reproduce:** `./scripts/gate-oss-stranger-batch.sh` · URLs: `scripts/oss-stranger-urls.txt` · API: `scripts/ligh_oss_smoke.py` · contract: [`OSS_PIPELINE.md`](OSS_PIPELINE.md) · artifact: [`oss-stranger-trial-latest.json`](assets/oss-stranger-trial-latest.json)
 

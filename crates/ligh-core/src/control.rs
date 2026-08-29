@@ -124,6 +124,10 @@ pub enum Overlay {
     Keyboard,
     Alert,
     Sheet,
+    /// Foreign-process occlusion (auth / share / permission / …).
+    /// Role lives on `ObserveSnapshot.system_surface`; motor uses [`crate::system_surface::SurfaceMotorPolicy`].
+    #[serde(alias = "system_auth")]
+    SystemSurface,
     Transition,
 }
 
@@ -134,6 +138,7 @@ impl Overlay {
             Self::Keyboard => "keyboard",
             Self::Alert => "alert",
             Self::Sheet => "sheet",
+            Self::SystemSurface => "system_surface",
             Self::Transition => "transition",
         }
     }
@@ -157,6 +162,8 @@ pub enum FaultClass {
     AppNotForeground,
     /// Expected app process is not running.
     AppNotRunning,
+    /// Expected app exited with a recent DiagnosticReports crash (not “no chrome”).
+    AppCrashed,
     MotorRejected,
     Timeout,
     /// Target exists but an overlay prevents a clear path and could not be cleared.
@@ -209,6 +216,7 @@ impl FaultClass {
             Self::WrongSurface => "wrong_surface",
             Self::AppNotForeground => "app_not_foreground",
             Self::AppNotRunning => "app_not_running",
+            Self::AppCrashed => "app_crashed",
             Self::MotorRejected => "motor_rejected",
             Self::MotorNoEffect => "motor_no_effect",
             Self::StaleSnapshot => "stale_snapshot",
@@ -237,9 +245,8 @@ impl FaultClass {
             | Self::Timeout
             | Self::WrongSurface
             | Self::AppNotForeground
-            | Self::AppNotRunning => {
-                FaultDomain::Session
-            }
+            | Self::AppNotRunning => FaultDomain::Session,
+            Self::AppCrashed => FaultDomain::App,
             Self::EyesUnusable | Self::TransitionInProgress => FaultDomain::Perception,
             Self::TargetMissing => FaultDomain::Planning,
             Self::MotorRejected
@@ -307,7 +314,8 @@ impl CapabilityResult {
             FaultClass::StaleSnapshot => ActionOutcome::TargetStale,
             FaultClass::WrongSurface
             | FaultClass::AppNotForeground
-            | FaultClass::AppNotRunning => ActionOutcome::WrongSurface,
+            | FaultClass::AppNotRunning
+            | FaultClass::AppCrashed => ActionOutcome::WrongSurface,
             FaultClass::TransitionInProgress => ActionOutcome::TransitionInProgress,
             FaultClass::Infra | FaultClass::EyesUnusable | FaultClass::Timeout => {
                 ActionOutcome::InfrastructureFault
@@ -336,7 +344,13 @@ impl CapabilityResult {
 }
 
 pub fn overlay_from_snapshot(snap: &ObserveSnapshot) -> Overlay {
-    if snap.eyes_unusable || snap.ax_quality == "transition" {
+    if snap.system_surface.is_some()
+        || snap.ax_source.as_deref() == Some("system_surface")
+        || snap.ax_source.as_deref() == Some("system_auth")
+    {
+        return Overlay::SystemSurface;
+    }
+    if snap.ax_quality == "transition" {
         return Overlay::Transition;
     }
     let Some(scene) = snap.scene.as_ref() else {
@@ -371,6 +385,17 @@ pub fn phase_from_snapshot(snap: &ObserveSnapshot, has_udid: bool) -> SessionPha
 }
 
 pub fn eyes_unusable(snap: &ObserveSnapshot) -> bool {
+    // Foreign-process AX is first-class when the dump settled ready.
+    if snap.system_surface.is_some() && snap.ax_quality == "ready" {
+        return false;
+    }
+    if matches!(
+        snap.ax_source.as_deref(),
+        Some("system_surface") | Some("system_auth")
+    ) && snap.ax_quality == "ready"
+    {
+        return false;
+    }
     let aq = snap.ax_quality.as_str();
     aq == "empty" || aq == "transition" || aq == "error" || !snap.settled
 }
@@ -418,6 +443,10 @@ mod tests {
             eyes_unusable: false,
             overlay: None,
             screen_sig: None,
+            ax_source: None,
+            ax_bundle: None,
+            system_surface: None,
+            process_health: None,
         };
         stamp_control_fields(&mut s, true);
         s
@@ -480,6 +509,7 @@ mod tests {
         let cases = [
             (FaultClass::Infra, FaultDomain::Session),
             (FaultClass::WrongSurface, FaultDomain::Session),
+            (FaultClass::AppCrashed, FaultDomain::App),
             (FaultClass::EyesUnusable, FaultDomain::Perception),
             (FaultClass::TransitionInProgress, FaultDomain::Perception),
             (FaultClass::TargetMissing, FaultDomain::Planning),
@@ -491,5 +521,14 @@ mod tests {
         for (fault, expected) in cases {
             assert_eq!(fault.owner(), expected, "{fault:?}");
         }
+    }
+
+    #[test]
+    fn system_auth_overlay_not_transition() {
+        let mut s = snap("ready", true, 4);
+        s.ax_source = Some("system_surface".into());
+        stamp_control_fields(&mut s, true);
+        assert_eq!(s.overlay.as_deref(), Some("system_surface"));
+        assert!(!s.eyes_unusable);
     }
 }

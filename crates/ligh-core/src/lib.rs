@@ -7,6 +7,7 @@ pub mod device;
 pub mod error;
 pub mod feel;
 pub mod observe;
+pub mod process_health;
 pub mod profile;
 pub mod qa;
 pub mod repair;
@@ -14,6 +15,7 @@ pub mod rpc;
 pub mod scene;
 pub mod speculate;
 pub mod state;
+pub mod system_surface;
 pub mod uxgraph;
 
 pub use autopilot::{
@@ -39,6 +41,13 @@ pub use observe::{
     node_viewport_hittable,
     rank_candidates, tab_chrome_alias_matches, AccessibilityTree, FrameMeta, ObserveSnapshot,
     SceneMeta, SenseEvent, ACTIONABLE_TOPK, OBSERVE_SCHEMA_VERSION,
+};
+pub use process_health::{
+    fault_from_process_health, probe_process_health, ProcessHealth, CRASH_RECENT_SECS,
+};
+pub use system_surface::{
+    classify_system_process, policy_for_overlay, system_surface_from_ax_dump, SurfaceMotorPolicy,
+    SystemSurfaceInfo, SystemSurfaceRole,
 };
 pub use feel::{
     build_feel, feel_agent_view, suggest_act, FeelBlock, FeelDelta, FeelIR, FeelMeta, FeelPhase,
